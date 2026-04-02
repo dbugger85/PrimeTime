@@ -1,85 +1,126 @@
-import type { NormalizedEvent, TimelineSegment, WatchabilityResult, WatchRecommendation } from '@/types/scoring';
+/**
+ * Event-based football watchability scorer — 0 to 100 scale.
+ *
+ * Formula has four independent components that sum to a final score:
+ *
+ *   1. Goal Volume       — diminishing-returns points per goal (max ≈ 83)
+ *   2. Match Closeness   — bonus/penalty based on goal difference
+ *   3. Action Volume     — points per shot on target (max 15)
+ *   4. Drama Factor      — flat bonuses for red cards, penalties, late goals, ET
+ *
+ * Calibration targets:
+ *   • 2-goal match (any result)   → 46–71 ("Solid" or just into "Watchable")
+ *   • 2-1 or 1-1                  → 71–79 ("Watchable")
+ *   • 3-goal match (tight result) → 79–89 ("Watchable")
+ *   • 4+ goals or drama events    → 90+ ("Thriller")
+ *   • Blowout 4-0                 → ~58 ("Solid")
+ */
+import type { NormalizedEvent, TimelineSegment, WatchabilityResult, WatchRecommendation, WatchabilityLabel } from '@/types/scoring';
 import type { MatchEvent } from '@/types/match';
 
 const MATCH_DURATION = 95;
 const SEGMENT_SIZE = 5;
 
-// Recalibrated weights:
-// Targets: 1-goal game ≈ 1.5–2, 2-1 ≈ 3–4, 3-2 ≈ 5–6, 4-goal thriller ≈ 7–8, 6+ goals + drama ≈ 9–10
-const EVENT_WEIGHTS: Record<string, number> = {
-  GOAL: 6.0,
-  OWN_GOAL: 5.0,
-  PENALTY: 2.5,      // scored or saved — still high drama
-  RED_CARD: 3.5,     // game-changing but doesn't add excitement like a goal
-  YELLOW_RED: 2.0,
-  VAR: 1.2,
-  YELLOW_CARD: 0.3,
-  SUBSTITUTION: 0.1,
-};
+// ─── Component weights ─────────────────────────────────────────────────────
+
+/** Diminishing returns per goal. Goals beyond index 4 contribute 5 pts each. */
+const GOAL_BRACKETS = [20, 18, 15, 10, 7];
+
+/**
+ * Closeness bonus/penalty based on absolute goal difference.
+ *   0 diff (draw)  → +25
+ *   1 diff         → +18
+ *   2 diff         → +8
+ *   3 diff         → +3
+ *   4+ diff        → -5 (blowout penalty)
+ */
+const CLOSENESS_BY_DIFF = [25, 18, 8, 3];
+const BLOWOUT_PENALTY = -5;
+
+const DRAMA_RED_CARD = 8;       // per card, max 2 applied
+const DRAMA_PENALTY = 5;        // per penalty, max 2 applied
+const DRAMA_LATE_GOAL = 4;      // per goal in min 75+, max 2 applied
+const DRAMA_EXTRA_TIME = 6;     // match went to ET
+const DRAMA_SHOOTOUT = 12;      // match decided by penalties
+const DISTRIBUTION_BONUS = 5;  // goals in both halves
+
+// ─── No-data sentinel ──────────────────────────────────────────────────────
 
 const NO_DATA_RESULT: WatchabilityResult = {
   score: 0,
-  label: 'Skip',
+  label: 'Quiet',
   keyMomentCount: 0,
   hasData: false,
-  recommendation: { type: 'highlights_only', label: 'No data yet', subLabel: 'Event data is not available for this match' },
+  recommendation: {
+    type: 'highlights_only',
+    label: 'No data yet',
+    subLabel: 'Event data is not available for this match',
+  },
   timelineSegments: [],
   spoilerFreeDescription: 'No event data available',
   contextBullets: [],
+  highlightPeriods: [],
 };
 
-export function scoreFootballMatch(events: MatchEvent[]): WatchabilityResult {
+// ─── Main export ───────────────────────────────────────────────────────────
+
+/**
+ * @param events  Per-minute match events from the API
+ * @param goalDiff  Absolute goal difference from the final score (pass when available
+ *                  for accurate closeness bonus; defaults to 0 which gives draw bonus)
+ */
+export function scoreFootballMatch(events: MatchEvent[], goalDiff = 0): WatchabilityResult {
   if (events.length === 0) return NO_DATA_RESULT;
 
   const normalized = normalizeEvents(events);
   const segments = buildSegments(normalized, MATCH_DURATION);
 
-  let rawPoints = normalized.reduce((sum, e) => sum + e.weight, 0);
-
-  const firstHalfEvents = normalized.filter((e) => e.minute <= 45);
-  const secondHalfEvents = normalized.filter((e) => e.minute > 45);
-  const lateEvents = normalized.filter((e) => e.minute >= 75);
-  const extraTimeEvents = normalized.filter((e) => e.minute > 90);
-
-  // Distribution bonus — action spread across both halves (max +1.5)
-  const firstHalfScore = firstHalfEvents.reduce((s, e) => s + e.weight, 0);
-  const secondHalfScore = secondHalfEvents.reduce((s, e) => s + e.weight, 0);
-  const totalHalfScore = firstHalfScore + secondHalfScore;
-  const balance = totalHalfScore > 0
-    ? 1 - Math.abs(firstHalfScore - secondHalfScore) / totalHalfScore
-    : 0;
-  rawPoints += balance * 1.5;
-
-  // Late drama bonus (max +2.5)
-  const lateDramaBonus = Math.min(
-    lateEvents.reduce((s, e) => s + e.weight * 0.12, 0),
-    2.5
+  // ── Component 1: Goal Volume ──
+  const goals = events.filter((e) =>
+    ['GOAL', 'OWN_GOAL'].includes(e.type?.toUpperCase() ?? '')
   );
-  rawPoints += lateDramaBonus;
+  const goalVolume = computeGoalVolume(goals.length);
 
-  // Extra time bonus
-  rawPoints += extraTimeEvents.length * 1.2;
+  // ── Component 2: Match Closeness ──
+  const closeness = computeCloseness(goalDiff);
 
-  // Dead stretch penalty: gap > 25 minutes with no meaningful events
-  const sortedMinutes = normalized
-    .filter((e) => e.weight >= 1.0)
-    .map((e) => e.minute)
-    .sort((a, b) => a - b);
-  let deadStretchPenalty = 0;
-  for (let i = 1; i < sortedMinutes.length; i++) {
-    if (sortedMinutes[i] - sortedMinutes[i - 1] > 25) deadStretchPenalty += 0.5;
-  }
-  rawPoints -= deadStretchPenalty;
+  // ── Component 3: Action Volume (shots on target) ──
+  const shots = events.filter((e) => e.type?.toUpperCase() === 'SHOT_ON_TARGET').length;
+  const actionVolume = Math.min(shots, 15);
 
-  // Normalize: factor 4.5 → a 4-goal well-distributed match ≈ 7, needs 6+ goals + drama for 9+
-  const normalizationFactor = 4.5;
-  const score = Math.min(10, Math.max(1, rawPoints / normalizationFactor));
-  const finalScore = parseFloat(score.toFixed(1));
+  // ── Component 4: Drama Factor ──
+  const redCards = events.filter((e) =>
+    ['RED_CARD', 'YELLOW_RED'].includes(e.type?.toUpperCase() ?? '')
+  ).length;
+  const penalties = events.filter((e) => e.type?.toUpperCase() === 'PENALTY').length;
+  const lateGoals = goals.filter((e) => e.minute >= 75).length;
+  const hasExtraTime = events.some((e) => e.minute > 90);
+  const hasPenaltyShootout = events.some((e) =>
+    e.type?.toUpperCase() === 'PENALTY_SHOOTOUT'
+  );
 
-  const recommendation = buildRecommendation(normalized, segments, finalScore);
+  let drama = 0;
+  drama += Math.min(redCards, 2) * DRAMA_RED_CARD;
+  drama += Math.min(penalties, 2) * DRAMA_PENALTY;
+  drama += Math.min(lateGoals, 2) * DRAMA_LATE_GOAL;
+  if (hasPenaltyShootout) drama += DRAMA_SHOOTOUT;
+  else if (hasExtraTime) drama += DRAMA_EXTRA_TIME;
+
+  // ── Distribution bonus: goals in both halves ──
+  const firstHalfGoals = goals.filter((e) => e.minute <= 45).length;
+  const secondHalfGoals = goals.filter((e) => e.minute > 45).length;
+  const distribution = firstHalfGoals > 0 && secondHalfGoals > 0 ? DISTRIBUTION_BONUS : 0;
+
+  const rawScore = goalVolume + closeness + actionVolume + drama + distribution;
+  const finalScore = Math.round(Math.min(100, Math.max(0, rawScore)));
+
   const label = scoreToLabel(finalScore);
+  const recommendation = buildRecommendation(normalized, segments, finalScore);
   const peakSegment = segments.reduce((a, b) => (a.intensity > b.intensity ? a : b), segments[0]);
-  const contextBullets = buildContextBullets(normalized, finalScore, firstHalfEvents, secondHalfEvents, lateEvents, extraTimeEvents);
+  const contextBullets = buildContextBullets(
+    normalized, finalScore, goals.length, goalDiff, redCards, penalties,
+    lateGoals, firstHalfGoals, secondHalfGoals, hasExtraTime, hasPenaltyShootout
+  );
 
   return {
     score: finalScore,
@@ -90,22 +131,103 @@ export function scoreFootballMatch(events: MatchEvent[]): WatchabilityResult {
     ).length,
     recommendation,
     timelineSegments: segments,
-    spoilerFreeDescription: buildDescription(normalized, finalScore, lateEvents, firstHalfEvents),
+    spoilerFreeDescription: buildDescription(finalScore, goalDiff, lateGoals, firstHalfGoals, secondHalfGoals, hasExtraTime, hasPenaltyShootout),
     contextBullets,
+    highlightPeriods: buildHighlightPeriods(events),
     peakMinute: peakSegment?.startMinute,
   };
 }
 
+// ─── Scoring helpers ───────────────────────────────────────────────────────
+
+/**
+ * Diminishing returns: 1st goal=20, 2nd=18, 3rd=15, 4th=10, 5th+=7 pts.
+ *
+ * Proof: 2 goals=38, 3 goals=53, 4 goals=63, 5 goals=70, 6 goals=77
+ */
+function computeGoalVolume(goalCount: number): number {
+  let pts = 0;
+  for (let i = 0; i < goalCount; i++) {
+    pts += i < GOAL_BRACKETS.length ? GOAL_BRACKETS[i] : 5;
+  }
+  return pts;
+}
+
+/**
+ * Closeness bonus: tighter scoreline = more points.
+ * Blowout (4+) receives a penalty instead.
+ */
+function computeCloseness(goalDiff: number): number {
+  if (goalDiff >= CLOSENESS_BY_DIFF.length) return BLOWOUT_PENALTY;
+  return CLOSENESS_BY_DIFF[goalDiff];
+}
+
+// ─── Highlight Periods ─────────────────────────────────────────────────────
+
+/**
+ * For every Goal, Penalty, Red Card, or Big Chance, create a watch window
+ * from 60 seconds before to 15 seconds after the event.
+ * Overlapping windows are merged into a single continuous block.
+ */
+function buildHighlightPeriods(events: MatchEvent[]): string[] {
+  const KEY_TYPES = new Set([
+    'GOAL', 'OWN_GOAL', 'PENALTY', 'RED_CARD', 'YELLOW_RED', 'BIG_CHANCE',
+  ]);
+
+  // Build [start, end] windows in seconds
+  const windows = events
+    .filter((e) => KEY_TYPES.has(e.type?.toUpperCase() ?? ''))
+    .map((e) => ({
+      start: Math.max(0, e.minute * 60 - 60), // 60s before
+      end: e.minute * 60 + 15,                 // 15s after
+    }))
+    .sort((a, b) => a.start - b.start);
+
+  // Merge overlapping windows
+  const merged: Array<{ start: number; end: number }> = [];
+  for (const w of windows) {
+    const last = merged[merged.length - 1];
+    if (last && w.start <= last.end) {
+      last.end = Math.max(last.end, w.end);
+    } else {
+      merged.push({ ...w });
+    }
+  }
+
+  return merged.map((w) => `${toTimestamp(w.start)} to ${toTimestamp(w.end)}`);
+}
+
+function toTimestamp(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+// ─── Normalised events + segments ─────────────────────────────────────────
+
+// Event weights used only for timeline intensity and keyMomentCount
+const TIMELINE_WEIGHTS: Record<string, number> = {
+  GOAL: 6,
+  OWN_GOAL: 5,
+  PENALTY: 4,
+  RED_CARD: 4,
+  YELLOW_RED: 3,
+  BIG_CHANCE: 3,
+  VAR: 2,
+  YELLOW_CARD: 1,
+  SUBSTITUTION: 0.5,
+};
+
 function normalizeEvents(events: MatchEvent[]): NormalizedEvent[] {
   return events.map((e) => {
-    const type = e.type?.toUpperCase() || '';
-    const weight = EVENT_WEIGHTS[type] ?? 0.3;
+    const type = e.type?.toUpperCase() ?? '';
+    const weight = TIMELINE_WEIGHTS[type] ?? 1;
     const isLateGame = e.minute >= 75;
 
     let excitementTier: NormalizedEvent['excitementTier'] = 'low';
     if (weight >= 5) excitementTier = 'critical';
-    else if (weight >= 2.5) excitementTier = 'high';
-    else if (weight >= 1) excitementTier = 'medium';
+    else if (weight >= 3) excitementTier = 'high';
+    else if (weight >= 1.5) excitementTier = 'medium';
 
     const categoryMap: Record<string, string> = {
       GOAL: 'Key Moment',
@@ -113,6 +235,7 @@ function normalizeEvents(events: MatchEvent[]): NormalizedEvent[] {
       RED_CARD: 'Game Changer',
       YELLOW_RED: 'Game Changer',
       PENALTY: 'Penalty',
+      BIG_CHANCE: 'Big Chance',
       VAR: 'VAR Review',
       YELLOW_CARD: 'Booking',
       SUBSTITUTION: 'Tactical Change',
@@ -140,75 +263,106 @@ function buildSegments(events: NormalizedEvent[], duration: number): TimelineSeg
   return segments.map((s) => ({ ...s, intensity: s.intensity / maxIntensity }));
 }
 
+// ─── Context bullets ───────────────────────────────────────────────────────
+
 function buildContextBullets(
   events: NormalizedEvent[],
   score: number,
-  firstHalf: NormalizedEvent[],
-  secondHalf: NormalizedEvent[],
-  lateEvents: NormalizedEvent[],
-  extraTime: NormalizedEvent[]
+  goalCount: number,
+  goalDiff: number,
+  redCards: number,
+  penalties: number,
+  lateGoals: number,
+  fhGoals: number,
+  shGoals: number,
+  hasExtraTime: boolean,
+  hasPenaltyShootout: boolean
 ): string[] {
   const bullets: string[] = [];
 
-  const keyMoments = events.filter((e) => e.excitementTier === 'critical' || e.excitementTier === 'high');
-  const gameChangers = events.filter((e) => e.category === 'Game Changer');
-  const penalties = events.filter((e) => e.category === 'Penalty');
-  const varReviews = events.filter((e) => e.category === 'VAR Review');
-  const lateKeyMoments = lateEvents.filter((e) => e.excitementTier === 'critical' || e.excitementTier === 'high');
-
-  // Key moments count
-  if (keyMoments.length === 0) {
-    bullets.push('Very few significant events in this match');
-  } else if (keyMoments.length === 1) {
-    bullets.push('Only 1 key moment in the entire match');
+  // Overall activity — no numbers exposed
+  if (goalCount === 0) {
+    bullets.push('No goals — match decided by other factors');
+  } else if (goalCount >= 6) {
+    bullets.push('Relentlessly eventful from start to finish');
+  } else if (goalCount >= 4) {
+    bullets.push('High activity level throughout');
+  } else if (goalCount >= 2) {
+    bullets.push('A decent amount of action across the match');
   } else {
-    bullets.push(`${keyMoments.length} key moments across the match`);
+    bullets.push('Largely quiet with one significant moment');
   }
 
-  // Action distribution
-  const fhKey = firstHalf.filter((e) => e.excitementTier === 'critical' || e.excitementTier === 'high').length;
-  const shKey = secondHalf.filter((e) => e.excitementTier === 'critical' || e.excitementTier === 'high').length;
-  if (fhKey > 0 && shKey > 0) {
-    if (fhKey > shKey * 2) bullets.push('Most of the action came in the first half');
-    else if (shKey > fhKey * 2) bullets.push('Second half significantly more eventful than the first');
+  // Closeness — no numbers, tension level only
+  if (hasPenaltyShootout) {
+    bullets.push('Required a penalty shootout to find a winner');
+  } else if (hasExtraTime) {
+    bullets.push('Needed extra time — still level after 90 minutes');
+  } else if (goalDiff === 0) {
+    bullets.push('Teams level at the final whistle');
+  } else if (goalDiff === 1) {
+    bullets.push('Decided on the finest of margins');
+  } else if (goalDiff >= 4) {
+    bullets.push('Result not in serious doubt for much of the match');
+  } else {
+    bullets.push('Winner emerged with some comfort in the end');
+  }
+
+  // Half distribution
+  if (fhGoals > 0 && shGoals > 0) {
+    if (shGoals > fhGoals * 1.5) bullets.push('Second half significantly more eventful');
+    else if (fhGoals > shGoals * 1.5) bullets.push('First half was the livelier of the two');
     else bullets.push('Action spread fairly across both halves');
-  } else if (fhKey > 0) {
-    bullets.push('All major events happened in the first half');
-  } else if (shKey > 0) {
-    bullets.push('First half was quiet — second half delivered the action');
+  } else if (shGoals > 0 && fhGoals === 0) {
+    bullets.push('Quiet first half — action came after the break');
+  } else if (fhGoals > 0 && shGoals === 0) {
+    bullets.push('Everything happened in the first half');
   }
 
-  // Late drama
-  if (extraTime.length > 0) {
-    bullets.push(`Drama continued into extra time (${extraTime.length} event${extraTime.length > 1 ? 's' : ''})`);
-  } else if (lateKeyMoments.length >= 2) {
-    bullets.push(`${lateKeyMoments.length} key moments in the final 15 minutes`);
-  } else if (lateKeyMoments.length === 1) {
-    bullets.push('A key moment in the final 15 minutes changed the game');
-  }
+  // Drama extras
+  if (lateGoals >= 1) bullets.push('Late drama changed the picture');
+  if (redCards >= 1) bullets.push(`A red card altered the balance of play`);
+  if (penalties >= 1) bullets.push('A penalty added to the tension');
 
-  // Game changers (red cards)
-  if (gameChangers.length >= 2) {
-    bullets.push(`${gameChangers.length} game-changing events altered the balance of play`);
-  } else if (gameChangers.length === 1) {
-    bullets.push('A game-changing event shifted the dynamic');
-  }
+  return bullets.slice(0, 4);
+}
 
-  // Penalties
-  if (penalties.length >= 2) {
-    bullets.push(`${penalties.length} penalties were awarded`);
-  } else if (penalties.length === 1) {
-    bullets.push('A penalty added to the tension');
-  }
+// ─── Description ──────────────────────────────────────────────────────────
 
-  // VAR
-  if (varReviews.length >= 2) {
-    bullets.push(`${varReviews.length} VAR reviews added controversy`);
-  } else if (varReviews.length === 1) {
-    bullets.push('A VAR review caused a stoppage');
+function buildDescription(
+  score: number,
+  goalDiff: number,
+  lateGoals: number,
+  fhGoals: number,
+  shGoals: number,
+  hasExtraTime: boolean,
+  hasPenaltyShootout: boolean
+): string {
+  if (hasPenaltyShootout) return 'An epic encounter that could not be settled in normal time';
+  if (hasExtraTime) return 'A tightly contested match that went beyond 90 minutes';
+  if (score >= 90) {
+    if (lateGoals >= 2) return 'An exceptional match — drama from start to finish with a frenetic finale';
+    return 'A high-intensity match packed with action throughout';
   }
+  if (score >= 70) {
+    if (lateGoals >= 1) return 'An exciting match that really came alive in the final stages';
+    if (shGoals > fhGoals) return 'A match that built momentum across both halves';
+    return 'A good match with several significant moments';
+  }
+  if (score >= 40) {
+    if (goalDiff === 0) return 'A competitive encounter — neither side could find a winner';
+    return 'Some interesting moments but lacking consistent action';
+  }
+  return 'A quiet affair — limited action throughout';
+}
 
-  return bullets.slice(0, 4); // cap at 4 bullets
+// ─── Label + Recommendation ───────────────────────────────────────────────
+
+function scoreToLabel(score: number): WatchabilityLabel {
+  if (score >= 90) return 'Thriller';
+  if (score >= 70) return 'Watchable';
+  if (score >= 40) return 'Solid';
+  return 'Quiet';
 }
 
 function buildRecommendation(
@@ -216,30 +370,36 @@ function buildRecommendation(
   segments: TimelineSegment[],
   score: number
 ): WatchRecommendation {
-  if (score >= 8.5) {
+  if (score >= 90) {
     return { type: 'full', label: 'Watch the full match', subLabel: 'Action throughout — do not miss this one' };
   }
 
-  const firstHalfIntensity = segments.filter((s) => s.startMinute < 45).reduce((sum, s) => sum + s.intensity, 0);
-  const secondHalfIntensity = segments.filter((s) => s.startMinute >= 45).reduce((sum, s) => sum + s.intensity, 0);
+  const firstHalfIntensity = segments
+    .filter((s) => s.startMinute < 45)
+    .reduce((sum, s) => sum + s.intensity, 0);
+  const secondHalfIntensity = segments
+    .filter((s) => s.startMinute >= 45)
+    .reduce((sum, s) => sum + s.intensity, 0);
   const final20Events = events.filter((e) => e.minute >= 70);
-  const highLateEvents = final20Events.filter((e) => e.excitementTier === 'critical' || e.excitementTier === 'high');
+  const highLateEvents = final20Events.filter(
+    (e) => e.excitementTier === 'critical' || e.excitementTier === 'high'
+  );
 
-  if (score >= 6.5 && highLateEvents.length >= 2 && firstHalfIntensity < secondHalfIntensity * 0.45) {
+  if (score >= 70 && highLateEvents.length >= 2 && firstHalfIntensity < secondHalfIntensity * 0.45) {
     return { type: 'second_half', label: 'Watch from half-time', subLabel: 'The second half is where the action is' };
   }
 
-  if (highLateEvents.length >= 2 && score >= 5.5) {
+  if (highLateEvents.length >= 2 && score >= 50) {
     const startMinute = Math.max(60, (final20Events[0]?.minute ?? 70) - 5);
     return {
       type: 'final_n_minutes',
       startMinute,
       label: `Jump to minute ${startMinute}`,
-      subLabel: `${highLateEvents.length} key moments in the final stretch`,
+      subLabel: `Key moments in the final stretch`,
     };
   }
 
-  if (score >= 5) {
+  if (score >= 40) {
     let bestStart = 0;
     let bestSum = 0;
     for (const seg of segments) {
@@ -253,42 +413,4 @@ function buildRecommendation(
   }
 
   return { type: 'highlights_only', label: 'Highlights only', subLabel: 'A quiet match — save your time for the recap' };
-}
-
-function buildDescription(
-  events: NormalizedEvent[],
-  score: number,
-  lateEvents: NormalizedEvent[],
-  firstHalfEvents: NormalizedEvent[]
-): string {
-  const criticalCount = events.filter((e) => e.excitementTier === 'critical').length;
-  const lateKey = lateEvents.filter((e) => e.excitementTier === 'critical' || e.excitementTier === 'high').length;
-
-  if (score >= 8.5) {
-    if (lateKey >= 2) return 'An exceptional match — drama from start to finish with a frenetic finale';
-    return 'A high-intensity match packed with action throughout';
-  }
-  if (score >= 7) {
-    if (lateKey >= 2) return 'An exciting match that really came alive in the final stages';
-    if (firstHalfEvents.filter((e) => e.excitementTier === 'critical').length >= 2)
-      return 'Plenty of early action, with the match settled before the end';
-    return 'A good match with several significant moments';
-  }
-  if (score >= 5.5) {
-    if (lateKey >= 1) return 'A slow burner — quiet early on but livened up towards the end';
-    return 'Some interesting passages of play but not consistently exciting';
-  }
-  if (score >= 3.5) {
-    if (criticalCount >= 1) return 'A largely quiet match with one moment of real significance';
-    return 'A forgettable match with limited action throughout';
-  }
-  return 'A very quiet affair — nothing much to write home about';
-}
-
-function scoreToLabel(score: number): WatchabilityResult['label'] {
-  if (score >= 8.5) return 'Must Watch';
-  if (score >= 6.5) return 'Worth It';
-  if (score >= 4.5) return 'Selective';
-  if (score >= 2.5) return 'Highlights';
-  return 'Skip';
 }

@@ -27,6 +27,8 @@ export interface Match {
   status: 'SCHEDULED' | 'IN_PLAY' | 'PAUSED' | 'FINISHED' | 'POSTPONED';
   duration?: number; // total minutes (90 for football, varies for F1)
   streamingServices: StreamingServiceId[];
+  /** Final score — only present for FINISHED matches */
+  result?: { home: number | null; away: number | null };
 }
 
 export interface MatchEvent {

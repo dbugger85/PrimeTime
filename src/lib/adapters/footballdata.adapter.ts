@@ -12,6 +12,7 @@ interface FDMatch {
   homeTeam: { shortName: string; name: string };
   awayTeam: { shortName: string; name: string };
   competition: { id: string; code: string; name: string };
+  score?: { fullTime?: { home: number | null; away: number | null } };
 }
 
 interface FDEvent {
@@ -24,6 +25,7 @@ interface FDEvent {
 
 export function adaptFDMatch(raw: FDMatch): Match {
   const competitionId = raw.competition.code || String(raw.competition.id);
+  const ft = raw.score?.fullTime;
   return {
     id: String(raw.id),
     sport: 'football',
@@ -36,6 +38,7 @@ export function adaptFDMatch(raw: FDMatch): Match {
     status: mapStatus(raw.status),
     duration: 90,
     streamingServices: getServicesForCompetition(competitionId),
+    result: ft != null ? { home: ft.home, away: ft.away } : undefined,
   };
 }
 

@@ -8,11 +8,10 @@ interface WatchabilityBadgeProps {
 }
 
 const LABEL_STYLES: Record<WatchabilityLabel, string> = {
-  'Must Watch': 'bg-emerald-500 text-white',
-  'Worth It': 'bg-green-400 text-white',
-  'Selective': 'bg-amber-400 text-white',
-  'Highlights': 'bg-orange-400 text-white',
-  'Skip': 'bg-zinc-400 text-white',
+  'Thriller':  'bg-emerald-500 text-white',
+  'Watchable': 'bg-green-400 text-white',
+  'Solid':     'bg-amber-400 text-white',
+  'Quiet':     'bg-zinc-400 text-white',
 };
 
 export function WatchabilityBadge({ score, label, size = 'sm' }: WatchabilityBadgeProps) {
@@ -24,7 +23,7 @@ export function WatchabilityBadge({ score, label, size = 'sm' }: WatchabilityBad
         size === 'sm' ? 'px-3 py-1 text-xs' : 'px-4 py-2 text-sm'
       )}
     >
-      <span className="tabular-nums">{score.toFixed(1)}</span>
+      <span className="tabular-nums">{Math.round(score)}/100</span>
       <span className="opacity-90">{label}</span>
     </div>
   );

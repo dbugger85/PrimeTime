@@ -55,15 +55,19 @@ async function getFootballScore(id: string) {
 
   const data = await res.json();
 
+  const s = data.score;
+  const goalDiff = s?.fullTime
+    ? Math.abs((s.fullTime.home ?? 0) - (s.fullTime.away ?? 0))
+    : 0;
+
   // Best case: football-data.org paid tier returns per-minute events
   const goals: unknown[] = data.goals ?? [];
   const bookings: unknown[] = data.bookings ?? [];
   if (goals.length > 0 || bookings.length > 0) {
     const events = adaptFDEvents([...goals, ...bookings] as Parameters<typeof adaptFDEvents>[0]);
-    return scoreFootballMatch(events);
+    return scoreFootballMatch(events, goalDiff);
   }
 
-  const s = data.score;
   if (!s?.fullTime) return scoreFootballMatch([]);
 
   // Second choice: try API-Football for exact event minutes (if key configured)
@@ -77,7 +81,7 @@ async function getFootballScore(id: string) {
     if (fixtureId) {
       const apiFootballEvents = await fetchAPIFootballEvents(fixtureId);
       if (apiFootballEvents && apiFootballEvents.length > 0) {
-        return scoreFootballMatch(apiFootballEvents);
+        return scoreFootballMatch(apiFootballEvents, goalDiff);
       }
     }
   }

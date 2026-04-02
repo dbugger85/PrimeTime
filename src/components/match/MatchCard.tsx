@@ -6,10 +6,9 @@ import type { Match, StreamingServiceId } from '@/types/match';
 import { useMatchScore } from '@/hooks/useMatchScore';
 import { WatchabilityBadge } from './WatchabilityBadge';
 import { WatchRecommendation } from './WatchRecommendation';
-import { ActionTimeline } from './ActionTimeline';
 import { StreamingLinks } from './StreamingLinks';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronUp, Eye, EyeOff, RefreshCw, Zap } from 'lucide-react';
+import { ChevronDown, ChevronUp, RefreshCw, SkipForward, Zap } from 'lucide-react';
 
 interface MatchCardProps {
   match: Match;
@@ -19,7 +18,6 @@ interface MatchCardProps {
 
 export function MatchCard({ match, subscribedServices, spoilerMode }: MatchCardProps) {
   const [expanded, setExpanded] = useState(false);
-  const [localSpoilerMode, setLocalSpoilerMode] = useState(spoilerMode);
   const [scoreRequested, setScoreRequested] = useState(false);
   const isFinished = match.status === 'FINISHED';
 
@@ -32,7 +30,6 @@ export function MatchCard({ match, subscribedServices, spoilerMode }: MatchCardP
   const matchDate = new Date(match.utcDate);
   const timeAgo = formatDistanceToNow(matchDate, { addSuffix: true });
 
-  // Norway time — no extra library needed, Intl is built-in
   const norwayTime = new Intl.DateTimeFormat('no-NO', {
     timeZone: 'Europe/Oslo',
     hour: '2-digit',
@@ -54,6 +51,14 @@ export function MatchCard({ match, subscribedServices, spoilerMode }: MatchCardP
 
   const hasData = score?.hasData ?? false;
 
+  // Show result when spoilers are enabled and the match is finished with a known score
+  const showResult =
+    spoilerMode === 'show' &&
+    isFinished &&
+    match.result != null &&
+    match.result.home != null &&
+    match.result.away != null;
+
   return (
     <div
       className={cn(
@@ -71,15 +76,13 @@ export function MatchCard({ match, subscribedServices, spoilerMode }: MatchCardP
           </span>
         </div>
         <div className="flex items-center gap-2">
-          {!isFinished ? (
-            <span className="text-xs text-zinc-400">{dateLabel}</span>
-          ) : (
-            <span className="text-xs text-zinc-400" title={timeAgo}>{dateLabel}</span>
-          )}
+          <span className="text-xs text-zinc-400" title={isFinished ? timeAgo : undefined}>
+            {dateLabel}
+          </span>
         </div>
       </div>
 
-      {/* Teams */}
+      {/* Teams row — shows actual score when spoilers are on */}
       <div className="px-4 py-2">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
@@ -87,7 +90,15 @@ export function MatchCard({ match, subscribedServices, spoilerMode }: MatchCardP
               {match.homeTeam}
             </p>
           </div>
-          <span className="text-zinc-300 dark:text-zinc-600 text-sm font-light">vs</span>
+
+          {showResult ? (
+            <span className="shrink-0 text-lg font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
+              {match.result!.home} – {match.result!.away}
+            </span>
+          ) : (
+            <span className="text-zinc-300 dark:text-zinc-600 text-sm font-light shrink-0">vs</span>
+          )}
+
           <div className="flex-1 min-w-0 text-right">
             <p className="font-semibold text-base text-zinc-900 dark:text-zinc-100 truncate">
               {match.awayTeam}
@@ -96,7 +107,7 @@ export function MatchCard({ match, subscribedServices, spoilerMode }: MatchCardP
         </div>
       </div>
 
-      {/* Score / Watchability row */}
+      {/* Watchability score row */}
       {isFinished && (
         <div className="px-4 pb-3">
           {!scoreRequested ? (
@@ -174,24 +185,31 @@ export function MatchCard({ match, subscribedServices, spoilerMode }: MatchCardP
                 </ul>
               )}
 
-              <ActionTimeline
-                segments={score.timelineSegments}
-                sport={match.sport}
-                peakMinute={score.peakMinute}
-              />
+              {score.highlightPeriods.length > 0 && (
+                <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 p-3 space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <SkipForward className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
+                    <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">
+                      Fast-forward guide
+                    </span>
+                    {score.highlightPeriods[0]?.startsWith('~') && (
+                      <span className="text-xs text-zinc-400 dark:text-zinc-500">(approximate)</span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {score.highlightPeriods.map((period, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center rounded-lg bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 text-xs font-mono font-medium text-zinc-700 dark:text-zinc-200"
+                      >
+                        {period}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <WatchRecommendation recommendation={score.recommendation} />
-
-              <button
-                onClick={() => setLocalSpoilerMode((m) => (m === 'hide' ? 'show' : 'hide'))}
-                className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
-              >
-                {localSpoilerMode === 'hide' ? (
-                  <><Eye className="h-3.5 w-3.5" /> Reveal event details</>
-                ) : (
-                  <><EyeOff className="h-3.5 w-3.5" /> Hide event details</>
-                )}
-              </button>
             </div>
           )}
         </>

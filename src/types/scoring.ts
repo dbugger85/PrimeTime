@@ -32,15 +32,18 @@ export interface WatchRecommendation {
   subLabel: string;
 }
 
-export type WatchabilityLabel =
-  | 'Must Watch'
-  | 'Worth It'
-  | 'Selective'
-  | 'Highlights'
-  | 'Skip';
+/**
+ * Four verbal tiers mapped from the 0–100 score:
+ *   90–100 → Thriller
+ *   70–89  → Watchable
+ *   40–69  → Solid
+ *    0–39  → Quiet
+ */
+export type WatchabilityLabel = 'Thriller' | 'Watchable' | 'Solid' | 'Quiet';
 
 export interface WatchabilityResult {
-  score: number; // 1.0–10.0
+  /** 0–100 integer watchability score */
+  score: number;
   label: WatchabilityLabel;
   keyMomentCount: number;
   recommendation: WatchRecommendation;
@@ -48,6 +51,12 @@ export interface WatchabilityResult {
   spoilerFreeDescription: string;
   /** Short spoiler-free bullet points explaining the score */
   contextBullets: string[];
+  /**
+   * Fast-forward guide: merged time windows (e.g. ["12:15 to 13:30"])
+   * around every Goal, Penalty, Red Card and Big Chance.
+   * Empty when exact event times are not available.
+   */
+  highlightPeriods: string[];
   peakMinute?: number;
   /** False when no event data was available — do not show score as fact */
   hasData: boolean;
