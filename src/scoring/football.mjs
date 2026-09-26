@@ -69,7 +69,7 @@ export function scoreFootball(f) {
 
   // The strip on the card uses 15-minute blocks.
   const blocks = new Array(SEGMENTS).fill(0).map((_, b) => slots[b * 3] + slots[b * 3 + 1] + slots[b * 3 + 2]);
-  return { score, segments: heat(blocks), advice: footballAdvice(score, slots), reasons: t.reasons };
+  return { score, segments: heat(blocks), advice: footballAdvice(score, slots), reasons: t.reasons, result: f.result };
 }
 
 // Skip windows in whole minutes. The last 15 minutes are never skipped: whether

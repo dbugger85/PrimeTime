@@ -32,7 +32,9 @@ try {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: scheme });
     const errors = [];
     const reasonRequests = [];
+    const resultRequests = [];
     page.on('request', (r) => r.url().includes('reasons.json') && reasonRequests.push(r.url()));
+    page.on('request', (r) => r.url().includes('results.json') && resultRequests.push(r.url()));
     page.on('pageerror', (e) => errors.push(e.message));
     page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
     await page.goto(base);
@@ -97,6 +99,19 @@ try {
     await page.waitForSelector('.why:not([hidden]) li');
     assert.equal(await page.$$eval('.why:not([hidden])', (els) => els.length), 1, 'only the tapped card is revealed');
     await page.screenshot({ path: `${shots}/spoiler-shown.png` });
+    assert.equal(resultRequests.length, 0, 'results.json loaded before the second warning');
+
+    // Second level: the actual result, behind a second warning.
+    await page.click('.why:not([hidden]) .result-btn');
+    await page.waitForSelector('#spoiler-dlg[open]');
+    assert.match(await page.$eval('#spoiler-dlg h2', (e) => e.textContent), /result/i);
+    await page.click('#spoiler-dlg button[value="cancel"]');
+    assert.equal(resultRequests.length, 0, 'results.json loaded after cancelling');
+    await page.click('.why:not([hidden]) .result-btn');
+    await page.click('#spoiler-dlg button[value="ok"]');
+    await page.waitForSelector('.why .result');
+    assert.equal(await page.$$eval('.why .result', (els) => els.length), 1);
+    await page.screenshot({ path: `${shots}/result-shown.png` });
 
     // Coming up: no scores, just times (or LIVE) and services, grouped by day.
     await page.click('#views [data-view="upcoming"]');

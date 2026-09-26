@@ -27,6 +27,8 @@ const watched = new Set(store.load('pt-watched', []));
 const revealed = new Set(); // names revealed this visit only
 const whyShown = new Set(); // "Why this score?" opened this visit only
 let reasonsFile = null; // loaded only after the spoiler warning is accepted
+const resultShown = new Set(); // results revealed this visit only (after a second warning)
+let resultsFile = null; // loaded only after the second warning is accepted
 let events = [];
 let upcoming = [];
 const PAGE = 40;
@@ -134,7 +136,7 @@ function card(e) {
     why.hidden = false;
     fillWhy(why, e);
   }
-  whyBtn.onclick = () => askSpoiler(e.id);
+  whyBtn.onclick = () => askSpoiler(e.id, 'why');
 
   const w = li.querySelector('.watched');
   w.textContent = watched.has(e.id) ? 'Watched ✓' : 'Mark watched';
@@ -163,22 +165,48 @@ function fillWhy(box, e) {
   }
   box.replaceChildren(ul);
   if (note) box.append(Object.assign(document.createElement('p'), { className: 'small', textContent: note }));
+
+  // Second level: the actual result, behind another warning.
+  if (resultShown.has(e.id)) {
+    const text = resultsFile?.[e.id] ?? 'No result saved for this event yet.';
+    box.append(Object.assign(document.createElement('p'), { className: 'result', textContent: text }));
+  } else {
+    const b = Object.assign(document.createElement('button'), { type: 'button', className: 'why-btn result-btn', textContent: '⚠⚠ Show the result' });
+    b.onclick = () => askSpoiler(e.id, 'result');
+    box.append(b);
+  }
 }
 
-async function askSpoiler(id) {
+const SPOILER_LEVELS = {
+  why: {
+    title: '⚠ Spoiler warning',
+    text: 'The reasons behind a score give the game away: goals, lead changes, set scores, who came back, safety cars and more.',
+    ok: 'Show spoilers', file: './data/reasons.json', shown: whyShown,
+  },
+  result: {
+    title: '⚠⚠ Show the result?',
+    text: 'This shows the final result: the score, who won, the podium. There is no going back from this one.',
+    ok: 'Show the result', file: './data/results.json', shown: resultShown,
+  },
+};
+const spoilerFiles = { why: () => reasonsFile, result: () => resultsFile };
+
+async function askSpoiler(id, level) {
+  const cfg = SPOILER_LEVELS[level];
   const dlg = $('#spoiler-dlg');
+  dlg.querySelector('h2').textContent = cfg.title;
+  dlg.querySelector('.dlg-text').textContent = cfg.text;
+  dlg.querySelector('button[value="ok"]').textContent = cfg.ok;
   dlg.returnValue = '';
   dlg.showModal();
   await new Promise((r) => dlg.addEventListener('close', r, { once: true }));
   if (dlg.returnValue !== 'ok') return;
-  if (!reasonsFile) {
-    try {
-      reasonsFile = await (await fetch('./data/reasons.json', { cache: 'no-cache' })).json();
-    } catch {
-      reasonsFile = {};
-    }
+  if (!spoilerFiles[level]()) {
+    let file = {};
+    try { file = await (await fetch(cfg.file, { cache: 'no-cache' })).json(); } catch { /* shown as "not saved" */ }
+    if (level === 'why') reasonsFile = file; else resultsFile = file;
   }
-  whyShown.add(id);
+  cfg.shown.add(id);
   render();
 }
 

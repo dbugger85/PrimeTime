@@ -55,7 +55,14 @@ export function factsFromSummary(summary) {
     (summary.boxscore?.teams ?? []).reduce(
       (sum, t) => sum + Number(t.statistics?.find((s) => s.name === name)?.displayValue ?? 0), 0);
 
+  const team = (side) => comp.competitors.find((t) => t.homeAway === side);
+  const [home, away] = [team('home'), team('away')];
+  let result = `${home.team.displayName} ${home.score}–${away.score} ${away.team.displayName}`;
+  if (home.shootoutScore != null) result += ` (${home.shootoutScore}–${away.shootoutScore} on penalties)`;
+  else if (status === 'STATUS_FINAL_AET') result += ' (after extra time)';
+
   return {
+    result,
     goals,
     reds: events.filter((e) => /red card/i.test(e.type.text)).map((e) => minuteOf(e)),
     pens: typed(/^penalty/i),

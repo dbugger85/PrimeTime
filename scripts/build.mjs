@@ -23,9 +23,13 @@ const warn = (msg) => console.log(`::warning::${msg}`);
 const now = new Date();
 const only = process.argv[2];
 const data = loadData();
-const { events, reasons } = data;
+const { events, reasons, results } = data;
 // Saves a scored event: the spoiler-free card data, and separately the reasons behind its score.
-const save = (event, scored) => { events.set(event.id, event); reasons.set(event.id, scored.reasons); };
+const save = (event, scored) => {
+  events.set(event.id, event);
+  reasons.set(event.id, scored.reasons);
+  results.set(event.id, scored.result);
+};
 let state = data.state;
 if (state.version !== SCORING_VERSION) state = { version: SCORING_VERSION }; // formula changed: redo everything
 state.footballDays ??= {};
@@ -145,4 +149,4 @@ for (const [id, e] of events) {
 for (const r of expiringRights(now)) warn(`Streaming rights need checking: ${r} (src/rights/norway.json)`);
 
 if (!only) state.lastFull = now.toISOString(); // the live check uses this to know when a full build is due
-console.log(saveData({ events, upcoming, reasons, state }, now));
+console.log(saveData({ events, upcoming, reasons, results, state }, now));

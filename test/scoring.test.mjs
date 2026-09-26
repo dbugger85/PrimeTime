@@ -140,3 +140,13 @@ test('every score comes with reasons that add up to it (before the 0–10 cap)',
   for (const m of matchesFromSlam(fixture('tennis/usopen2026.json').events[0]).slice(0, 40)) check(scoreTennis(m));
   for (const slug of ['british-grand-prix-2025', 'japanese-grand-prix-2025']) check(race(slug));
 });
+
+test('result lines (only ever shown behind the second spoiler warning)', () => {
+  assert.equal(fb(760516).result, 'France 4–6 England');
+  assert.equal(fb(760489).result, 'Germany 1–1 Paraguay (3–4 on penalties)');
+  assert.equal(fb(760512).result, 'Norway 1–2 England (after extra time)');
+  const matches = matchesFromSlam(fixture('tennis/usopen2026.json').events[0]);
+  const final = matches.find((m) => m.round === 'Final' && m.draw.startsWith('Men'));
+  assert.equal(scoreTennis(final).result, 'Alexander Zverev beat Ben Shelton 6-3 7-6(2) 5-7 6-2');
+  assert.match(race('british-grand-prix-2025').result, /^1\. .+, 2\. .+, 3\. .+ \(won by \d+\.\d s\)$/);
+});

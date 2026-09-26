@@ -81,6 +81,7 @@ export function matchesFromSlam(event) {
         sets: a.linescores.map((s, i) => ({
           games: [s.value, b.linescores[i]?.value ?? 0],
           tiebreak: s.tiebreak != null || b.linescores[i]?.tiebreak != null,
+          tbPoints: [s.tiebreak, b.linescores[i]?.tiebreak],
         })),
       });
     }

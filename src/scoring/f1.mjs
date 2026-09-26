@@ -40,7 +40,7 @@ export function scoreF1(f) {
     values[Math.min(SEGMENTS - 1, Math.floor(((lap - 1) / f.totalLaps) * SEGMENTS))] += perLap[lap];
   }
 
-  return { score, segments: heat(values), advice: f1Advice(score, perLap, f.totalLaps), reasons: t.reasons };
+  return { score, segments: heat(values), advice: f1Advice(score, perLap, f.totalLaps), reasons: t.reasons, result: f.result };
 }
 
 // Skip windows in laps. The start (laps 1–3) and the last 15% of the race are

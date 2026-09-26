@@ -35,6 +35,7 @@ export async function fetchRaceData(sessionKey) {
     weather: await get(`weather?session_key=${sessionKey}`),
     laps: await get(`laps?session_key=${sessionKey}&driver_number=${winner}`),
     pit: await get(`pit?session_key=${sessionKey}`),
+    drivers: await get(`drivers?session_key=${sessionKey}`),
   };
 }
 
@@ -78,11 +79,22 @@ export function factsFromRace(d) {
   const overtakes = moves.filter((o) => o.lap > 1 && !undone(o));
   const startMoves = moves.filter((o) => o.lap === 1 && !undone(o)).length;
 
+  // "1. Lando Norris, 2. …, 3. … (won by 4.4 s)", names in normal case.
+  const nameOf = (num) => {
+    const full = d.drivers?.find((x) => x.driver_number === num)?.full_name;
+    return full ? full.split(' ').map((w) => w[0] + w.slice(1).toLowerCase()).join(' ') : `Car ${num}`;
+  };
+  const podium = [1, 2, 3].map((p) => d.result.find((r) => r.position === p)).filter(Boolean);
+  const gap = d.result.find((r) => r.position === 2)?.gap_to_leader;
+  const result = podium.map((r) => `${r.position}. ${nameOf(r.driver_number)}`).join(', ')
+    + (typeof gap === 'number' ? ` (won by ${gap.toFixed(1)} s)` : '');
+
   const rc = d.raceControl;
   const msgLaps = (re) => rc.filter((m) => re.test(m.message ?? '')).map((m) => m.lap_number ?? 1);
   const p2 = d.result.find((r) => r.position === 2);
 
   return {
+    result,
     totalLaps,
     overtakes: overtakes.map(({ lap, position }) => ({ lap, position })),
     startMoves,

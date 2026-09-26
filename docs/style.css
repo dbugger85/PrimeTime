@@ -191,6 +191,11 @@ body:not([data-sport="tennis"]):not([data-sport="all"]) .tennis-only { display: 
 .why .pts { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
 .why .neg .pts { color: var(--muted); }
 .why .small { margin-top: 6px; }
+.why .result-btn { margin-top: 6px; color: var(--live); }
+.why .result {
+  margin-top: 10px; padding: 10px 12px; border-radius: 8px; border: 2px solid var(--live);
+  background: var(--surface); font-weight: 700; font-size: 15px;
+}
 dialog {
   border: 1px solid var(--line); border-radius: 16px; padding: 20px; max-width: min(92vw, 420px);
   background: var(--surface); color: var(--ink);

@@ -28,7 +28,7 @@ The GitHub Actions workflow `.github/workflows/update.yml` is triggered every 15
 
 Each run does the following:
 1. Runs the code unit tests, then `scripts/auto.mjs`, then all the tests. `test/spoilers.test.mjs` checks the new `events.json`.
-2. Commits `docs/data/events.json`, `docs/data/reasons.json` and `data/state.json` as "primetime-bot".
+2. Commits `docs/data/events.json`, `docs/data/reasons.json`, `docs/data/results.json` and `data/state.json` as "primetime-bot".
 3. If anything changed, publishes `docs/` to GitHub Pages. The Pages source is "GitHub Actions".
 
 There's no server and there are no API keys. **Don't commit `docs/data/*.json` or `data/state.json` from a local build,** because the bot owns them and a local commit can conflict with its push. Discard local changes with `git checkout docs/data data`.
@@ -62,6 +62,7 @@ The competitions are in `src/competitions.mjs`. The owner chose them: the Premie
 - **Names:** tennis players are sorted alphabetically, because ESPN lists the winner second. Tennis names are hidden on the page by default, since seeing who plays a later round reveals earlier results. Tap to reveal.
 - The owner accepted that skip tips reveal a little ("quiet until 45'"). There's a toggle to turn them off.
 - **"⚠ Why this score?"** is a deliberate spoiler button the owner asked for. Each scorer returns `reasons` as `[points, label]` pairs, built with `tally()` in `common.mjs`. The build writes them to the separate `docs/data/reasons.json`, **never** into `events.json`. The page only downloads that file after the user accepts the warning dialog (`#spoiler-dlg`), and it opens only the tapped card, for this visit only. The e2e test checks the file isn't requested before then. Reason labels may name results and winners; that's their job.
+- **"⚠⚠ Show the result"** is a second level inside the breakdown. It shows a second warning, then loads `docs/data/results.json`, which has one line per event: "France 4–6 England (after extra time)", "Zverev beat Shelton 6-3 7-6(2) …" or an F1 podium with the winning margin. Scorers return it as `result`, and `store.mjs` writes it. Like the reasons, it never goes into `events.json`.
 
 ## Scoring (`src/scoring/*.mjs`, pure functions, checked in `test/scoring.test.mjs`)
 

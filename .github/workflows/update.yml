@@ -49,7 +49,7 @@ jobs:
         run: |
           git config user.name "primetime-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/data/events.json docs/data/reasons.json data/state.json
+          git add docs/data/events.json docs/data/reasons.json docs/data/results.json data/state.json
           if git diff --cached --quiet; then
             echo "Nothing changed."
             echo "changed=false" >> "$GITHUB_OUTPUT"

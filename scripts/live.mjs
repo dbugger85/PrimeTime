@@ -18,11 +18,15 @@ import { loadData, saveData } from '../src/store.mjs';
 
 const now = process.env.NOW ? new Date(process.env.NOW) : new Date(); // NOW=... pretends it's another time (for testing)
 const data = loadData();
-const { events, reasons } = data;
+const { events, reasons, results } = data;
 let upcoming = data.upcoming;
 const before = JSON.stringify([upcoming, [...events.keys()]]);
 const warn = (msg) => console.log(`::warning::${msg}`);
-const save = (event, scored) => { events.set(event.id, event); reasons.set(event.id, scored.reasons); };
+const save = (event, scored) => {
+  events.set(event.id, event);
+  reasons.set(event.id, scored.reasons);
+  results.set(event.id, scored.result);
+};
 
 // "In play" window: from 10 minutes before the start until `hours` after it.
 const inWindow = (e, hours) => {
@@ -103,5 +107,5 @@ for (const [sport, run] of Object.entries({ football: liveFootball, f1: liveF1, 
 if (JSON.stringify([upcoming, [...events.keys()]]) === before) {
   console.log('live: nothing changed');
 } else {
-  console.log(saveData({ events, upcoming, reasons, state: data.state }, now));
+  console.log(saveData({ events, upcoming, reasons, results, state: data.state }, now));
 }

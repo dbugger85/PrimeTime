@@ -21,9 +21,20 @@ const ROUND_BONUS = { Quarterfinal: 0.3, Semifinal: 0.5, Final: 0.8 };
 
 const setText = (set) => set.games.join('-');
 
+// "Alexander Zverev beat Ben Shelton 6-3 7-6(2) 5-7 6-2", from the winner's side.
+export function tennisResult(m) {
+  const w = m.winnerIndex, l = 1 - w;
+  const sets = m.sets.map((s) => {
+    const txt = `${s.games[w]}-${s.games[l]}`;
+    const loserTb = s.tbPoints?.[s.games[w] > s.games[l] ? l : w];
+    return s.tiebreak && loserTb != null ? `${txt}(${loserTb})` : txt;
+  });
+  return `${m.players[w]} beat ${m.players[l]} ${sets.join(' ')}${m.retired ? ' (retired)' : ''}`;
+}
+
 export function scoreTennis(m) {
   if (m.retired) {
-    return { score: 1, segments: [], advice: { code: 'highlights' }, reasons: [[1, 'A player retired during the match']] };
+    return { score: 1, segments: [], advice: { code: 'highlights' }, reasons: [[1, 'A player retired during the match']], result: tennisResult(m) };
   }
 
   const sets = m.sets;
@@ -50,7 +61,7 @@ export function scoreTennis(m) {
   t.add(ROUND_BONUS[m.round] ?? 0, `It's a ${m.round.toLowerCase()}`);
 
   const score = finalScore(t.total);
-  return { score, segments: [], advice: tennisAdvice(score, close, m.bestOf), reasons: t.reasons };
+  return { score, segments: [], advice: tennisAdvice(score, close, m.bestOf), reasons: t.reasons, result: tennisResult(m) };
 }
 
 export function tennisAdvice(score, close, bestOf) {
