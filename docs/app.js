@@ -1,4 +1,4 @@
-import { SPORTS, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, subtitleOf, hiddenTitleOf } from './logic.js';
+import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, subtitleOf, hiddenTitleOf } from './logic.js';
 
 const SERVICES = {
   viaplay: { name: 'Viaplay', url: 'https://viaplay.no/sport' },
@@ -10,7 +10,7 @@ const SERVICES = {
 
 const DEFAULTS = {
   view: 'replays', sport: 'all', services: [], comp: 'all', days: 30, minScore: 0, sort: 'date',
-  round: '', draw: '', names: 'tennis', hints: true, hideWatched: false,
+  round: '', draw: '', hideTennis: true, hideFootball: false, hints: true, hideWatched: false,
 };
 
 const store = {
@@ -22,7 +22,7 @@ const store = {
   },
 };
 
-const prefs = { ...DEFAULTS, ...store.load('pt-prefs', {}) };
+const prefs = { ...DEFAULTS, ...migratePrefs(store.load('pt-prefs', {})) };
 const watched = new Set(store.load('pt-watched', []));
 const revealed = new Set(); // names revealed this visit only
 const whyShown = new Set(); // "Why this score?" opened this visit only
@@ -44,42 +44,75 @@ function savePrefs() {
   limit = PAGE; // a new filter starts from the top
 }
 
+const chip = (label, n, pressed, onclick) => {
+  const b = Object.assign(document.createElement('button'), { type: 'button', className: 'chip', onclick });
+  b.append(label);
+  if (n != null) b.append(Object.assign(document.createElement('span'), { className: 'n', textContent: n }));
+  b.setAttribute('aria-pressed', String(pressed));
+  return b;
+};
+
 function renderControls() {
-  for (const b of document.querySelectorAll('#views button')) {
-    b.setAttribute('aria-pressed', String(b.dataset.view === prefs.view));
-  }
-  document.body.dataset.view = prefs.view;
-  for (const b of document.querySelectorAll('#sports button')) {
-    b.setAttribute('aria-pressed', String(b.dataset.sport === prefs.sport));
-  }
-  $('#services').replaceChildren(...Object.entries(SERVICES).map(([id, s]) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'chip';
-    b.textContent = s.name;
-    b.setAttribute('aria-pressed', String(prefs.services.includes(id)));
-    b.onclick = () => {
+  const view = prefs.view;
+  for (const b of document.querySelectorAll('#views button')) b.setAttribute('aria-pressed', String(b.dataset.view === view));
+  for (const b of document.querySelectorAll('#sports button')) b.setAttribute('aria-pressed', String(b.dataset.sport === prefs.sport));
+  document.body.dataset.view = view;
+  document.body.dataset.sport = prefs.sport;
+
+  // Show only the settings that apply to this sport.
+  for (const el of document.querySelectorAll('[data-for]')) el.hidden = !el.dataset.for.split(' ').includes(prefs.sport);
+
+  // Period choices depend on how far back the sport is kept.
+  const periods = periodOptions(prefs.sport);
+  if (!periods.some((p) => p.days === prefs.days)) prefs.days = periods.at(-1).days;
+  $('#f-days').replaceChildren(...periods.map((p) => new Option(p.label, p.days)));
+
+  const pool = view === 'upcoming' ? upcoming : events;
+  const f = facets(pool, prefs, view, watched);
+
+  // Competition chips (football and tennis only).
+  if (prefs.comp !== 'all' && !f.comps.some((c) => c.name === prefs.comp)) prefs.comp = 'all';
+  const setComp = (name) => () => { prefs.comp = name; savePrefs(); render(); };
+  $('#comps').hidden = f.comps.length < 2;
+  $('#comps').replaceChildren(
+    chip('All', null, prefs.comp === 'all', setComp('all')),
+    ...f.comps.map((c) => chip(c.name, c.n, prefs.comp === c.name, setComp(c.name))),
+  );
+
+  // Service chips: only services that carry this sport, with counts.
+  const shown = Object.keys(SERVICES).filter((id) => f.services.some((x) => x.id === id));
+  $('#services').replaceChildren(...shown.map((id) => chip(
+    SERVICES[id].name,
+    f.services.find((x) => x.id === id).n,
+    prefs.services.includes(id),
+    () => {
       prefs.services = prefs.services.includes(id) ? prefs.services.filter((x) => x !== id) : [...prefs.services, id];
       savePrefs();
       render();
-    };
-    return b;
-  }));
+    },
+  )));
+  const hiddenMine = prefs.services.filter((id) => !shown.includes(id));
+  $('#services-hint').textContent = prefs.services.length && !prefs.services.some((id) => shown.includes(id)) && hiddenMine.length
+    ? `none of yours show ${prefs.sport === 'all' ? 'these' : SPORTS[prefs.sport]}`
+    : 'tap the ones you have';
 
-  const pool = prefs.view === 'upcoming' ? upcoming : events;
-  const comps = [...new Set(pool.filter((e) => prefs.sport === 'all' || e.sport === prefs.sport).map((e) => e.compName))].sort();
-  if (prefs.comp !== 'all' && !comps.includes(prefs.comp)) prefs.comp = 'all';
-  $('#f-comp').replaceChildren(new Option('All', 'all'), ...comps.map((c) => new Option(c, c)));
-  $('#f-comp').value = prefs.comp;
+  // Minimum rating, with how many events each choice leaves.
+  $('#f-min').replaceChildren(...[0, 4, 6, 8].map((t) => new Option(`${t ? `${t}+` : 'Any'} (${f.minCounts[t]})`, t)));
+
   $('#f-days').value = String(prefs.days);
   $('#f-min').value = String(prefs.minScore);
   $('#f-sort').value = prefs.sort;
   $('#f-round').value = prefs.round;
   $('#f-draw').value = prefs.draw;
-  $('#f-names').value = prefs.names;
+  $('#f-hide-tn').checked = prefs.hideTennis;
+  $('#f-hide-fb').checked = prefs.hideFootball;
   $('#f-hints').checked = prefs.hints;
   $('#f-watched').checked = prefs.hideWatched;
-  document.body.dataset.sport = prefs.sport;
+
+  const active = activeFilters(prefs, view);
+  $('#filter-count').hidden = !active;
+  $('#filter-count').textContent = `${active} on`;
+  $('#f-reset').hidden = !active;
 }
 
 function card(e) {
@@ -94,7 +127,7 @@ function card(e) {
   li.querySelector('.when').textContent = fmt.format(new Date(e.start));
 
   const title = li.querySelector('.title');
-  if (namesHidden(e, prefs.names) && !revealed.has(e.id)) {
+  if (namesHidden(e, prefs) && !revealed.has(e.id)) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'reveal';
@@ -221,7 +254,7 @@ function soonCard(e) {
   li.querySelector('.sport').textContent = SPORTS[e.sport];
   li.querySelector('.comp').textContent = e.sport === 'f1' ? e.circuit : e.compName;
   const title = li.querySelector('.title');
-  if (namesHidden(e, prefs.names) && !revealed.has(e.id)) {
+  if (namesHidden(e, prefs) && !revealed.has(e.id)) {
     const b = Object.assign(document.createElement('button'), { type: 'button', className: 'reveal' });
     b.textContent = `${hiddenTitleOf(e)} — tap to show`;
     b.onclick = () => { revealed.add(e.id); render(); };
@@ -306,13 +339,18 @@ function bind() {
       render();
     };
   };
-  on('#f-comp', 'comp');
   on('#f-days', 'days', Number);
   on('#f-min', 'minScore', Number);
   on('#f-sort', 'sort');
   on('#f-round', 'round');
   on('#f-draw', 'draw');
-  on('#f-names', 'names');
+  on('#f-hide-tn', 'hideTennis');
+  on('#f-hide-fb', 'hideFootball');
+  $('#f-reset').onclick = () => {
+    Object.assign(prefs, { comp: 'all', days: 30, minScore: 0, sort: 'date', round: '', draw: '', hideWatched: false });
+    savePrefs();
+    render();
+  };
   on('#f-hints', 'hints');
   on('#f-watched', 'hideWatched');
 }

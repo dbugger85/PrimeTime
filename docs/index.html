@@ -33,61 +33,45 @@
     <button data-sport="f1">F1</button>
   </nav>
 
+  <nav class="comps" id="comps" aria-label="Competition" hidden></nav>
+
   <section class="services" aria-labelledby="services-label">
-    <h2 id="services-label">My services <span class="hint">tap the ones you have</span></h2>
+    <h2 id="services-label">My services <span class="hint" id="services-hint">tap the ones you have</span></h2>
     <div class="chips" id="services"></div>
   </section>
 
   <details class="filters" id="filters">
-    <summary>More filters</summary>
+    <summary><span>More filters</span> <span class="count" id="filter-count" hidden></span></summary>
     <div class="grid">
-      <label>Competition <select id="f-comp"></select></label>
-      <label class="replay-only">Period
-        <select id="f-days">
-          <option value="7">Last 7 days</option>
-          <option value="30">Last 30 days</option>
-          <option value="400">Last year</option>
-        </select>
-      </label>
-      <label class="replay-only">Minimum rating
-        <select id="f-min">
-          <option value="0">Any</option>
-          <option value="4">4+</option>
-          <option value="6">6+</option>
-          <option value="8">8+</option>
-        </select>
-      </label>
+      <label class="replay-only">Period <select id="f-days"></select></label>
+      <label class="replay-only">Minimum rating <select id="f-min"></select></label>
       <label class="replay-only">Sort
         <select id="f-sort">
           <option value="date">Newest first</option>
           <option value="score">Best first</option>
         </select>
       </label>
-      <label class="tennis-only">Tennis rounds
+      <label data-for="tennis">Rounds
         <select id="f-round">
           <option value="">All rounds</option>
           <option value="r3">Round 3 onwards</option>
           <option value="qf">Quarterfinals onwards</option>
         </select>
       </label>
-      <label class="tennis-only">Tennis draw
+      <label data-for="tennis">Draw
         <select id="f-draw">
           <option value="">Men and women</option>
           <option value="men">Men</option>
           <option value="women">Women</option>
         </select>
       </label>
-      <label>Names
-        <select id="f-names">
-          <option value="tennis">Hide tennis players</option>
-          <option value="all">Hide all names</option>
-          <option value="show">Show all names</option>
-        </select>
-      </label>
+      <label class="check" data-for="tennis all"><input type="checkbox" id="f-hide-tn"> Hide tennis players</label>
+      <label class="check" data-for="football all"><input type="checkbox" id="f-hide-fb"> Hide football teams</label>
       <label class="check replay-only"><input type="checkbox" id="f-hints"> Show skip tips</label>
       <label class="check replay-only"><input type="checkbox" id="f-watched"> Hide watched</label>
     </div>
-    <p class="small">Why hide names? In a tournament, just seeing who plays a later round tells you who won earlier. Tap a hidden name to reveal it.</p>
+    <p class="small" data-for="tennis football all">Why hide names? In a tournament, just seeing who plays a later round tells you who won earlier. Tap a hidden name to reveal it.</p>
+    <button type="button" class="reset" id="f-reset" hidden>Reset filters</button>
   </details>
 
   <main>

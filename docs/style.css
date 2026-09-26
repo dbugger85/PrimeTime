@@ -128,7 +128,17 @@ body[data-view="upcoming"] .replay-only { display: none; }
 .filters .check { display: flex; align-items: center; gap: 8px; color: var(--ink); font-size: 15px; min-height: 40px; }
 .filters .check input { width: 20px; height: 20px; accent-color: var(--accent); }
 .filters .small { padding: 0 14px 14px; }
-body:not([data-sport="tennis"]):not([data-sport="all"]) .tennis-only { display: none; }
+[hidden] { display: none !important; }
+.comps { display: flex; gap: 8px; overflow-x: auto; margin: -4px -16px 14px; padding: 2px 16px 4px; scrollbar-width: none; }
+.comps .chip { flex: none; min-height: 36px; font-size: 14px; }
+.chip .n { margin-left: 6px; font-size: 12px; font-weight: 600; opacity: 0.65; font-variant-numeric: tabular-nums; }
+.filters summary .count {
+  margin-left: 6px; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--accent-ink);
+}
+.reset {
+  margin: 0 14px 14px; min-height: 40px; padding: 0 14px; border-radius: 8px;
+  border: 1px solid var(--line); background: transparent; font-weight: 600; cursor: pointer;
+}
 .small { font-size: 13px; color: var(--muted); }
 
 .status { color: var(--muted); font-size: 14px; margin: 14px 0 8px; }

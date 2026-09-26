@@ -87,7 +87,15 @@ The competitions are in `src/competitions.mjs`. The owner chose them: the Premie
 | `docs/logic.js` | Pure page logic (filters, tiers, advice text), unit-tested |
 | `test/fixtures/` | Trimmed real API responses used by the tests |
 
-Settings, "watched" marks and chosen services live in the browser's localStorage (`pt-prefs`, `pt-watched`).
+Settings, "watched" marks and chosen services live in the browser's localStorage (`pt-prefs`, `pt-watched`). `migratePrefs` turns older saved settings into the current shape.
+
+**The filters adapt to the chosen sport and view.** `facets()` in `docs/logic.js` counts the events each option would give, ignoring that option's own filter:
+- Competition chips appear only for football and tennis.
+- Service chips show only services that carry the sport, each with a count.
+- The minimum-rating options show counts.
+- `periodOptions()` offers "last year" everywhere except football, which is kept for 30 days.
+- Elements marked `data-for="tennis football all"` only show on those tabs. Tennis rounds and draw only apply on the Tennis tab.
+- "More filters" shows `activeFilters()` as "n on", with a Reset button.
 
 ## Adding a sport
 

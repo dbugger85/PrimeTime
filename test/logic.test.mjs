@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf } from '../docs/logic.js';
+import { migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf } from '../docs/logic.js';
 
 const now = Date.parse('2026-09-26T12:00:00Z');
 const ev = (o) => ({ services: [], segments: [], advice: { code: 'full' }, compName: 'X', ...o });
@@ -49,17 +49,22 @@ test('filters: sport, services, period, rating, competition', () => {
   assert.equal(ids(filterEvents(events, { ...base, hideWatched: true }, new Set(['a']), now)), 'bcd');
 });
 
-test('filters: tennis rounds and draw, and sorting by score', () => {
-  assert.equal(ids(filterEvents(events, { ...base, round: 'qf' }, new Set(), now)), 'abd');
-  assert.equal(ids(filterEvents(events, { ...base, draw: 'men' }, new Set(), now)), 'abd');
+test('filters: tennis rounds and draw (Tennis tab only), and sorting by score', () => {
+  assert.equal(ids(filterEvents(events, { ...base, sport: 'tennis', round: 'qf' }, new Set(), now)), '');
+  assert.equal(ids(filterEvents(events, { ...base, sport: 'tennis', draw: 'women' }, new Set(), now)), 'c');
+  assert.equal(ids(filterEvents(events, { ...base, round: 'qf' }, new Set(), now)), 'abcd', 'ignored on the All tab');
   assert.equal(ids(filterEvents(events, { ...base, sort: 'score' }, new Set(), now)), 'dacb');
 });
 
-test('names: tennis hidden by default, F1 never hidden', () => {
-  assert.equal(namesHidden(events[2], 'tennis'), true);
-  assert.equal(namesHidden(events[0], 'tennis'), false);
-  assert.equal(namesHidden(events[0], 'all'), true);
-  assert.equal(namesHidden(events[3], 'all'), false);
+test('names: separate switches for tennis and football, F1 never hidden', () => {
+  const both = { hideTennis: true, hideFootball: true };
+  assert.equal(namesHidden(events[2], { hideTennis: true, hideFootball: false }), true);
+  assert.equal(namesHidden(events[0], { hideTennis: true, hideFootball: false }), false);
+  assert.equal(namesHidden(events[0], both), true);
+  assert.equal(namesHidden(events[3], both), false);
+  assert.deepEqual(migratePrefs({ names: 'all' }), { hideTennis: true, hideFootball: true });
+  assert.deepEqual(migratePrefs({ names: 'show' }), { hideTennis: false, hideFootball: false });
+  assert.deepEqual(migratePrefs({ names: 'tennis', sport: 'f1' }), { hideTennis: true, hideFootball: false, sport: 'f1' });
   assert.equal(titleOf(events[0]), 'A – B');
 });
 
@@ -87,4 +92,24 @@ test('day labels in Norwegian time', () => {
   assert.equal(dayLabel('2026-09-26T21:30:00Z', now), 'Today');
   assert.equal(dayLabel('2026-09-26T22:30:00Z', now), 'Tomorrow'); // 00:30 in Oslo
   assert.equal(dayLabel('2026-10-04T12:00:00Z', now), 'Sun 4 Oct');
+});
+
+test('dynamic filters: counts per competition, service and rating', () => {
+  const f = facets(events, { ...base, sport: 'football' }, 'replays', new Set(), now);
+  assert.deepEqual(f.comps.map((c) => `${c.name}:${c.n}`).sort(), ['Eliteserien:1', 'Premier League:1']);
+  assert.deepEqual(f.services.map((x) => `${x.id}:${x.n}`).sort(), ['tv2play:1', 'viaplay:1']);
+  assert.deepEqual(f.minCounts, { 0: 2, 4: 1, 6: 1, 8: 1 });
+  assert.deepEqual(facets(events, { ...base, sport: 'f1' }, 'replays', new Set(), now).comps, [], 'no competition chips for F1');
+  assert.deepEqual(facets(events, base, 'replays', new Set(), now).comps, [], 'none on the All tab either');
+  // A chosen service doesn't shrink the service counts themselves.
+  const g = facets(events, { ...base, services: ['viaplay'] }, 'replays', new Set(), now);
+  assert.equal(g.services.find((x) => x.id === 'hbomax').n, 1);
+});
+
+test('period choices and active filter count', () => {
+  assert.deepEqual(periodOptions('football').map((p) => p.days), [7, 30]);
+  assert.deepEqual(periodOptions('f1').map((p) => p.days), [7, 30, 400]);
+  assert.equal(activeFilters({ ...base, days: 30 }, 'replays'), 0);
+  assert.equal(activeFilters({ ...base, days: 7, minScore: 6, comp: 'Eliteserien' }, 'replays'), 3);
+  assert.equal(activeFilters({ ...base, days: 7, minScore: 6 }, 'upcoming'), 0, 'replay-only filters do not count on Coming up');
 });

@@ -74,11 +74,31 @@ try {
       assert.match(title, / vs /);
     }
 
-    // Services filter: only HBO Max shows tennis, so F1 should go empty with just HBO Max.
+    // Dynamic filters: each tab only offers what applies to it.
     await page.click('#sports [data-sport="f1"]');
-    await page.click('.chip:has-text("HBO Max")');
+    const f1Services = await page.$$eval('#services .chip', (els) => els.map((e) => e.firstChild.textContent));
+    assert.deepEqual(f1Services, ['Viaplay', 'F1 TV']);
+    assert.ok(await page.$eval('#comps', (e) => e.hidden), 'no competition chips for F1');
+    assert.ok(await page.$eval('#f-round', (e) => e.closest('label').hidden), 'tennis rounds hidden on F1');
+    await page.click('#sports [data-sport="football"]');
+    assert.ok(!(await page.$eval('#comps', (e) => e.hidden)), 'competition chips for football');
+    assert.deepEqual(await page.$$eval('#f-days option', (els) => els.map((e) => e.value)), ['7', '30']);
+    await page.click('#comps .chip:nth-child(2)');
+    const comp = await page.$eval('#comps .chip[aria-pressed="true"]', (e) => e.firstChild.textContent);
+    const shownComps = await page.$$eval('.card .sub', (els) => [...new Set(els.map((e) => e.textContent))]);
+    assert.deepEqual(shownComps, [comp]);
+    assert.equal(await page.$eval('#filter-count', (e) => e.textContent), '1 on');
+    await page.screenshot({ path: `${shots}/football-filtered.png` });
+    await page.click('#f-reset');
+    assert.ok(await page.$eval('#filter-count', (e) => e.hidden));
+
+    // Services filter: with only HBO Max chosen (tennis), the F1 tab is empty.
+    await page.click('#sports [data-sport="tennis"]');
+    await page.click('#services .chip:has-text("HBO Max")');
+    await page.click('#sports [data-sport="f1"]');
     assert.equal(await page.$$eval('.card', (els) => els.length), 0);
-    await page.click('.chip:has-text("HBO Max")');
+    await page.click('#sports [data-sport="tennis"]');
+    await page.click('#services .chip:has-text("HBO Max")');
 
     // Skip tips can be switched off.
     await page.uncheck('#f-hints');

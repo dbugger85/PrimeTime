@@ -54,7 +54,7 @@ function matchesCommon(e, prefs) {
   if (prefs.sport !== 'all' && e.sport !== prefs.sport) return false;
   if (prefs.services?.length && !e.services.some((s) => prefs.services.includes(s))) return false;
   if (prefs.comp && prefs.comp !== 'all' && e.compName !== prefs.comp) return false;
-  if (e.sport === 'tennis') {
+  if (e.sport === 'tennis' && prefs.sport === 'tennis') { // these settings only show on the Tennis tab
     if (prefs.round && LATE_ROUNDS[prefs.round] && !LATE_ROUNDS[prefs.round].includes(e.round)) return false;
     if (prefs.draw === 'men' && !/^men/i.test(e.draw)) return false;
     if (prefs.draw === 'women' && !/^women/i.test(e.draw)) return false;
@@ -92,9 +92,67 @@ export function filterEvents(events, prefs, watched = new Set(), now = Date.now(
     : list.sort((a, b) => b.start.localeCompare(a.start));
 }
 
-export function namesHidden(event, setting) {
-  if (event.sport === 'f1') return false; // a race name gives nothing away
-  return setting === 'all' || (setting === 'tennis' && event.sport === 'tennis');
+// prefs.hideTennis / prefs.hideFootball. A race name gives nothing away, so F1 is never hidden.
+export function namesHidden(event, prefs) {
+  if (event.sport === 'tennis') return prefs.hideTennis;
+  if (event.sport === 'football') return prefs.hideFootball;
+  return false;
+}
+
+// Older saved settings had one "names" choice; turn it into the two switches.
+export function migratePrefs(p) {
+  const out = { ...p };
+  if ('names' in out) {
+    out.hideTennis ??= out.names !== 'show';
+    out.hideFootball ??= out.names === 'all';
+    delete out.names;
+  }
+  return out;
+}
+
+// Football is kept for 30 days, so "last year" only makes sense for the other sports.
+const PERIODS = [
+  { days: 7, label: 'Last 7 days' },
+  { days: 30, label: 'Last 30 days' },
+  { days: 400, label: 'Last year' },
+];
+export const periodOptions = (sport) => (sport === 'football' ? PERIODS.slice(0, 2) : PERIODS);
+
+const count = (list, key) => {
+  const m = new Map();
+  for (const e of list) for (const k of [].concat(key(e))) m.set(k, (m.get(k) ?? 0) + 1);
+  return m;
+};
+
+// Counts for the dynamic filters. Each count ignores its own filter, so it tells
+// you what you'd get by picking that option (like on a shopping site).
+export function facets(pool, prefs, view, watched = new Set(), now = Date.now()) {
+  const run = (p) => (view === 'upcoming' ? filterUpcoming(pool, p) : filterEvents(pool, p, watched, now));
+  const withComp = run({ ...prefs, comp: 'all' });
+  const comps = prefs.sport === 'football' || prefs.sport === 'tennis'
+    ? [...count(withComp, (e) => e.compName)].map(([name, n]) => ({ name, n })).sort((a, b) => b.n - a.n)
+    : [];
+  const services = [...count(run({ ...prefs, services: [] }), (e) => e.services)].map(([id, n]) => ({ id, n }));
+  const rated = view === 'upcoming' ? [] : run({ ...prefs, minScore: 0 });
+  const minCounts = Object.fromEntries([0, 4, 6, 8].map((t) => [t, rated.filter((e) => e.score >= t).length]));
+  return { comps, services, minCounts };
+}
+
+// How many filters differ from the defaults (shown on "More filters").
+export function activeFilters(prefs, view) {
+  let n = 0;
+  if (prefs.comp && prefs.comp !== 'all') n++;
+  if (view === 'replays') {
+    if (prefs.days !== 30) n++;
+    if (prefs.minScore) n++;
+    if (prefs.sort !== 'date') n++;
+    if (prefs.hideWatched) n++;
+  }
+  if (prefs.sport === 'tennis') {
+    if (prefs.round) n++;
+    if (prefs.draw) n++;
+  }
+  return n;
 }
 
 export function titleOf(event) {
