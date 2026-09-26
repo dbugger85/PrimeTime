@@ -60,6 +60,10 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Version the page's files (stops browsers mixing old and new files)
+        if: steps.save.outputs.changed == 'true' || github.event_name != 'schedule'
+        run: node scripts/stamp.mjs "${GITHUB_SHA::7}"
+
       - uses: actions/upload-pages-artifact@v3
         if: steps.save.outputs.changed == 'true' || github.event_name != 'schedule'
         with:

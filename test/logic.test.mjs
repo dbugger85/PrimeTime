@@ -113,3 +113,15 @@ test('period choices and active filter count', () => {
   assert.equal(activeFilters({ ...base, days: 7, minScore: 6, comp: 'Eliteserien' }, 'replays'), 3);
   assert.equal(activeFilters({ ...base, days: 7, minScore: 6 }, 'upcoming'), 0, 'replay-only filters do not count on Coming up');
 });
+
+test('publishing stamps a version on the page files', async () => {
+  const { stamp } = await import('../scripts/stamp.mjs');
+  const { readFileSync } = await import('node:fs');
+  const html = readFileSync(new URL('../docs/index.html', import.meta.url), 'utf8');
+  const js = readFileSync(new URL('../docs/app.js', import.meta.url), 'utf8');
+  const out = stamp(html, js, 'abc1234');
+  assert.match(out.html, /src="\.\/app\.js\?v=abc1234"/);
+  assert.match(out.html, /href="\.\/style\.css\?v=abc1234"/);
+  assert.match(out.js, /from '\.\/logic\.js\?v=abc1234'/);
+  assert.doesNotMatch(out.js, /from '\.\/logic\.js'/);
+});

@@ -25,6 +25,7 @@ The GitHub Actions workflow `.github/workflows/update.yml` is triggered every 15
 - **Live check** (`scripts/live.mjs`, `npm run live`): runs otherwise. It only looks at upcoming events in their "in play" window, meaning from 10 minutes before the start until 4 h after (football) or 6 h after (F1 and tennis). It marks them live, scores them once finished, and moves them to replays. With nothing on, it makes zero requests and changes nothing. To test it, `NOW=2026-09-25T21:00Z npm run live` pretends it's another time.
 - Both scripts read and write the data files through `src/store.mjs`. Because it's all one workflow in one concurrency group, two runs never write at once. Publishing (the `deploy` job) only happens when the data or the code changed.
 - The page re-fetches `events.json` every 5 minutes while it's open, and when you return to the tab.
+- **Cache-busting:** before publishing, `scripts/stamp.mjs` adds `?v=<commit>` to `style.css`, `app.js` and the `logic.js` import in the published copy. GitHub Pages lets browsers cache files for 10 minutes, and a new `app.js` paired with a cached old `logic.js` once left the page stuck on "Loading…". If you add another JS module, add it to `stamp()`. A safety net in `index.html` replaces "Loading…" with a reload link if `window.primetimeStarted` isn't set within 8 seconds.
 
 Each run does the following:
 1. Runs the code unit tests, then `scripts/auto.mjs`, then all the tests. `test/spoilers.test.mjs` checks the new `events.json`.

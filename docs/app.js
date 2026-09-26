@@ -377,6 +377,7 @@ async function fetchData({ quiet = false } = {}) {
 }
 
 function load() {
+  window.primetimeStarted = true; // tells the safety net in index.html that the app is running
   bind();
   renderControls();
   fetchData();

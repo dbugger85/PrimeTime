@@ -128,5 +128,17 @@
   </dialog>
 
   <script type="module" src="./app.js"></script>
+  <script>
+    // Safety net: if the app hasn't started after 8 seconds, say so instead of "Loading…" forever.
+    setTimeout(function () {
+      if (window.primetimeStarted) return;
+      var s = document.getElementById('status');
+      s.textContent = 'Something went wrong while loading. ';
+      var a = document.createElement('a');
+      a.href = location.pathname + '?reload=' + Date.now();
+      a.textContent = 'Reload the page';
+      s.appendChild(a);
+    }, 8000);
+  </script>
 </body>
 </html>
