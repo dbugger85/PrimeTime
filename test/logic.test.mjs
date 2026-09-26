@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { tierOf, adviceText, filterEvents, namesHidden, titleOf } from '../docs/logic.js';
+import { tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf } from '../docs/logic.js';
 
 const now = Date.parse('2026-09-26T12:00:00Z');
 const ev = (o) => ({ services: [], segments: [], advice: { code: 'full' }, compName: 'X', ...o });
@@ -21,10 +21,22 @@ test('tiers', () => {
 });
 
 test('advice text', () => {
-  assert.equal(adviceText({ code: 'from', min: 45 }), 'Skip the first half');
-  assert.equal(adviceText({ code: 'from', min: 60 }), "Start from 60'");
-  assert.equal(adviceText({ code: 'fromSet', set: 3 }), 'Start from set 3');
-  assert.equal(adviceText({ code: 'startThen', lap: 25 }), 'Watch the start, then skip to lap 25');
+  const skip = (unit, ranges) => adviceText({ code: 'skip', unit, ranges });
+  assert.equal(adviceText({ code: 'full' }), 'Watch it all');
+  assert.equal(skip('min', [[0, 45]]), 'Skip the first half');
+  assert.equal(skip('min', [[0, 20]]), "Start at 20'");
+  assert.equal(skip('min', [[0, 20], [50, 65]]), "Start at 20', then skip 50'–65'");
+  assert.equal(skip('min', [[45, 60]]), "Skip 45'–60'");
+  assert.equal(skip('min', [[10, 25], [45, 60], [65, 75]]), "Skip 10'–25', 45'–60' and 65'–75'");
+  assert.equal(skip('lap', [[4, 15], [22, 30]]), 'Watch the start, then skip laps 4–15 and 22–30');
+  assert.equal(skip('set', [[1, 1]]), 'Skip set 1');
+  assert.equal(skip('set', [[1, 2]]), 'Skip sets 1–2');
+  assert.equal(skip('set', [[2, 2]]), 'Skip set 2');
+});
+
+test('skip shading on the football strip', () => {
+  assert.deepEqual(skipShades({ sport: 'football', advice: { code: 'skip', unit: 'min', ranges: [[0, 45]] } }), [{ left: 0, width: 50 }]);
+  assert.deepEqual(skipShades({ sport: 'f1', advice: { code: 'skip', unit: 'lap', ranges: [[4, 9]] } }), []);
 });
 
 test('filters: sport, services, period, rating, competition', () => {
@@ -49,4 +61,12 @@ test('names: tennis hidden by default, F1 never hidden', () => {
   assert.equal(namesHidden(events[0], 'all'), true);
   assert.equal(namesHidden(events[3], 'all'), false);
   assert.equal(titleOf(events[0]), 'A – B');
+});
+
+test('reason lines: biggest first, signed, with a cap note', () => {
+  const { lines, note } = reasonLines([[0.5, 'small'], [-1.5, 'one-sided'], [4.8, '4 goals'], [7, 'lots']], 10);
+  assert.deepEqual(lines.map((l) => l.pts), ['+7.0', '+4.8', '-1.5', '+0.5']);
+  assert.equal(lines[2].negative, true);
+  assert.equal(note, 'Adds up to 10.8, capped at 10');
+  assert.equal(reasonLines([[3, 'x']], 3).note, '');
 });

@@ -107,9 +107,23 @@
           <div class="svc"></div>
           <button class="watched" type="button">Mark watched</button>
         </div>
+        <button class="why-btn" type="button">⚠ Why this score?</button>
+        <div class="why" hidden></div>
       </div>
     </li>
   </template>
+
+  <dialog id="spoiler-dlg">
+    <form method="dialog">
+      <h2>⚠ Spoiler warning</h2>
+      <p>The reasons behind a score give the game away: goals, lead changes, set scores, who came back, safety cars and more.</p>
+      <p>Show them anyway?</p>
+      <div class="dlg-buttons">
+        <button value="cancel" class="secondary">Keep it secret</button>
+        <button value="ok" class="danger">Show spoilers</button>
+      </div>
+    </form>
+  </dialog>
 
   <script type="module" src="./app.js"></script>
 </body>

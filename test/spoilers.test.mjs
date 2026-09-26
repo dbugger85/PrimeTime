@@ -25,7 +25,13 @@ export function checkEvent(e) {
   const allowed = [...ALLOWED.common, ...ALLOWED[e.sport]];
   for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}"`);
   assert.ok(ADVICE_CODES.includes(e.advice.code), `${e.id}: advice ${e.advice.code}`);
-  assert.deepEqual(Object.keys(e.advice).filter((k) => !['code', 'min', 'set', 'lap'].includes(k)), []);
+  assert.deepEqual(Object.keys(e.advice).filter((k) => !['code', 'unit', 'ranges'].includes(k)), []);
+  if (e.advice.code === 'skip') {
+    assert.ok(e.advice.ranges.length >= 1 && e.advice.ranges.length <= 3);
+    assert.ok(e.advice.ranges.every(([a, b]) => Number.isInteger(a) && Number.isInteger(b) && a <= b));
+    if (e.advice.unit === 'min') assert.ok(e.advice.ranges.every(([, b]) => b <= 75), `${e.id}: skips the ending`);
+    if (e.advice.unit === 'set') assert.ok(e.advice.ranges.every(([, b]) => b <= 2), `${e.id}: skips a set that may not exist`);
+  }
   assert.ok(e.segments.every((s) => Number.isInteger(s) && s >= 0 && s <= 3));
   if (e.sport === 'football') assert.equal(e.segments.length, 6, 'fixed length, so extra time is not revealed');
   if (e.sport === 'tennis') assert.equal(e.segments.length, 0, 'no strip, so the number of sets is not revealed');

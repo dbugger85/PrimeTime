@@ -31,6 +31,8 @@ try {
   for (const scheme of ['light', 'dark']) {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: scheme });
     const errors = [];
+    const reasonRequests = [];
+    page.on('request', (r) => r.url().includes('reasons.json') && reasonRequests.push(r.url()));
     page.on('pageerror', (e) => errors.push(e.message));
     page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
     await page.goto(base);
@@ -42,8 +44,8 @@ try {
     const cards = await page.$$eval('.card', (els) => els.length);
     assert.ok(cards > 0 && cards <= 40, `first page shows up to 40 cards, got ${cards}`);
 
-    // No result-like text anywhere in the card titles, subtitles or advice.
-    const text = await page.$$eval('.title, .sub, .advice', (els) => els.map((e) => e.textContent).join('\n'));
+    // No result-like text in the card titles or subtitles (skip tips like "laps 4–15" are fine).
+    const text = await page.$$eval('.title, .sub', (els) => els.map((e) => e.textContent).join('\n'));
     assert.doesNotMatch(text, /\b\d+\s*[-–]\s*\d+\b/, 'something that looks like a score is shown');
 
     if (scheme === 'dark') {
@@ -80,6 +82,21 @@ try {
     await page.uncheck('#f-hints');
     assert.equal(await page.$$eval('.advice:not([hidden])', (els) => els.length), 0);
     await page.check('#f-hints');
+
+    // "Why this score?" warns first, and the spoiler file isn't even downloaded until you agree.
+    await page.click('#sports [data-sport="football"]');
+    assert.equal(reasonRequests.length, 0, 'reasons.json loaded before any warning');
+    await page.click('.card .why-btn');
+    await page.waitForSelector('#spoiler-dlg[open]');
+    await page.screenshot({ path: `${shots}/spoiler-warning.png` });
+    await page.click('#spoiler-dlg button[value="cancel"]');
+    assert.equal(reasonRequests.length, 0, 'reasons.json loaded after cancelling');
+    assert.equal(await page.$$eval('.why:not([hidden])', (els) => els.length), 0);
+    await page.click('.card .why-btn');
+    await page.click('#spoiler-dlg button[value="ok"]');
+    await page.waitForSelector('.why:not([hidden]) li');
+    assert.equal(await page.$$eval('.why:not([hidden])', (els) => els.length), 1, 'only the tapped card is revealed');
+    await page.screenshot({ path: `${shots}/spoiler-shown.png` });
 
     // Mark watched survives a reload.
     const firstId = await page.$eval('.card', (e) => e.dataset.id);

@@ -7,17 +7,17 @@ import { SCORING_VERSION } from './scoring/common.mjs';
 
 const rights = JSON.parse(readFileSync(new URL('./rights/norway.json', import.meta.url)));
 
-export const ADVICE_CODES = ['full', 'from', 'highlights', 'fromSet', 'startThen'];
+export const ADVICE_CODES = ['full', 'highlights', 'skip'];
+const UNITS = ['min', 'lap', 'set'];
 
 const servicesFor = (rightsKey) => rights.competitions[rightsKey]?.services ?? [];
 
 function cleanAdvice(a) {
   if (!ADVICE_CODES.includes(a?.code)) throw new Error(`Unknown advice code: ${a?.code}`);
-  const out = { code: a.code };
-  if (a.code === 'from') out.min = a.min;
-  if (a.code === 'fromSet') out.set = a.set;
-  if (a.code === 'startThen') out.lap = a.lap;
-  return out;
+  if (a.code !== 'skip') return { code: a.code };
+  if (!UNITS.includes(a.unit)) throw new Error(`Unknown advice unit: ${a.unit}`);
+  const ranges = a.ranges.slice(0, 3).map(([from, to]) => [Math.round(from), Math.round(to)]);
+  return { code: 'skip', unit: a.unit, ranges };
 }
 
 function base(id, sport, comp, compName, start, scored, rightsKey) {

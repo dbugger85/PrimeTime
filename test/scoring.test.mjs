@@ -9,8 +9,8 @@ import { matchesFromSlam } from '../src/sources/espn-tennis.mjs';
 import { factsFromRace } from '../src/sources/openf1.mjs';
 import { scoreFootball, footballAdvice } from '../src/scoring/football.mjs';
 import { scoreTennis, tennisAdvice } from '../src/scoring/tennis.mjs';
-import { scoreF1 } from '../src/scoring/f1.mjs';
-import { firstWorthWatching, heat } from '../src/scoring/common.mjs';
+import { scoreF1, f1Advice } from '../src/scoring/f1.mjs';
+import { quietRuns, heat } from '../src/scoring/common.mjs';
 
 const fixture = (path) => JSON.parse(readFileSync(new URL(`./fixtures/${path}`, import.meta.url)));
 const fb = (id) => scoreFootball(factsFromSummary(fixture(`football/${id}.json`)));
@@ -44,12 +44,32 @@ test('football: scores stay within 0–10 with one decimal', () => {
   }
 });
 
-test('football advice: never later than 75, full for great matches, highlights for dull', () => {
-  assert.deepEqual(footballAdvice(2, [0, 0, 0, 0, 0, 5]), { code: 'highlights' });
-  assert.deepEqual(footballAdvice(9, [0, 0, 0, 0, 0, 5]), { code: 'full' });
-  assert.deepEqual(footballAdvice(5, [0, 0, 0, 0, 0, 5]), { code: 'from', min: 75 });
-  assert.deepEqual(footballAdvice(5, [0.1, 0.1, 0.1, 3, 2, 2]), { code: 'from', min: 45 });
-  assert.deepEqual(footballAdvice(5, [3, 1, 1, 1, 1, 1]), { code: 'full' });
+test('football advice: skip windows anywhere before 75, never the last 15 minutes', () => {
+  const slots = (busy) => Array.from({ length: 18 }, (_, i) => (busy.includes(i) ? 3 : 0));
+  assert.deepEqual(footballAdvice(2, slots([])), { code: 'highlights' });
+  assert.deepEqual(footballAdvice(9.5, slots([])), { code: 'full' });
+  // Action at 30' and 60': skip the start and the quiet start of the second half.
+  assert.deepEqual(footballAdvice(5, slots([6, 12])), { code: 'skip', unit: 'min', ranges: [[0, 25], [35, 55]] });
+  // Quiet all match: still never skip past 75'.
+  assert.deepEqual(footballAdvice(5, slots([])), { code: 'skip', unit: 'min', ranges: [[0, 75]] });
+  // Busy throughout: watch it all.
+  assert.deepEqual(footballAdvice(5, slots([1, 3, 5, 7, 9, 11, 13])), { code: 'full' });
+});
+
+test('football advice on real matches stays before 75 minutes', () => {
+  for (const id of [401879276, 760489, 760492, 760493, 760505, 760508, 760512, 760514, 760516]) {
+    const { advice } = fb(id);
+    if (advice.code === 'skip') assert.ok(advice.ranges.every(([a, b]) => a < b && b <= 75), `${id}`);
+  }
+});
+
+test('f1 advice keeps the start and the last 15% of the race', () => {
+  const perLap = new Array(61).fill(0);
+  perLap[2] = 5; perLap[30] = 5;
+  const a = f1Advice(5, perLap, 60);
+  assert.equal(a.code, 'skip');
+  assert.ok(a.ranges.every(([x, y]) => x >= 4 && y <= 51 && x <= y));
+  assert.deepEqual(a.ranges[0], [4, 28]); // resume a lap before the action at lap 30
 });
 
 test('tennis: five-setters with tiebreaks beat straight-set routs', () => {
@@ -70,9 +90,10 @@ test('tennis: qualifying and walkovers are left out', () => {
   assert.ok(matches.every((m) => !/qualifying/i.test(m.round) && m.sets.length > 0));
 });
 
-test('tennis advice never points past a set that is always played', () => {
-  assert.deepEqual(tennisAdvice(5, [0.1, 0.1, 0.1], 3), { code: 'fromSet', set: 2 });
-  assert.deepEqual(tennisAdvice(5, [0.1, 0.1, 0.1, 1, 1], 5), { code: 'fromSet', set: 3 });
+test('tennis advice only names sets that are always played, never the last of them', () => {
+  assert.deepEqual(tennisAdvice(5, [0.1, 0.1, 0.1], 3), { code: 'skip', unit: 'set', ranges: [[1, 1]] });
+  assert.deepEqual(tennisAdvice(5, [0.1, 0.3, 0.1, 1, 1], 5), { code: 'skip', unit: 'set', ranges: [[1, 2]] });
+  assert.deepEqual(tennisAdvice(5, [0.8, 0.1, 0.1, 1, 1], 5), { code: 'skip', unit: 'set', ranges: [[2, 2]] });
   assert.deepEqual(tennisAdvice(5, [0.6, 0.1, 0.1], 3), { code: 'full' });
   assert.deepEqual(tennisAdvice(2, [0.1, 0.1], 3), { code: 'highlights' });
 });
@@ -93,10 +114,11 @@ test('f1: pit-stop shuffles do not count as overtakes', () => {
   assert.ok(facts.overtakes.length < d.overtakes.length / 3);
 });
 
-test('helpers: firstWorthWatching and heat', () => {
-  assert.equal(firstWorthWatching([0, 0, 1, 1, 1, 1]), 2);
-  assert.equal(firstWorthWatching([5, 0, 0]), 0);
-  assert.equal(firstWorthWatching([0, 0, 0]), 0);
+test('helpers: quietRuns and heat', () => {
+  assert.deepEqual(quietRuns([0, 0, 0, 0, 5, 0, 0], { quiet: 0, minLen: 3 }), [[0, 3]]); // stops 1 before the action
+  assert.deepEqual(quietRuns([0, 0, 0, 5, 0, 0, 0, 0], { quiet: 0, minLen: 3 }), [[4, 8]]);
+  assert.deepEqual(quietRuns([0, 0, 0, 0, 0, 0], { quiet: 0, minLen: 2, to: 4 }), [[0, 4]]);
+  assert.deepEqual(quietRuns([1, 1, 1], { quiet: 0, minLen: 1 }), []);
   assert.deepEqual(heat([0, 1, 2, 3]), [0, 1, 2, 3]);
 });
 
@@ -105,4 +127,16 @@ test('football: near misses lift a goalless match', () => {
     shotsOn: [], shotsOff: [], totalShots: 12, shotsOnTarget: 5, extraTime: false, shootout: false };
   const nearMisses = { ...quiet, disallowed: [30], woodwork: [55, 80], corners: 13, yellows: 7 };
   assert.ok(scoreFootball(nearMisses).score >= scoreFootball(quiet).score + 1.5);
+});
+
+test('every score comes with reasons that add up to it (before the 0–10 cap)', () => {
+  const check = ({ score, reasons }) => {
+    assert.ok(reasons.length > 0);
+    assert.ok(reasons.every(([p, label]) => typeof p === 'number' && p !== 0 && typeof label === 'string' && label));
+    const sum = reasons.reduce((a, [p]) => a + p, 0);
+    assert.ok(Math.abs(Math.min(10, Math.max(0, sum)) - score) <= 0.3, `sum ${sum} vs ${score}`);
+  };
+  for (const id of [401879276, 760508, 760512, 760516]) check(fb(id));
+  for (const m of matchesFromSlam(fixture('tennis/usopen2026.json').events[0]).slice(0, 40)) check(scoreTennis(m));
+  for (const slug of ['british-grand-prix-2025', 'japanese-grand-prix-2025']) check(race(slug));
 });

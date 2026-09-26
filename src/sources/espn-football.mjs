@@ -23,7 +23,12 @@ export async function fetchDay(compKey, yyyymmdd) {
 
 export const fetchSummary = (compKey, espnId) => getJson(`${BASE}/${compKey}/summary?event=${espnId}`);
 
-const minuteOf = (clock) => (clock?.value ?? 0) / 60;
+// Match minute, with stoppage time kept inside its own half (45+3' counts as 44.9, not 48).
+const PERIOD_SPAN = { 1: [0, 45], 2: [45, 90], 3: [90, 105], 4: [105, 120] };
+const minuteOf = (e) => {
+  const [lo, hi] = PERIOD_SPAN[e.period?.number] ?? [0, 120];
+  return Math.min(Math.max((e.clock?.value ?? 0) / 60, lo), hi - 0.1);
+};
 
 // Turns an ESPN summary into the plain facts the scorer needs.
 export function factsFromSummary(summary) {
@@ -36,7 +41,7 @@ export function factsFromSummary(summary) {
   const events = (summary.keyEvents ?? []).filter(inPlay);
   const goals = events
     .filter((e) => e.scoringPlay)
-    .map((e) => ({ min: minuteOf(e.clock), side: sides[e.team?.id] ?? 'home', own: /own goal/i.test(e.type.text) }));
+    .map((e) => ({ min: minuteOf(e), side: sides[e.team?.id] ?? 'home', own: /own goal/i.test(e.type.text) }));
   // ESPN is inconsistent about which team an own goal is credited to; check against the final score.
   const count = (side) => goals.filter((g) => g.side === side).length;
   if (count('home') !== finalScore.home || count('away') !== finalScore.away) {
@@ -44,14 +49,14 @@ export function factsFromSummary(summary) {
   }
 
   const plays = (summary.commentary ?? []).map((c) => c.play).filter((p) => p && inPlay(p));
-  const typed = (re) => plays.filter((p) => re.test(p.type?.text ?? '')).map((p) => minuteOf(p.clock));
+  const typed = (re) => plays.filter((p) => re.test(p.type?.text ?? '')).map((p) => minuteOf(p));
   const stat = (name) =>
     (summary.boxscore?.teams ?? []).reduce(
       (sum, t) => sum + Number(t.statistics?.find((s) => s.name === name)?.displayValue ?? 0), 0);
 
   return {
     goals,
-    reds: events.filter((e) => /red card/i.test(e.type.text)).map((e) => minuteOf(e.clock)),
+    reds: events.filter((e) => /red card/i.test(e.type.text)).map((e) => minuteOf(e)),
     pens: typed(/^penalty/i),
     vars: typed(/^VAR/i),
     disallowed: typed(/deleted after review/i), // goals ruled out by VAR

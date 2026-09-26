@@ -1,11 +1,30 @@
 // Shared helpers for all scorers.
 
 // Bump this when a scoring formula changes, so old events get re-scored.
-export const SCORING_VERSION = 2;
+export const SCORING_VERSION = 4;
 
 export const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 export const round1 = (x) => Math.round(x * 10) / 10;
 export const finalScore = (x) => round1(clamp(x, 0, 10));
+
+// Adds up a score and remembers why, for the "Why this score?" spoiler button.
+export function tally() {
+  let total = 0;
+  const reasons = [];
+  return {
+    add(points, label) {
+      if (!points) return;
+      total += points;
+      reasons.push([round1(points), label]);
+    },
+    get total() { return total; },
+    reasons,
+  };
+}
+
+const plural = (n, word, many = `${word}s`) => `${n} ${n === 1 ? word : many}`;
+export { plural };
+export const times = (n) => (n === 1 ? 'once' : n === 2 ? 'twice' : `${n} times`);
 
 // Raw action per segment -> a coarse 0–3 "heat" level for the strip on each card.
 export function heat(values) {
@@ -13,15 +32,20 @@ export function heat(values) {
   return values.map((v) => (v <= 0.05 ? 0 : v < max * 0.34 ? 1 : v < max * 0.67 ? 2 : 3));
 }
 
-// Index of the first segment you should start watching at, so that
-// everything skipped holds less than `share` of the total action.
-export function firstWorthWatching(values, share = 0.2) {
-  const total = values.reduce((a, b) => a + b, 0);
-  if (total <= 0) return 0;
-  let sum = 0;
-  for (let i = 0; i < values.length; i++) {
-    sum += values[i];
-    if (sum >= total * share) return i;
+// Finds stretches worth skipping: runs of quiet slots (value <= quiet) inside
+// [from, to). Each run stops `lead` slots before the action that ends it, so
+// you get a little build-up, and must still be at least `minLen` slots long.
+// Returns up to `max` runs as [start, end) slot indexes, longest kept, in order.
+export function quietRuns(values, { quiet, from = 0, to = values.length, minLen, lead = 1, max = 3 }) {
+  const runs = [];
+  let i = from;
+  while (i < to) {
+    if (values[i] > quiet) { i++; continue; }
+    let j = i;
+    while (j < to && values[j] <= quiet) j++;
+    const end = j < to ? j - lead : j; // action follows: resume a little early
+    if (end - i >= minLen) runs.push([i, end]);
+    i = j;
   }
-  return 0;
+  return runs.sort((a, b) => (b[1] - b[0]) - (a[1] - a[0])).slice(0, max).sort((a, b) => a[0] - b[0]);
 }

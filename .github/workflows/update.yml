@@ -32,8 +32,8 @@ jobs:
         with:
           node-version: 22
 
-      - name: Unit tests
-        run: npm test
+      - name: Unit tests (code only; the data is checked after the build)
+        run: node --test test/scoring.test.mjs test/logic.test.mjs
 
       - name: Fetch and score events
         run: npm run build
@@ -45,7 +45,7 @@ jobs:
         run: |
           git config user.name "primetime-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/data/events.json data/state.json
+          git add docs/data/events.json docs/data/reasons.json data/state.json
           if git diff --cached --quiet; then
             echo "No new events."
           else

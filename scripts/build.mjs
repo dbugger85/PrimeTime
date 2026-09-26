@@ -21,12 +21,16 @@ import { publishFootball, publishTennis, publishF1, expiringRights } from '../sr
 const root = new URL('..', import.meta.url);
 const EVENTS = new URL('docs/data/events.json', root);
 const STATE = new URL('data/state.json', root);
+const REASONS = new URL('docs/data/reasons.json', root); // spoilers: only loaded after a warning
 const readJson = (url, fallback) => (existsSync(url) ? JSON.parse(readFileSync(url)) : fallback);
 const warn = (msg) => console.log(`::warning::${msg}`);
 
 const now = new Date();
 const only = process.argv[2];
 const events = new Map(readJson(EVENTS, { events: [] }).events.map((e) => [e.id, e]));
+const reasons = new Map(Object.entries(readJson(REASONS, {})));
+// Saves a scored event: the spoiler-free card data, and separately the reasons behind its score.
+const save = (event, scored) => { events.set(event.id, event); reasons.set(event.id, scored.reasons); };
 let state = readJson(STATE, {});
 if (state.version !== SCORING_VERSION) state = { version: SCORING_VERSION }; // formula changed: redo everything
 state.footballDays ??= {};
@@ -49,8 +53,8 @@ async function buildFootball() {
         const id = `fb-${m.espnId}`;
         if (isCurrent(id)) continue;
         try {
-          const facts = football.factsFromSummary(await football.fetchSummary(comp.key, m.espnId));
-          events.set(id, publishFootball(comp, m, scoreFootball(facts)));
+          const scored = scoreFootball(football.factsFromSummary(await football.fetchSummary(comp.key, m.espnId)));
+          save(publishFootball(comp, m, scored), scored);
         } catch (err) {
           complete = false;
           warn(`football ${comp.key} ${m.espnId}: ${err.message}`);
@@ -68,7 +72,10 @@ async function buildTennis() {
   for (const year of [now.getUTCFullYear() - 1, now.getUTCFullYear()]) {
     for (const slam of await tennis.fetchSlams(year, now, done)) {
       const matches = tennis.matchesFromSlam(slam);
-      for (const m of matches) events.set(`tn-${m.espnId}`, publishTennis(m, scoreTennis(m)));
+      for (const m of matches) {
+        const scored = scoreTennis(m);
+        save(publishTennis(m, scored), scored);
+      }
       if (slam.endDate && new Date(slam.endDate).getTime() + 2 * 864e5 < now.getTime()) done.add(slam.id);
       console.log(`tennis: ${slam.name} ${year}: ${matches.length} matches`);
     }
@@ -84,7 +91,8 @@ async function buildF1() {
       try {
         const data = await f1.fetchRaceData(race.sessionKey);
         if (!data) continue; // results not published yet; try next run
-        events.set(id, publishF1(race, scoreF1(f1.factsFromRace(data))));
+        const scored = scoreF1(f1.factsFromRace(data));
+        save(publishF1(race, scored), scored);
         console.log(`f1: ${race.name} ${year}`);
       } catch (err) {
         warn(`f1 ${race.name} ${year}: ${err.message}`);
@@ -113,5 +121,6 @@ mkdirSync(new URL('docs/data/', root), { recursive: true });
 mkdirSync(new URL('data/', root), { recursive: true });
 writeFileSync(EVENTS, JSON.stringify({ generated: now.toISOString(), events: list }) + '\n');
 writeFileSync(STATE, JSON.stringify(state, null, 1) + '\n');
+writeFileSync(REASONS, JSON.stringify(Object.fromEntries(list.filter((e) => reasons.has(e.id)).map((e) => [e.id, reasons.get(e.id)]))) + '\n');
 const count = (s) => list.filter((e) => e.sport === s).length;
 console.log(`events.json: ${list.length} events (football ${count('football')}, tennis ${count('tennis')}, f1 ${count('f1')})`);

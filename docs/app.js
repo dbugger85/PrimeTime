@@ -1,4 +1,4 @@
-import { SPORTS, tierOf, adviceText, filterEvents, namesHidden, titleOf, subtitleOf, hiddenTitleOf } from './logic.js';
+import { SPORTS, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, subtitleOf, hiddenTitleOf } from './logic.js';
 
 const SERVICES = {
   viaplay: { name: 'Viaplay', url: 'https://viaplay.no/sport' },
@@ -25,6 +25,8 @@ const store = {
 const prefs = { ...DEFAULTS, ...store.load('pt-prefs', {}) };
 const watched = new Set(store.load('pt-watched', []));
 const revealed = new Set(); // names revealed this visit only
+const whyShown = new Set(); // "Why this score?" opened this visit only
+let reasonsFile = null; // loaded only after the spoiler warning is accepted
 let events = [];
 const PAGE = 40;
 let limit = PAGE; // cards shown; grows with "Show more"
@@ -100,6 +102,12 @@ function card(e) {
   const advice = li.querySelector('.advice');
   if (prefs.hints) {
     strip.append(...e.segments.map((lvl) => Object.assign(document.createElement('i'), { className: `h${lvl}` })));
+    for (const { left, width } of skipShades(e)) {
+      const b = Object.assign(document.createElement('b'), { className: 'skip' });
+      b.style.left = `${left}%`;
+      b.style.width = `${width}%`;
+      strip.append(b);
+    }
     advice.textContent = adviceText(e.advice);
   }
   strip.hidden = !prefs.hints || !e.segments.length;
@@ -113,6 +121,15 @@ function card(e) {
     return a;
   }));
 
+  const why = li.querySelector('.why');
+  const whyBtn = li.querySelector('.why-btn');
+  if (whyShown.has(e.id)) {
+    whyBtn.hidden = true;
+    why.hidden = false;
+    fillWhy(why, e);
+  }
+  whyBtn.onclick = () => askSpoiler(e.id);
+
   const w = li.querySelector('.watched');
   w.textContent = watched.has(e.id) ? 'Watched ✓' : 'Mark watched';
   w.setAttribute('aria-pressed', String(watched.has(e.id)));
@@ -122,6 +139,41 @@ function card(e) {
     render();
   };
   return li;
+}
+
+function fillWhy(box, e) {
+  const reasons = reasonsFile?.[e.id];
+  if (!reasons) {
+    box.textContent = 'No explanation saved for this event yet.';
+    return;
+  }
+  const { lines, note } = reasonLines(reasons, e.score);
+  const ul = document.createElement('ul');
+  for (const l of lines) {
+    const li = document.createElement('li');
+    li.classList.toggle('neg', l.negative);
+    li.append(Object.assign(document.createElement('span'), { className: 'pts', textContent: l.pts }), Object.assign(document.createElement('span'), { textContent: l.label }));
+    ul.append(li);
+  }
+  box.replaceChildren(ul);
+  if (note) box.append(Object.assign(document.createElement('p'), { className: 'small', textContent: note }));
+}
+
+async function askSpoiler(id) {
+  const dlg = $('#spoiler-dlg');
+  dlg.returnValue = '';
+  dlg.showModal();
+  await new Promise((r) => dlg.addEventListener('close', r, { once: true }));
+  if (dlg.returnValue !== 'ok') return;
+  if (!reasonsFile) {
+    try {
+      reasonsFile = await (await fetch('./data/reasons.json', { cache: 'no-cache' })).json();
+    } catch {
+      reasonsFile = {};
+    }
+  }
+  whyShown.add(id);
+  render();
 }
 
 function render() {

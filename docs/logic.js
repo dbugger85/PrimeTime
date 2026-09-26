@@ -9,15 +9,39 @@ export function tierOf(score) {
   return { key: 'skip', label: 'Skip it' };
 }
 
+const joinAnd = (parts) => (parts.length < 2 ? parts.join('') : `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}`);
+
 export function adviceText(a) {
-  switch (a?.code) {
-    case 'full': return 'Watch it all';
-    case 'highlights': return 'Highlights are enough';
-    case 'from': return a.min === 45 ? 'Skip the first half' : `Start from ${a.min}'`;
-    case 'fromSet': return `Start from set ${a.set}`;
-    case 'startThen': return `Watch the start, then skip to lap ${a.lap}`;
-    default: return '';
+  if (a?.code === 'full') return 'Watch it all';
+  if (a?.code === 'highlights') return 'Highlights are enough';
+  if (a?.code !== 'skip' || !a.ranges?.length) return '';
+  const r = a.ranges;
+  if (a.unit === 'set') {
+    const sets = r.map(([x, y]) => (x === y ? `${x}` : `${x}–${y}`));
+    const many = r.length > 1 || r[0][0] !== r[0][1];
+    return `Skip set${many ? 's' : ''} ${joinAnd(sets)}`;
   }
+  if (a.unit === 'lap') {
+    return `Watch the start, then skip laps ${joinAnd(r.map(([x, y]) => `${x}–${y}`))}`;
+  }
+  // Minutes. A window from kick-off reads better as "Start at …".
+  const parts = [];
+  let rest = r;
+  if (r[0][0] === 0) {
+    parts.push(r[0][1] === 45 ? 'Skip the first half' : `Start at ${r[0][1]}'`);
+    rest = r.slice(1);
+  }
+  if (rest.length) {
+    const skips = `skip ${joinAnd(rest.map(([x, y]) => `${x}'–${y}'`))}`;
+    parts.push(parts.length ? `then ${skips}` : skips[0].toUpperCase() + skips.slice(1));
+  }
+  return parts.join(', ');
+}
+
+// Football skip windows as percentages of 90 minutes, for shading the strip.
+export function skipShades(e) {
+  if (e.sport !== 'football' || e.advice?.code !== 'skip') return [];
+  return e.advice.ranges.map(([x, y]) => ({ left: (x / 90) * 100, width: ((y - x) / 90) * 100 }));
 }
 
 const LATE_ROUNDS = {
@@ -65,4 +89,13 @@ export function subtitleOf(event) {
 
 export function hiddenTitleOf(event) {
   return event.sport === 'tennis' ? 'Players hidden' : 'Teams hidden';
+}
+
+// The lines shown by "Why this score?": [points, label] pairs, biggest first.
+export function reasonLines(reasons, score) {
+  const lines = [...reasons].sort((a, b) => Math.abs(b[0]) - Math.abs(a[0]))
+    .map(([pts, label]) => ({ pts: `${pts > 0 ? '+' : ''}${pts.toFixed(1)}`, label, negative: pts < 0 }));
+  const sum = Math.round(reasons.reduce((a, [p]) => a + p, 0) * 10) / 10;
+  const note = sum > 10 ? `Adds up to ${sum.toFixed(1)}, capped at 10` : sum < 0 ? 'Adds up to below 0, so it counts as 0' : '';
+  return { lines, note, score };
 }
