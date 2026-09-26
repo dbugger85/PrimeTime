@@ -27,9 +27,9 @@ jobs:
     outputs:
       publish: ${{ steps.save.outputs.changed == 'true' || github.event_name != 'schedule' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -64,7 +64,7 @@ jobs:
         if: steps.save.outputs.changed == 'true' || github.event_name != 'schedule'
         run: node scripts/stamp.mjs "${GITHUB_SHA::7}"
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         if: steps.save.outputs.changed == 'true' || github.event_name != 'schedule'
         with:
           path: docs
@@ -78,6 +78,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
       - id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
