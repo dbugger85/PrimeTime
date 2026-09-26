@@ -43,6 +43,12 @@ export function scoreFootball(f) {
   s += Math.min(0.6 * f.reds.length, 1.2);
   s += Math.min(0.3 * f.pens.length, 0.6);
 
+  // Near misses and heat: goals ruled out by VAR, shots off the woodwork, lots of corners or bookings.
+  s += Math.min(0.6 * f.disallowed.length, 1.2);
+  s += Math.min(0.4 * f.woodwork.length, 1.2);
+  if (f.corners >= 12) s += 0.3;
+  s += f.yellows >= 9 ? 0.6 : f.yellows >= 6 ? 0.3 : 0;
+
   if (f.extraTime) s += 1.0;
   if (f.shootout) s += 1.5;
 
@@ -55,6 +61,8 @@ export function scoreFootball(f) {
   f.pens.forEach((m) => add(m, 1.5));
   f.reds.forEach((m) => add(m, 2));
   f.vars.forEach((m) => add(m, 1));
+  f.disallowed.forEach((m) => add(m, 2));
+  f.woodwork.forEach((m) => add(m, 1));
   f.shotsOn.forEach((m) => add(m, 0.4));
   f.shotsOff.forEach((m) => add(m, 0.15));
 

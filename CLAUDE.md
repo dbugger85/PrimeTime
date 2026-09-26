@@ -53,7 +53,7 @@ The competitions are in `src/competitions.mjs`. The owner chose them: the Premie
 
 ## Scoring (`src/scoring/*.mjs`, pure functions, checked in `test/scoring.test.mjs`)
 
-- **Football:** goals, the share of minutes within one goal, equalisers and lead changes, late goals, shots on target, red cards, penalties, extra time and shootouts. Segments are 15-minute blocks weighted by goals, penalties, reds, VAR and shots. Advice starts at the first block where 20% of the action has happened.
+- **Football:** goals, the share of minutes within one goal, equalisers and lead changes, late goals, shots on target, red cards, penalties, goals ruled out by VAR ("Deleted After Review" in the commentary), shots off the woodwork, lots of corners (12+) or bookings (6+), extra time and shootouts. Segments are 15-minute blocks weighted by goals, disallowed goals, penalties, reds, VAR, woodwork and shots. Advice starts at the first block where 20% of the action has happened.
 - **Tennis:** number of sets compared with the maximum, how close each set was (a tiebreak or 7-5 counts as close), tiebreaks, comebacks and the round. Retirements score 1, and walkovers and qualifying are left out.
 - **F1:** clean overtakes (not on lap 1, no car pitting within a lap, not reversed within 2 laps), lead changes (the same pit filter), SC/VSC/red flags, the P1–P2 gap, DNFs, rain and late action. The raw OpenF1 overtake counts are mostly pit shuffles and noise, so keep the filters in `factsFromRace`.
 - Tests check the ordering against known matches: France 6–4 England (WC 2026) is high, Bournemouth 0–1 Liverpool is low, Britain 2025 is high, and Japan 2025 is low.

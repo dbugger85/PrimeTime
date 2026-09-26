@@ -99,3 +99,10 @@ test('helpers: firstWorthWatching and heat', () => {
   assert.equal(firstWorthWatching([0, 0, 0]), 0);
   assert.deepEqual(heat([0, 1, 2, 3]), [0, 1, 2, 3]);
 });
+
+test('football: near misses lift a goalless match', () => {
+  const quiet = { goals: [], reds: [], pens: [], vars: [], disallowed: [], woodwork: [], corners: 4, yellows: 1,
+    shotsOn: [], shotsOff: [], totalShots: 12, shotsOnTarget: 5, extraTime: false, shootout: false };
+  const nearMisses = { ...quiet, disallowed: [30], woodwork: [55, 80], corners: 13, yellows: 7 };
+  assert.ok(scoreFootball(nearMisses).score >= scoreFootball(quiet).score + 1.5);
+});
