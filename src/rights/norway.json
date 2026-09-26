@@ -1,0 +1,22 @@
+{
+  "_about": "Which Norwegian streaming services show each competition. No free automatic feed exists, so this is kept by hand. The build warns when an entry's validTo is less than 60 days away. Checked 2026-09-26.",
+  "services": {
+    "viaplay": { "name": "Viaplay", "url": "https://viaplay.no/sport" },
+    "tv2play": { "name": "TV 2 Play", "url": "https://play.tv2.no/sport" },
+    "hbomax": { "name": "HBO Max", "url": "https://www.hbomax.com/no/no" },
+    "nrk": { "name": "NRK TV", "url": "https://tv.nrk.no/" },
+    "f1tv": { "name": "F1 TV", "url": "https://f1tv.formula1.com/" }
+  },
+  "competitions": {
+    "eng.1": { "services": ["viaplay"], "validTo": "2028-06-30", "source": "https://www.bytt.no/tv/tv-pakker/a-vmxb/hvem-sender-premier-league-pa-tv-her-er-oversikten-for-2026-27" },
+    "uefa.champions": { "services": ["tv2play"], "validTo": "2031-06-30", "source": "https://www.vg.no/rampelys/i/9pBV8M/" },
+    "uefa.nations": { "services": ["tv2play"], "validTo": "2028-06-30", "source": "https://www.allente.no/tv-guide-old/tv-rettigheter-i-norge/" },
+    "fifa.worldq.uefa": { "services": ["tv2play"], "validTo": "2028-06-30", "source": "https://www.allente.no/tv-guide-old/tv-rettigheter-i-norge/" },
+    "uefa.euroq": { "services": ["tv2play"], "validTo": "2028-06-30", "source": "https://www.allente.no/tv-guide-old/tv-rettigheter-i-norge/" },
+    "uefa.euro": { "services": ["nrk", "tv2play"], "validTo": "2028-07-31", "source": "https://www.allente.no/tv-guide-old/tv-rettigheter-i-norge/" },
+    "fifa.world": { "services": ["nrk", "tv2play"], "validTo": "2030-06-01", "source": "https://www.allente.no/tv-guide-old/tv-rettigheter-i-norge/", "note": "NRK and TV 2 showed the 2026 World Cup; the 2030 rights are not confirmed yet." },
+    "nor.1": { "services": ["tv2play"], "validTo": "2034-12-31", "source": "https://www.tv2.no/sport/tv-2-skal-vise-toppserien-og-eliteserien-til-2034/18765795/" },
+    "tennis.slam": { "services": ["hbomax"], "validTo": "2027-12-31", "source": "https://www.allente.no/tv-guide-old/tv-rettigheter-i-norge/" },
+    "f1": { "services": ["viaplay", "f1tv"], "validTo": "2029-12-31", "source": "https://www.bytt.no/tv/tv-pakker/a-vzoj/", "note": "F1 TV Pro is closed to new Norwegian customers; existing subscribers keep access." }
+  }
+}

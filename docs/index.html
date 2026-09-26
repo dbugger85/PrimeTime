@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PrimeTime</title>
+  <meta name="description" content="Spoiler-free watchability scores for football, tennis and F1 replays.">
+  <meta name="theme-color" content="#0d1321">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">▶</span>
+      <h1>PrimeTime</h1>
+    </div>
+    <p class="tagline">What's worth watching — no spoilers.</p>
+  </header>
+
+  <nav class="sports" id="sports" aria-label="Sport">
+    <button data-sport="all">All</button>
+    <button data-sport="football">Football</button>
+    <button data-sport="tennis">Tennis</button>
+    <button data-sport="f1">F1</button>
+  </nav>
+
+  <section class="services" aria-labelledby="services-label">
+    <h2 id="services-label">My services <span class="hint">tap the ones you have</span></h2>
+    <div class="chips" id="services"></div>
+  </section>
+
+  <details class="filters" id="filters">
+    <summary>More filters</summary>
+    <div class="grid">
+      <label>Competition <select id="f-comp"></select></label>
+      <label>Period
+        <select id="f-days">
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="400">Last year</option>
+        </select>
+      </label>
+      <label>Minimum rating
+        <select id="f-min">
+          <option value="0">Any</option>
+          <option value="4">4+</option>
+          <option value="6">6+</option>
+          <option value="8">8+</option>
+        </select>
+      </label>
+      <label>Sort
+        <select id="f-sort">
+          <option value="date">Newest first</option>
+          <option value="score">Best first</option>
+        </select>
+      </label>
+      <label class="tennis-only">Tennis rounds
+        <select id="f-round">
+          <option value="">All rounds</option>
+          <option value="r3">Round 3 onwards</option>
+          <option value="qf">Quarterfinals onwards</option>
+        </select>
+      </label>
+      <label class="tennis-only">Tennis draw
+        <select id="f-draw">
+          <option value="">Men and women</option>
+          <option value="men">Men</option>
+          <option value="women">Women</option>
+        </select>
+      </label>
+      <label>Names
+        <select id="f-names">
+          <option value="tennis">Hide tennis players</option>
+          <option value="all">Hide all names</option>
+          <option value="show">Show all names</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" id="f-hints"> Show skip tips</label>
+      <label class="check"><input type="checkbox" id="f-watched"> Hide watched</label>
+    </div>
+    <p class="small">Why hide names? In a tournament, just seeing who plays a later round tells you who won earlier. Tap a hidden name to reveal it.</p>
+  </details>
+
+  <main>
+    <p class="status" id="status" aria-live="polite">Loading…</p>
+    <ul class="cards" id="cards"></ul>
+  </main>
+
+  <footer class="foot">
+    <p>Scores are worked out from match data, never from results you can see here. Data: ESPN and OpenF1. Streaming info is for Norway.</p>
+  </footer>
+
+  <template id="card-tpl">
+    <li class="card">
+      <div class="badge"><span class="num"></span><span class="tier"></span></div>
+      <div class="body">
+        <p class="meta"><span class="sport"></span> · <span class="when"></span></p>
+        <h3 class="title"></h3>
+        <p class="sub"></p>
+        <div class="strip" aria-hidden="true"></div>
+        <p class="advice"></p>
+        <div class="row">
+          <div class="svc"></div>
+          <button class="watched" type="button">Mark watched</button>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

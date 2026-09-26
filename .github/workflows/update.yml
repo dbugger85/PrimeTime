@@ -1,0 +1,62 @@
+# Every 3 hours: fetch new events, score them, save events.json and publish the site.
+# Also runs on every push to main (to publish code changes) and by hand from the Actions tab.
+name: Update and publish
+
+on:
+  schedule:
+    - cron: '17 */3 * * *'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Fetch and score events
+        run: npm run build
+
+      - name: Check the new data is spoiler-free
+        run: npm test
+
+      - name: Save the new data
+        run: |
+          git config user.name "primetime-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/events.json data/state.json
+          if git diff --cached --quiet; then
+            echo "No new events."
+          else
+            git commit -m "Update events"
+            git pull --rebase origin main
+            git push
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - id: deploy
+        uses: actions/deploy-pages@v4

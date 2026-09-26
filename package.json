@@ -1,0 +1,19 @@
+{
+  "name": "primetime",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Spoiler-free watchability scores for sports replays",
+  "scripts": {
+    "start": "python3 -m http.server 8000 --directory docs",
+    "build": "node scripts/build.mjs",
+    "test": "node --test test/*.test.mjs",
+    "e2e": "node test/e2e.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.63.0"
+  }
+}
