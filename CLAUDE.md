@@ -20,10 +20,16 @@ Run `npm test` and `npm run e2e` after changes, and look at the screenshots afte
 
 ## How it runs
 
-The GitHub Actions workflow `.github/workflows/update.yml` runs every 3 hours, on every push to `main`, and by hand. It does the following:
-1. Runs the unit tests, then `npm run build`, then the tests again. `test/spoilers.test.mjs` checks the new `events.json`.
+The GitHub Actions workflow `.github/workflows/update.yml` is triggered every 15 minutes, on every push to `main`, and by hand. It runs `scripts/auto.mjs`, which picks one of two scripts:
+- **Full build** (`scripts/build.mjs`, `npm run build`): runs when `state.lastFull` is about 3 hours old, and on every push or manual run (`FULL=1`). It fetches everything and rebuilds the upcoming list.
+- **Live check** (`scripts/live.mjs`, `npm run live`): runs otherwise. It only looks at upcoming events in their "in play" window, meaning from 10 minutes before the start until 4 h after (football) or 6 h after (F1 and tennis). It marks them live, scores them once finished, and moves them to replays. With nothing on, it makes zero requests and changes nothing. To test it, `NOW=2026-09-25T21:00Z npm run live` pretends it's another time.
+- Both scripts read and write the data files through `src/store.mjs`. Because it's all one workflow in one concurrency group, two runs never write at once. Publishing (the `deploy` job) only happens when the data or the code changed.
+- The page re-fetches `events.json` every 5 minutes while it's open, and when you return to the tab.
+
+Each run does the following:
+1. Runs the code unit tests, then `scripts/auto.mjs`, then all the tests. `test/spoilers.test.mjs` checks the new `events.json`.
 2. Commits `docs/data/events.json`, `docs/data/reasons.json` and `data/state.json` as "primetime-bot".
-3. Publishes `docs/` to GitHub Pages. The Pages source is "GitHub Actions".
+3. If anything changed, publishes `docs/` to GitHub Pages. The Pages source is "GitHub Actions".
 
 There's no server and there are no API keys. **Don't commit `docs/data/*.json` or `data/state.json` from a local build,** because the bot owns them and a local commit can conflict with its push. Discard local changes with `git checkout docs/data data`.
 

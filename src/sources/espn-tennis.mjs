@@ -33,6 +33,12 @@ export async function fetchSlams(year, now = new Date(), skipIds = new Set()) {
   return found;
 }
 
+// The Slam being played on a given day (YYYYMMDD), or undefined.
+export async function fetchSlamOn(yyyymmdd) {
+  const data = await getJson(`${BASE}?dates=${yyyymmdd}`);
+  return (data.events ?? []).find((e) => e.major);
+}
+
 // Main-draw singles matches of a Slam that haven't finished yet (both players known).
 export function upcomingFromSlam(event) {
   const out = [];

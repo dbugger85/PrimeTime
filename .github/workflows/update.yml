@@ -1,10 +1,12 @@
-# Every 3 hours: fetch new events, score them, save events.json and publish the site.
-# Also runs on every push to main (to publish code changes) and by hand from the Actions tab.
+# Every 15 minutes: scripts/auto.mjs runs the full build when one is due (every
+# 3 hours) and otherwise the light live check, which does nothing when no event
+# is on. Pushes to main and manual runs always do the full build.
+# Everything runs in this one workflow, so two runs never write the data at once.
 name: Update and publish
 
 on:
   schedule:
-    - cron: '17 */3 * * *'
+    - cron: '*/15 * * * *'
   push:
     branches: [main]
   workflow_dispatch:
@@ -22,9 +24,8 @@ jobs:
   update:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+    outputs:
+      publish: ${{ steps.save.outputs.changed == 'true' || github.event_name != 'schedule' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -32,31 +33,47 @@ jobs:
         with:
           node-version: 22
 
-      - name: Unit tests (code only; the data is checked after the build)
+      - name: Unit tests (code only; the data is checked after the update)
         run: node --test test/scoring.test.mjs test/logic.test.mjs
 
       - name: Fetch and score events
-        run: npm run build
+        run: node scripts/auto.mjs
+        env:
+          FULL: ${{ github.event_name == 'schedule' && '0' || '1' }}
 
-      - name: Check the new data is spoiler-free
+      - name: Check the data is spoiler-free
         run: npm test
 
       - name: Save the new data
+        id: save
         run: |
           git config user.name "primetime-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/data/events.json docs/data/reasons.json data/state.json
           if git diff --cached --quiet; then
-            echo "No new events."
+            echo "Nothing changed."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             git commit -m "Update events"
             git pull --rebase origin main
             git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
+        if: steps.save.outputs.changed == 'true' || github.event_name != 'schedule'
         with:
           path: docs
+
+  # Publish only when the data or the code changed.
+  deploy:
+    needs: update
+    if: needs.update.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
       - id: deploy
         uses: actions/deploy-pages@v4

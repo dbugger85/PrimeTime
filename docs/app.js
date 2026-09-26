@@ -289,20 +289,35 @@ function bind() {
   on('#f-watched', 'hideWatched');
 }
 
-async function load() {
-  bind();
-  renderControls();
+const REFRESH_MS = 5 * 60e3;
+let lastFetch = 0;
+
+// Fetches the event list. The page refreshes it every 5 minutes while it's
+// open, and when you come back to the tab, without losing your place.
+async function fetchData({ quiet = false } = {}) {
   try {
     const res = await fetch('./data/events.json', { cache: 'no-cache' });
     const data = await res.json();
+    lastFetch = Date.now();
+    if (quiet && data.generated === $('#updated').dataset.generated) return;
     events = data.events ?? [];
     upcoming = data.upcoming ?? [];
-    render();
-    const updated = new Date(data.generated);
-    $('.foot').insertAdjacentHTML('beforeend', `<p>Updated ${fmt.format(updated)}.</p>`);
+    render(); // keeps filters and "Show more" as they were
+    $('#updated').dataset.generated = data.generated;
+    $('#updated').textContent = `Updated ${fmt.format(new Date(data.generated))}.`;
   } catch {
-    $('#status').textContent = 'Could not load the event list. Check your connection and reload.';
+    if (!quiet) $('#status').textContent = 'Could not load the event list. Check your connection and reload.';
   }
+}
+
+function load() {
+  bind();
+  renderControls();
+  fetchData();
+  setInterval(() => document.visibilityState === 'visible' && fetchData({ quiet: true }), REFRESH_MS);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && Date.now() - lastFetch > REFRESH_MS) fetchData({ quiet: true });
+  });
 }
 
 load();

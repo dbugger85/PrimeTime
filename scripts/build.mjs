@@ -7,7 +7,6 @@
 // events already in events.json are not fetched again, and data/state.json
 // lists football days and tennis Slams that are complete.
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { FOOTBALL, KEEP_DAYS } from '../src/competitions.mjs';
 import { SCORING_VERSION } from '../src/scoring/common.mjs';
 import { scoreFootball } from '../src/scoring/football.mjs';
@@ -17,21 +16,17 @@ import * as football from '../src/sources/espn-football.mjs';
 import * as tennis from '../src/sources/espn-tennis.mjs';
 import * as f1 from '../src/sources/openf1.mjs';
 import { publishFootball, publishTennis, publishF1, upcomingFootball, upcomingTennis, upcomingF1, expiringRights } from '../src/publish.mjs';
+import { loadData, saveData } from '../src/store.mjs';
 
-const root = new URL('..', import.meta.url);
-const EVENTS = new URL('docs/data/events.json', root);
-const STATE = new URL('data/state.json', root);
-const REASONS = new URL('docs/data/reasons.json', root); // spoilers: only loaded after a warning
-const readJson = (url, fallback) => (existsSync(url) ? JSON.parse(readFileSync(url)) : fallback);
 const warn = (msg) => console.log(`::warning::${msg}`);
 
 const now = new Date();
 const only = process.argv[2];
-const events = new Map(readJson(EVENTS, { events: [] }).events.map((e) => [e.id, e]));
-const reasons = new Map(Object.entries(readJson(REASONS, {})));
+const data = loadData();
+const { events, reasons } = data;
 // Saves a scored event: the spoiler-free card data, and separately the reasons behind its score.
 const save = (event, scored) => { events.set(event.id, event); reasons.set(event.id, scored.reasons); };
-let state = readJson(STATE, {});
+let state = data.state;
 if (state.version !== SCORING_VERSION) state = { version: SCORING_VERSION }; // formula changed: redo everything
 state.footballDays ??= {};
 state.slamsDone ??= [];
@@ -129,7 +124,7 @@ async function buildF1() {
 }
 
 const builders = { football: [buildFootball, buildUpcomingFootball], tennis: [buildTennis], f1: [buildF1] };
-const previousUpcoming = readJson(EVENTS, {}).upcoming ?? [];
+const previousUpcoming = data.upcoming;
 for (const [sport, steps] of Object.entries(builders)) {
   if (only && only !== sport) {
     upcoming.push(...previousUpcoming.filter((e) => e.sport === sport)); // keep what the skipped sport had
@@ -149,14 +144,5 @@ for (const [id, e] of events) {
 }
 for (const r of expiringRights(now)) warn(`Streaming rights need checking: ${r} (src/rights/norway.json)`);
 
-const list = [...events.values()].sort((a, b) => b.start.localeCompare(a.start));
-mkdirSync(new URL('docs/data/', root), { recursive: true });
-mkdirSync(new URL('data/', root), { recursive: true });
-// An event that finished and got scored shouldn't also be listed as upcoming.
-const soon = [...new Map(upcoming.filter((e) => !events.has(e.id)).map((e) => [e.id, e])).values()]
-  .sort((a, b) => a.start.localeCompare(b.start));
-writeFileSync(EVENTS, JSON.stringify({ generated: now.toISOString(), events: list, upcoming: soon }) + '\n');
-writeFileSync(STATE, JSON.stringify(state, null, 1) + '\n');
-writeFileSync(REASONS, JSON.stringify(Object.fromEntries(list.filter((e) => reasons.has(e.id)).map((e) => [e.id, reasons.get(e.id)]))) + '\n');
-const count = (s) => list.filter((e) => e.sport === s).length;
-console.log(`events.json: ${list.length} events (football ${count('football')}, tennis ${count('tennis')}, f1 ${count('f1')}), ${soon.length} upcoming`);
+if (!only) state.lastFull = now.toISOString(); // the live check uses this to know when a full build is due
+console.log(saveData({ events, upcoming, reasons, state }, now));
