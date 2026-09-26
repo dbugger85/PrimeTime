@@ -17,6 +17,7 @@ export async function fetchDay(compKey, yyyymmdd) {
       home: team('home'),
       away: team('away'),
       finished: Boolean(e.status?.type?.completed),
+      state: e.status?.type?.state, // 'pre' (not started), 'in' (playing now) or 'post'
     };
   });
 }

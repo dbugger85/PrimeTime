@@ -6,13 +6,15 @@ import { getJson } from '../http.mjs';
 const BASE = 'https://api.openf1.org/v1';
 const get = (path) => getJson(`${BASE}/${path}`, { gapMs: 700, retries: 5 });
 
-// Finished races of a season, oldest first.
+// Races of a season, oldest first, each marked finished (ended over an hour ago) or not.
 export async function fetchRaces(year, now = new Date()) {
   const [sessions, meetings] = [await get(`sessions?year=${year}&session_name=Race`), await get(`meetings?year=${year}`)];
   const names = new Map(meetings.map((m) => [m.meeting_key, m.meeting_name]));
   return sessions
-    .filter((s) => !s.is_cancelled && new Date(s.date_end).getTime() + 3600e3 < now.getTime())
+    .filter((s) => !s.is_cancelled)
     .map((s) => ({
+      finished: new Date(s.date_end).getTime() + 3600e3 < now.getTime(),
+      live: new Date(s.date_start) <= now && new Date(s.date_end).getTime() + 3600e3 >= now.getTime(),
       sessionKey: s.session_key,
       name: names.get(s.meeting_key) ?? `${s.country_name} Grand Prix`,
       circuit: s.circuit_short_name,

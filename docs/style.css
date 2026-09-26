@@ -18,6 +18,7 @@
   --h2: #f08c4a;
   --h3: #d9480f;
   --shadow: 0 1px 2px rgb(20 24 33 / 0.06), 0 4px 14px rgb(20 24 33 / 0.05);
+  --live: #d6336c;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -38,6 +39,7 @@
     --h2: #c2602a;
     --h3: #ff7a2f;
     --shadow: none;
+    --live: #f0457f;
   }
 }
 :root[data-theme="dark"] {
@@ -58,6 +60,7 @@
   --h2: #c2602a;
   --h3: #ff7a2f;
   --shadow: none;
+  --live: #f0457f;
 }
 
 * { box-sizing: border-box; }
@@ -84,6 +87,17 @@ h1, h2, h3, p { margin: 0; }
 h1 { font: 700 32px/1 'Barlow Condensed', system-ui, sans-serif; letter-spacing: 0.01em; text-transform: uppercase; }
 .tagline { color: var(--muted); margin-top: 6px; }
 
+.views { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0 0; }
+.views button {
+  min-height: 46px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface);
+  font-weight: 700; font-size: 16px; cursor: pointer;
+}
+.views button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+body[data-view="upcoming"] .replay-only { display: none; }
+.day { list-style: none; font-weight: 700; font-size: 14px; color: var(--muted); margin: 10px 2px 0; text-transform: uppercase; letter-spacing: 0.04em; }
+.soon .badge { border-style: dashed; }
+.soon .time { font: 700 26px/1 'Barlow Condensed', system-ui, sans-serif; }
+.soon.live .badge { border: 0; background: var(--live); color: #fff; }
 .sports {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
   margin: 14px 0; padding: 4px; border-radius: 12px; background: var(--chip);

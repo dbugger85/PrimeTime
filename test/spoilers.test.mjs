@@ -9,7 +9,7 @@ import { factsFromRace } from '../src/sources/openf1.mjs';
 import { scoreFootball } from '../src/scoring/football.mjs';
 import { scoreTennis } from '../src/scoring/tennis.mjs';
 import { scoreF1 } from '../src/scoring/f1.mjs';
-import { publishFootball, publishTennis, publishF1, ADVICE_CODES } from '../src/publish.mjs';
+import { publishFootball, publishTennis, publishF1, upcomingFootball, upcomingTennis, upcomingF1, ADVICE_CODES } from '../src/publish.mjs';
 
 const fixture = (path) => JSON.parse(readFileSync(new URL(`./fixtures/${path}`, import.meta.url)));
 
@@ -59,8 +59,27 @@ test('tennis players are listed alphabetically, not winner-last', () => {
   assert.ok(published.every((e) => e.players[0].localeCompare(e.players[1]) <= 0));
 });
 
+export function checkUpcoming(e) {
+  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', ...ALLOWED[e.sport]];
+  for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}" on an upcoming event`);
+  assert.ok(['upcoming', 'live'].includes(e.status));
+  const text = JSON.stringify({ ...e, id: '', start: '' });
+  assert.doesNotMatch(text, /\d+\s*[-–:]\s*\d+/, `${e.id}: looks like a score`);
+}
+
+test('upcoming events carry no score, only when and where', () => {
+  const comp = { key: 'eng.1', name: 'Premier League' };
+  checkUpcoming(upcomingFootball(comp, { espnId: '1', start: '2026-10-10T14:00Z', home: 'A', away: 'B', state: 'in' }));
+  checkUpcoming(upcomingTennis({ espnId: '2', tournament: 'US Open', draw: "Men's Singles", round: 'Final', start: '2026-09-13T20:00Z', players: ['Zed', 'Abe'], live: false }));
+  checkUpcoming(upcomingF1({ sessionKey: 3, name: 'Mexico City Grand Prix', circuit: 'Mexico City', start: '2026-11-01T20:00Z', live: false }));
+  assert.deepEqual(upcomingTennis({ espnId: '2', tournament: 'x', draw: 'x', round: 'x', start: 'x', players: ['Zed', 'Abe'] }).players, ['Abe', 'Zed']);
+});
+
 test('the real docs/data/events.json is spoiler-free', { skip: !existsSync(new URL('../docs/data/events.json', import.meta.url)) }, () => {
   const data = JSON.parse(readFileSync(new URL('../docs/data/events.json', import.meta.url)));
-  assert.deepEqual(Object.keys(data).sort(), ['events', 'generated']);
+  assert.deepEqual(Object.keys(data).sort(), ['events', 'generated', 'upcoming']);
   for (const e of data.events) checkEvent(e);
+  for (const e of data.upcoming) checkUpcoming(e);
+  const scored = new Set(data.events.map((e) => e.id));
+  assert.ok(data.upcoming.every((e) => !scored.has(e.id)), 'an event is both scored and upcoming');
 });

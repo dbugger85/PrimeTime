@@ -49,20 +49,42 @@ const LATE_ROUNDS = {
   qf: ['Quarterfinal', 'Semifinal', 'Final'],
 };
 
+// Filters shared by both views: sport, services, competition, tennis round and draw.
+function matchesCommon(e, prefs) {
+  if (prefs.sport !== 'all' && e.sport !== prefs.sport) return false;
+  if (prefs.services?.length && !e.services.some((s) => prefs.services.includes(s))) return false;
+  if (prefs.comp && prefs.comp !== 'all' && e.compName !== prefs.comp) return false;
+  if (e.sport === 'tennis') {
+    if (prefs.round && LATE_ROUNDS[prefs.round] && !LATE_ROUNDS[prefs.round].includes(e.round)) return false;
+    if (prefs.draw === 'men' && !/^men/i.test(e.draw)) return false;
+    if (prefs.draw === 'women' && !/^women/i.test(e.draw)) return false;
+  }
+  return true;
+}
+
+// Upcoming and live events, soonest first (live ones on top).
+export function filterUpcoming(list, prefs) {
+  return list
+    .filter((e) => matchesCommon(e, prefs))
+    .sort((a, b) => (b.status === 'live') - (a.status === 'live') || a.start.localeCompare(b.start));
+}
+
+// "Today", "Tomorrow" or e.g. "Sat 4 Oct", in Norwegian time.
+export function dayLabel(iso, now = new Date()) {
+  const day = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Oslo' }).format(d); // YYYY-MM-DD
+  const d = new Date(iso);
+  if (day(d) === day(now)) return 'Today';
+  if (day(d) === day(new Date(now.getTime() + 864e5))) return 'Tomorrow';
+  return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Oslo', weekday: 'short', day: 'numeric', month: 'short' }).format(d);
+}
+
 // prefs: { sport, services[], comp, days, minScore, sort, round, draw, hideWatched }
 export function filterEvents(events, prefs, watched = new Set(), now = Date.now()) {
   const list = events.filter((e) => {
-    if (prefs.sport !== 'all' && e.sport !== prefs.sport) return false;
-    if (prefs.services?.length && !e.services.some((s) => prefs.services.includes(s))) return false;
-    if (prefs.comp && prefs.comp !== 'all' && e.compName !== prefs.comp) return false;
+    if (!matchesCommon(e, prefs)) return false;
     if (prefs.days && now - Date.parse(e.start) > prefs.days * 864e5) return false;
     if (prefs.minScore && e.score < prefs.minScore) return false;
     if (prefs.hideWatched && watched.has(e.id)) return false;
-    if (e.sport === 'tennis') {
-      if (prefs.round && LATE_ROUNDS[prefs.round] && !LATE_ROUNDS[prefs.round].includes(e.round)) return false;
-      if (prefs.draw === 'men' && !/^men/i.test(e.draw)) return false;
-      if (prefs.draw === 'women' && !/^women/i.test(e.draw)) return false;
-    }
     return true;
   });
   return prefs.sort === 'score'

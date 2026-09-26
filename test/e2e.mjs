@@ -98,6 +98,17 @@ try {
     assert.equal(await page.$$eval('.why:not([hidden])', (els) => els.length), 1, 'only the tapped card is revealed');
     await page.screenshot({ path: `${shots}/spoiler-shown.png` });
 
+    // Coming up: no scores, just times (or LIVE) and services, grouped by day.
+    await page.click('#views [data-view="upcoming"]');
+    await page.click('#sports [data-sport="all"]');
+    if (await page.$('.card.soon')) {
+      assert.equal(await page.$$eval('.card .num', (els) => els.length), 0, 'a score is shown on an upcoming event');
+      assert.ok(await page.$('.day'));
+      await page.screenshot({ path: `${shots}/upcoming.png` });
+    }
+    await page.click('#views [data-view="replays"]');
+    await page.waitForSelector('.card .num');
+
     // Mark watched survives a reload.
     const firstId = await page.$eval('.card', (e) => e.dataset.id);
     await page.click('.card .watched');

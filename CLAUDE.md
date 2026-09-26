@@ -42,6 +42,10 @@ The competitions are in `src/competitions.mjs`. The owner chose them: the Premie
 - `data/state.json` lists football days and Slams that are complete.
 - **Bump `SCORING_VERSION` in `src/scoring/common.mjs` whenever a formula changes.** The next build then re-scores everything.
 
+## Upcoming and live events ("Coming up" view)
+
+`events.json` also has an `upcoming` list: football for the next 14 days, F1 races for the next 60 days, and not-yet-finished Grand Slam singles matches while a Slam is on (the free data has no draws before that). It's rebuilt from scratch every run, and `status` is `upcoming` or `live`. These entries have **no** score, segments, advice or reasons (see `upcoming*` in `publish.mjs` and `checkUpcoming` in the spoiler test). A match drops out of `upcoming` once it's finished and scored, so ongoing matches show as LIVE until the next run after the final whistle.
+
 ## Spoiler rules (most important)
 
 - `src/publish.mjs` is the only way data reaches the site. It copies a fixed set of fields: id, sport, comp, compName, start, score, segments, advice, services, v, plus teams / players+draw+round / circuit.

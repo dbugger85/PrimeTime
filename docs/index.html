@@ -21,6 +21,11 @@
     <p class="tagline">What's worth watching — no spoilers.</p>
   </header>
 
+  <nav class="views" id="views" aria-label="View">
+    <button data-view="replays">Replays</button>
+    <button data-view="upcoming">Coming up</button>
+  </nav>
+
   <nav class="sports" id="sports" aria-label="Sport">
     <button data-sport="all">All</button>
     <button data-sport="football">Football</button>
@@ -37,14 +42,14 @@
     <summary>More filters</summary>
     <div class="grid">
       <label>Competition <select id="f-comp"></select></label>
-      <label>Period
+      <label class="replay-only">Period
         <select id="f-days">
           <option value="7">Last 7 days</option>
           <option value="30">Last 30 days</option>
           <option value="400">Last year</option>
         </select>
       </label>
-      <label>Minimum rating
+      <label class="replay-only">Minimum rating
         <select id="f-min">
           <option value="0">Any</option>
           <option value="4">4+</option>
@@ -52,7 +57,7 @@
           <option value="8">8+</option>
         </select>
       </label>
-      <label>Sort
+      <label class="replay-only">Sort
         <select id="f-sort">
           <option value="date">Newest first</option>
           <option value="score">Best first</option>
@@ -79,8 +84,8 @@
           <option value="show">Show all names</option>
         </select>
       </label>
-      <label class="check"><input type="checkbox" id="f-hints"> Show skip tips</label>
-      <label class="check"><input type="checkbox" id="f-watched"> Hide watched</label>
+      <label class="check replay-only"><input type="checkbox" id="f-hints"> Show skip tips</label>
+      <label class="check replay-only"><input type="checkbox" id="f-watched"> Hide watched</label>
     </div>
     <p class="small">Why hide names? In a tournament, just seeing who plays a later round tells you who won earlier. Tap a hidden name to reveal it.</p>
   </details>
@@ -109,6 +114,18 @@
         </div>
         <button class="why-btn" type="button">⚠ Why this score?</button>
         <div class="why" hidden></div>
+      </div>
+    </li>
+  </template>
+
+  <template id="soon-tpl">
+    <li class="card soon">
+      <div class="badge"><span class="time"></span><span class="tier"></span></div>
+      <div class="body">
+        <p class="meta"><span class="sport"></span> · <span class="comp"></span></p>
+        <h3 class="title"></h3>
+        <p class="sub"></p>
+        <div class="row"><div class="svc"></div></div>
       </div>
     </li>
   </template>

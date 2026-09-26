@@ -1,4 +1,4 @@
-import { SPORTS, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, subtitleOf, hiddenTitleOf } from './logic.js';
+import { SPORTS, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, subtitleOf, hiddenTitleOf } from './logic.js';
 
 const SERVICES = {
   viaplay: { name: 'Viaplay', url: 'https://viaplay.no/sport' },
@@ -9,7 +9,7 @@ const SERVICES = {
 };
 
 const DEFAULTS = {
-  sport: 'all', services: [], comp: 'all', days: 30, minScore: 0, sort: 'date',
+  view: 'replays', sport: 'all', services: [], comp: 'all', days: 30, minScore: 0, sort: 'date',
   round: '', draw: '', names: 'tennis', hints: true, hideWatched: false,
 };
 
@@ -28,6 +28,7 @@ const revealed = new Set(); // names revealed this visit only
 const whyShown = new Set(); // "Why this score?" opened this visit only
 let reasonsFile = null; // loaded only after the spoiler warning is accepted
 let events = [];
+let upcoming = [];
 const PAGE = 40;
 let limit = PAGE; // cards shown; grows with "Show more"
 
@@ -42,6 +43,10 @@ function savePrefs() {
 }
 
 function renderControls() {
+  for (const b of document.querySelectorAll('#views button')) {
+    b.setAttribute('aria-pressed', String(b.dataset.view === prefs.view));
+  }
+  document.body.dataset.view = prefs.view;
   for (const b of document.querySelectorAll('#sports button')) {
     b.setAttribute('aria-pressed', String(b.dataset.sport === prefs.sport));
   }
@@ -59,7 +64,8 @@ function renderControls() {
     return b;
   }));
 
-  const comps = [...new Set(events.filter((e) => prefs.sport === 'all' || e.sport === prefs.sport).map((e) => e.compName))].sort();
+  const pool = prefs.view === 'upcoming' ? upcoming : events;
+  const comps = [...new Set(pool.filter((e) => prefs.sport === 'all' || e.sport === prefs.sport).map((e) => e.compName))].sort();
   if (prefs.comp !== 'all' && !comps.includes(prefs.comp)) prefs.comp = 'all';
   $('#f-comp').replaceChildren(new Option('All', 'all'), ...comps.map((c) => new Option(c, c)));
   $('#f-comp').value = prefs.comp;
@@ -176,8 +182,65 @@ async function askSpoiler(id) {
   render();
 }
 
+const timeFmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Oslo', hour: '2-digit', minute: '2-digit' });
+
+function soonCard(e) {
+  const li = $('#soon-tpl').content.firstElementChild.cloneNode(true);
+  li.dataset.id = e.id;
+  li.classList.toggle('live', e.status === 'live');
+  li.querySelector('.time').textContent = e.status === 'live' ? 'LIVE' : timeFmt.format(new Date(e.start));
+  li.querySelector('.tier').textContent = e.status === 'live' ? 'now' : '';
+  li.querySelector('.sport').textContent = SPORTS[e.sport];
+  li.querySelector('.comp').textContent = e.sport === 'f1' ? e.circuit : e.compName;
+  const title = li.querySelector('.title');
+  if (namesHidden(e, prefs.names) && !revealed.has(e.id)) {
+    const b = Object.assign(document.createElement('button'), { type: 'button', className: 'reveal' });
+    b.textContent = `${hiddenTitleOf(e)} — tap to show`;
+    b.onclick = () => { revealed.add(e.id); render(); };
+    title.append(b);
+  } else {
+    title.textContent = titleOf(e);
+  }
+  li.querySelector('.sub').textContent = e.sport === 'tennis' ? subtitleOf(e) : '';
+  li.querySelector('.sub').hidden = e.sport !== 'tennis'; // the meta line already says it
+  li.querySelector('.svc').append(...e.services.map((id) => {
+    const a = Object.assign(document.createElement('a'), { href: SERVICES[id].url, target: '_blank', rel: 'noopener', textContent: SERVICES[id].name });
+    a.className = 'pill';
+    if (prefs.services.includes(id)) a.classList.add('mine');
+    return a;
+  }));
+  return li;
+}
+
+function renderUpcoming() {
+  const list = filterUpcoming(upcoming, prefs);
+  const shownList = list.slice(0, limit);
+  const items = [];
+  let lastDay = null;
+  for (const e of shownList) {
+    const day = e.status === 'live' ? 'Live now' : dayLabel(e.start);
+    if (day !== lastDay) {
+      items.push(Object.assign(document.createElement('li'), { className: 'day', textContent: day }));
+      lastDay = day;
+    }
+    items.push(soonCard(e));
+  }
+  $('#cards').replaceChildren(...items);
+  $('.more')?.remove();
+  if (list.length > limit) {
+    const more = Object.assign(document.createElement('button'), { type: 'button', className: 'more' });
+    more.textContent = `Show more (${list.length - limit} left)`;
+    more.onclick = () => { limit += PAGE; render(); };
+    $('#cards').after(more);
+  }
+  $('#status').textContent = list.length
+    ? `${list.length} coming up. No scores here: they appear under Replays once the event has finished.`
+    : 'Nothing coming up that matches these filters.';
+}
+
 function render() {
   renderControls();
+  if (prefs.view === 'upcoming') return renderUpcoming();
   const list = filterEvents(events, prefs, watched);
   $('#cards').replaceChildren(...list.slice(0, limit).map(card));
   $('.more')?.remove();
@@ -194,6 +257,13 @@ function render() {
 }
 
 function bind() {
+  $('#views').onclick = (ev) => {
+    const b = ev.target.closest('button');
+    if (!b) return;
+    prefs.view = b.dataset.view;
+    savePrefs();
+    render();
+  };
   $('#sports').onclick = (ev) => {
     const b = ev.target.closest('button');
     if (!b) return;
@@ -226,6 +296,7 @@ async function load() {
     const res = await fetch('./data/events.json', { cache: 'no-cache' });
     const data = await res.json();
     events = data.events ?? [];
+    upcoming = data.upcoming ?? [];
     render();
     const updated = new Date(data.generated);
     $('.foot').insertAdjacentHTML('beforeend', `<p>Updated ${fmt.format(updated)}.</p>`);

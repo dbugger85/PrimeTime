@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf } from '../docs/logic.js';
+import { filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf } from '../docs/logic.js';
 
 const now = Date.parse('2026-09-26T12:00:00Z');
 const ev = (o) => ({ services: [], segments: [], advice: { code: 'full' }, compName: 'X', ...o });
@@ -69,4 +69,22 @@ test('reason lines: biggest first, signed, with a cap note', () => {
   assert.equal(lines[2].negative, true);
   assert.equal(note, 'Adds up to 10.8, capped at 10');
   assert.equal(reasonLines([[3, 'x']], 3).note, '');
+});
+
+test('upcoming: live first, then soonest; shared filters apply', () => {
+  const soon = [
+    { id: 'x', sport: 'football', start: '2026-10-10T14:00Z', status: 'upcoming', services: ['viaplay'], compName: 'Premier League' },
+    { id: 'y', sport: 'f1', start: '2026-10-04T12:00Z', status: 'upcoming', services: ['viaplay', 'f1tv'], compName: 'GP' },
+    { id: 'z', sport: 'football', start: '2026-09-26T18:00Z', status: 'live', services: ['tv2play'], compName: 'Nations League' },
+  ];
+  assert.equal(ids(filterUpcoming(soon, base)), 'zyx');
+  assert.equal(ids(filterUpcoming(soon, { ...base, sport: 'football' })), 'zx');
+  assert.equal(ids(filterUpcoming(soon, { ...base, services: ['f1tv'] })), 'y');
+});
+
+test('day labels in Norwegian time', () => {
+  const now = new Date('2026-09-26T21:00:00Z'); // 23:00 in Oslo
+  assert.equal(dayLabel('2026-09-26T21:30:00Z', now), 'Today');
+  assert.equal(dayLabel('2026-09-26T22:30:00Z', now), 'Tomorrow'); // 00:30 in Oslo
+  assert.equal(dayLabel('2026-10-04T12:00:00Z', now), 'Sun 4 Oct');
 });

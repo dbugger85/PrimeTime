@@ -33,6 +33,23 @@ export async function fetchSlams(year, now = new Date(), skipIds = new Set()) {
   return found;
 }
 
+// Main-draw singles matches of a Slam that haven't finished yet (both players known).
+export function upcomingFromSlam(event) {
+  const out = [];
+  for (const g of event.groupings ?? []) {
+    if (!/singles/.test(g.grouping?.slug ?? '')) continue;
+    for (const c of g.competitions ?? []) {
+      const round = c.round?.displayName ?? '';
+      const state = c.status?.type?.state;
+      if (/qualifying/i.test(round) || (state !== 'pre' && state !== 'in')) continue;
+      const names = (c.competitors ?? []).map((x) => x.athlete?.displayName).filter(Boolean);
+      if (names.length !== 2) continue;
+      out.push({ espnId: c.id, tournament: event.name, draw: g.grouping.displayName, round, start: c.date, players: names, live: state === 'in' });
+    }
+  }
+  return out;
+}
+
 // Flattens a Slam into finished main-draw singles matches.
 export function matchesFromSlam(event) {
   const out = [];

@@ -59,3 +59,25 @@ export function expiringRights(now = new Date(), days = 60) {
     .filter(([, r]) => new Date(r.validTo).getTime() - now.getTime() < days * 864e5)
     .map(([key, r]) => `${key} (valid to ${r.validTo})`);
 }
+
+// Upcoming and live events: when and where to watch, no score of any kind.
+const upcomingBase = (id, sport, comp, compName, start, live, rightsKey) => ({
+  id, sport, comp, compName, start, status: live ? 'live' : 'upcoming', services: servicesFor(rightsKey),
+});
+
+export const upcomingFootball = (comp, match) => ({
+  ...upcomingBase(`fb-${match.espnId}`, 'football', comp.key, comp.name, match.start, match.state === 'in', comp.key),
+  teams: [match.home, match.away],
+});
+
+export const upcomingTennis = (match) => ({
+  ...upcomingBase(`tn-${match.espnId}`, 'tennis', 'tennis.slam', match.tournament, match.start, match.live, 'tennis.slam'),
+  players: [...match.players].sort((a, b) => a.localeCompare(b)),
+  draw: match.draw,
+  round: match.round,
+});
+
+export const upcomingF1 = (race) => ({
+  ...upcomingBase(`f1-${race.sessionKey}`, 'f1', 'f1', race.name, race.start, race.live, 'f1'),
+  circuit: race.circuit,
+});
