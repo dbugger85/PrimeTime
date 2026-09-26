@@ -42,7 +42,14 @@ export function factsFromSummary(summary) {
   const events = (summary.keyEvents ?? []).filter(inPlay);
   const goals = events
     .filter((e) => e.scoringPlay)
-    .map((e) => ({ min: minuteOf(e), side: sides[e.team?.id] ?? 'home', own: /own goal/i.test(e.type.text) }));
+    .map((e) => ({
+      min: minuteOf(e),
+      side: sides[e.team?.id] ?? 'home',
+      own: /own goal/i.test(e.type.text),
+      pen: /^penalty/i.test(e.type.text),
+      clock: (e.clock?.displayValue ?? '').replace("'+", '+'), // "45'+2'" -> "45+2'"
+      name: e.participants?.[0]?.athlete?.displayName,
+    }));
   // ESPN is inconsistent about which team an own goal is credited to; check against the final score.
   const count = (side) => goals.filter((g) => g.side === side).length;
   if (count('home') !== finalScore.home || count('away') !== finalScore.away) {
@@ -61,8 +68,17 @@ export function factsFromSummary(summary) {
   if (home.shootoutScore != null) result += ` (${home.shootoutScore}–${away.shootoutScore} on penalties)`;
   else if (status === 'STATUS_FINAL_AET') result += ' (after extra time)';
 
+  // One line per goal for the result spoiler: "36' · 0–1 · Jude Bellingham (England)".
+  const tally = { home: 0, away: 0 };
+  const goalLines = goals.map((g) => {
+    tally[g.side]++;
+    const who = g.name ?? 'Unknown scorer';
+    const note = g.own ? 'own goal' : [team(g.side).team.displayName, g.pen && 'pen'].filter(Boolean).join(', ');
+    return `${g.clock || `${Math.ceil(g.min)}'`} · ${tally.home}–${tally.away} · ${who} (${note})`;
+  });
+
   return {
-    result,
+    result: { text: result, goals: goalLines },
     goals,
     reds: events.filter((e) => /red card/i.test(e.type.text)).map((e) => minuteOf(e)),
     pens: typed(/^penalty/i),

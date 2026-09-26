@@ -142,9 +142,19 @@ test('every score comes with reasons that add up to it (before the 0–10 cap)',
 });
 
 test('result lines (only ever shown behind the second spoiler warning)', () => {
-  assert.equal(fb(760516).result, 'France 4–6 England');
-  assert.equal(fb(760489).result, 'Germany 1–1 Paraguay (3–4 on penalties)');
-  assert.equal(fb(760512).result, 'Norway 1–2 England (after extra time)');
+  assert.equal(fb(760516).result.text, 'France 4–6 England');
+  assert.equal(fb(760489).result.text, 'Germany 1–1 Paraguay (3–4 on penalties)');
+  assert.equal(fb(760512).result.text, 'Norway 1–2 England (after extra time)');
+  // Football also lists every goal: minute, running score, scorer, team (shootout kicks are left out).
+  assert.deepEqual(fb(760505).result.goals, [
+    "36' · 0–1 · Jude Bellingham (England)",
+    "38' · 0–2 · Jude Bellingham (England)",
+    "42' · 1–2 · Julián Quiñones (Mexico)",
+    "60' · 1–3 · Harry Kane (England, pen)",
+    "69' · 2–3 · Raúl Jiménez (Mexico, pen)",
+  ]);
+  assert.deepEqual(fb(760512).result.goals.map((g) => g.split(' · ').slice(0, 2).join(' ')), ["36' 1–0", "45+2' 1–1", "93' 1–2"]);
+  assert.equal(fb(760489).result.goals.length, 2);
   const matches = matchesFromSlam(fixture('tennis/usopen2026.json').events[0]);
   const final = matches.find((m) => m.round === 'Final' && m.draw.startsWith('Men'));
   assert.equal(scoreTennis(final).result, 'Alexander Zverev beat Ben Shelton 6-3 7-6(2) 5-7 6-2');

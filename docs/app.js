@@ -201,8 +201,21 @@ function fillWhy(box, e) {
 
   // Second level: the actual result, behind another warning.
   if (resultShown.has(e.id)) {
-    const text = resultsFile?.[e.id] ?? 'No result saved for this event yet.';
-    box.append(Object.assign(document.createElement('p'), { className: 'result', textContent: text }));
+    // Tennis and F1 results are one line of text; football is {text, goals: ["36' · 0–1 · Name (Team)", …]}.
+    const saved = resultsFile?.[e.id] ?? 'No result saved for this event yet.';
+    const { text, goals = [] } = typeof saved === 'string' ? { text: saved } : saved;
+    const div = Object.assign(document.createElement('div'), { className: 'result' });
+    div.append(Object.assign(document.createElement('p'), { className: 'result-text', textContent: text }));
+    if (goals.length) {
+      const list = Object.assign(document.createElement('ul'), { className: 'goals' });
+      for (const g of goals) {
+        const li = document.createElement('li');
+        li.append(...g.split(' · ').map((part) => Object.assign(document.createElement('span'), { textContent: part })));
+        list.append(li);
+      }
+      div.append(list);
+    }
+    box.append(div);
   } else {
     const b = Object.assign(document.createElement('button'), { type: 'button', className: 'why-btn result-btn', textContent: '⚠⚠ Show the result' });
     b.onclick = () => askSpoiler(e.id, 'result');
@@ -376,8 +389,34 @@ async function fetchData({ quiet = false } = {}) {
   }
 }
 
+// "Install app": Chrome/Android fires beforeinstallprompt when the page can be
+// installed, and we show a button for it. iPhones have no such event, so Safari
+// gets a tip instead. Nothing shows once it's running as the installed app.
+function setupInstall() {
+  const installed = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if (installed) return;
+  const box = $('#install'), btn = $('#install-btn');
+  let prompt = null;
+  addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    prompt = e;
+    box.hidden = btn.hidden = false;
+  });
+  btn.addEventListener('click', async () => {
+    if (!prompt) return;
+    prompt.prompt();
+    await prompt.userChoice;
+    prompt = null;
+    box.hidden = btn.hidden = true;
+  });
+  addEventListener('appinstalled', () => { box.hidden = true; });
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (ios) box.hidden = $('#install-ios').hidden = false;
+}
+
 function load() {
   window.primetimeStarted = true; // tells the safety net in index.html that the app is running
+  setupInstall();
   bind();
   renderControls();
   fetchData();

@@ -25,4 +25,5 @@ A static site on GitHub Pages, fed by a scheduled GitHub Action that fetches fre
 1. Football end to end. ✅
 2. F1. ✅
 3. Tennis. ✅
-4. Later ideas: Norwegian UI text, installable app (PWA), more leagues (La Liga etc.), upcoming fixtures, per-event rights overrides.
+4. Installable app (home-screen icon; no offline mode, by the owner's choice). ✅
+5. Later ideas: Norwegian UI text, more leagues (La Liga etc.), upcoming fixtures, per-event rights overrides.

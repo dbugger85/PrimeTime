@@ -151,9 +151,35 @@ try {
     await page.waitForSelector('.card');
     assert.ok(await page.$eval(`.card[data-id="${firstId}"]`, (e) => e.classList.contains('is-watched')));
 
+    // Installable as an app: Chrome's own check finds nothing missing, and every icon loads.
+    const cdp = await page.context().newCDPSession(page);
+    const { installabilityErrors } = await cdp.send('Page.getInstallabilityErrors');
+    // The test browser is always incognito, which Chrome never installs from; anything else is our fault.
+    const problems = installabilityErrors.map((e) => e.errorId).filter((id) => id !== 'in-incognito');
+    assert.deepEqual(problems, [], 'the page is not installable');
+    const manifest = await (await fetch(new URL('manifest.webmanifest', base))).json();
+    for (const icon of manifest.icons) {
+      assert.ok((await fetch(new URL(icon.src, base))).ok, `icon ${icon.src} is missing`);
+    }
+    assert.ok(await page.$eval('#install-ios', (e) => e.hidden), 'the iPhone tip shows on Android/desktop');
+
     assert.deepEqual(errors, []);
     await page.close();
   }
+
+  // iPhone Safari has no install button, so it gets the "Add to Home Screen" tip.
+  const iphone = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+  });
+  await iphone.goto(base);
+  await iphone.waitForSelector('.card');
+  assert.ok(await iphone.$eval('#install-ios', (e) => !e.hidden), 'no install tip on iPhone');
+  assert.ok(await iphone.$eval('#install-btn', (e) => e.hidden));
+  await iphone.evaluate(() => document.querySelector('.foot').scrollIntoView());
+  await iphone.screenshot({ path: `${shots}/install-tip-iphone.png` });
+  await iphone.close();
+
   console.log('e2e passed');
 } finally {
   await browser.close();

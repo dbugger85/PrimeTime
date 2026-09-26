@@ -68,7 +68,8 @@ html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0 auto;
   max-width: 760px;
-  padding: 0 16px 40px;
+  /* The safe-area insets keep content clear of the notch and home bar in the installed app. */
+  padding: 0 16px calc(40px + env(safe-area-inset-bottom));
   background: var(--bg);
   color: var(--ink);
   font: 16px/1.45 Inter, system-ui, sans-serif;
@@ -76,7 +77,7 @@ body {
 button, select, input { font: inherit; color: inherit; }
 h1, h2, h3, p { margin: 0; }
 
-.top { padding: 22px 0 10px; }
+.top { padding: calc(22px + env(safe-area-inset-top)) 0 10px; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .logo {
   display: grid; place-items: center;
@@ -203,9 +204,13 @@ body[data-view="upcoming"] .replay-only { display: none; }
 .why .small { margin-top: 6px; }
 .why .result-btn { margin-top: 6px; color: var(--live); }
 .why .result {
-  margin-top: 10px; padding: 10px 12px; border-radius: 8px; border: 2px solid var(--live);
-  background: var(--surface); font-weight: 700; font-size: 15px;
+  margin-top: 10px; padding: 10px; border-radius: 8px; border: 2px solid var(--live);
+  background: var(--surface); font-size: 15px;
 }
+.why .result-text { font-weight: 700; }
+.why .goals { margin-top: 6px; gap: 2px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.why .goals li { grid-template-columns: 2.9em 2.6em 1fr; }
+.why .goals li span:nth-child(-n+2) { color: var(--muted); }
 dialog {
   border: 1px solid var(--line); border-radius: 16px; padding: 20px; max-width: min(92vw, 420px);
   background: var(--surface); color: var(--ink);
@@ -222,6 +227,11 @@ dialog p { margin-bottom: 8px; color: var(--muted); }
   border: 1px solid var(--line); background: var(--surface); font-weight: 600; cursor: pointer;
 }
 .foot { margin-top: 28px; font-size: 12.5px; color: var(--muted); display: grid; gap: 4px; }
+.install { margin-top: 10px; }
+.install button {
+  border: 0; border-radius: 999px; padding: 10px 18px; min-height: 44px;
+  background: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: 15px; cursor: pointer;
+}
 
 @media (max-width: 380px) {
   .card { grid-template-columns: 64px 1fr; gap: 10px; }
