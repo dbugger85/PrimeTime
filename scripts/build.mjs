@@ -121,6 +121,7 @@ async function buildF1() {
         save(publishF1(race, scored), scored);
         console.log(`f1: ${race.name} ${year}`);
       } catch (err) {
+        if (err.f1Live) throw err; // every other request would be refused too
         warn(`f1 ${race.name} ${year}: ${err.message}`);
       }
     }
@@ -138,9 +139,12 @@ for (const [sport, steps] of Object.entries(builders)) {
     try {
       await build();
     } catch (err) {
-      warn(`${sport} failed: ${err.message}`); // one broken source shouldn't stop the others
+      if (err.f1Live) console.log(`${sport}: a live F1 session is on, so OpenF1 is closed to free users; trying again next run`);
+      else warn(`${sport} failed: ${err.message}`); // one broken source shouldn't stop the others
     }
   }
+  // If a source failed before listing anything, keep what it had in "Coming up".
+  if (!upcoming.some((e) => e.sport === sport)) upcoming.push(...previousUpcoming.filter((e) => e.sport === sport));
 }
 
 for (const [id, e] of events) {

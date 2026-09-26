@@ -42,6 +42,8 @@ There's no server and there are no API keys. **Don't commit `docs/data/*.json` o
 | Tennis | ESPN `sports/tennis/atp/scoreboard?dates=` | During a Grand Slam, any day returns the whole tournament (men's and women's). Set scores and tiebreaks only, with no seeds or rankings |
 | F1 | OpenF1 `api.openf1.org/v1/` | sessions, meetings, session_result, overtakes, race_control, position, laps (the winner's), pit, weather. Returns 429 quickly, so requests are 700 ms apart |
 
+**OpenF1 closes to free users while any F1 session is live** (practice, qualifying or the race), even for old races, and answers 401 "Live F1 session in progress". `getJson` marks that error `f1Live`. The build and the live check then log a calm note instead of a warning and try again next run. If a sport fails before listing anything, the build keeps that sport's previous "Coming up" entries. The owner doesn't need live updates during F1 races, so `liveF1` doesn't call OpenF1 for the first `F1_RACE_HOURS` (3) after the start; it just sets the LIVE badge by the clock.
+
 The competitions are in `src/competitions.mjs`. The owner chose them: the Premier League, Champions League, Eliteserien, Nations League, EURO qualifiers, World Cup qualifiers (UEFA), EURO, World Cup, the tennis Grand Slams (singles, main draw) and F1. Football is kept for 30 days; tennis and F1 for about a year.
 
 `scripts/build.mjs` avoids re-fetching:

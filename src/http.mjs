@@ -23,6 +23,10 @@ export async function getJson(url, { gapMs = 300, retries = 4 } = {}) {
       await sleep(2000 * 2 ** attempt);
       continue;
     }
-    throw new Error(`${res.status} ${res.statusText} for ${url}`);
+    const err = new Error(`${res.status} ${res.statusText} for ${url}`);
+    // OpenF1 shuts out free users (even for old races) while any F1 session is live.
+    // That's expected on race weekends, so callers log it calmly and try again later.
+    if (res.status === 401 && /live f1 session/i.test(await res.text().catch(() => ''))) err.f1Live = true;
+    throw err;
   }
 }

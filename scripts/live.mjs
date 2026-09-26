@@ -63,8 +63,17 @@ async function liveFootball() {
   }
 }
 
+// OpenF1 is closed to free users while a session is live, so during the race we
+// only flip the LIVE badge by the clock, and ask OpenF1 once it should be over.
+const F1_RACE_HOURS = 3; // a race lasts about 2 h; results appear an hour or so later
+
 async function liveF1() {
   for (const e of upcoming.filter((x) => x.sport === 'f1' && inWindow(x, 6))) {
+    const start = new Date(e.start).getTime();
+    if (now.getTime() < start + F1_RACE_HOURS * 3600e3) {
+      e.status = start <= now.getTime() ? 'live' : 'upcoming';
+      continue;
+    }
     const sessionKey = Number(e.id.slice(3));
     const [session] = await getJson(`https://api.openf1.org/v1/sessions?session_key=${sessionKey}`, { gapMs: 700 });
     if (!session) continue;
@@ -100,7 +109,8 @@ for (const [sport, run] of Object.entries({ football: liveFootball, f1: liveF1, 
   try {
     await run();
   } catch (err) {
-    warn(`live ${sport} failed: ${err.message}`);
+    if (err.f1Live) console.log('live f1: an F1 session is still live, so OpenF1 is closed; trying again next run');
+    else warn(`live ${sport} failed: ${err.message}`);
   }
 }
 
