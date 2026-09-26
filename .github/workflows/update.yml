@@ -1,6 +1,10 @@
 # Every 15 minutes: scripts/auto.mjs runs the full build when one is due (every
 # 3 hours) and otherwise the light live check, which does nothing when no event
-# is on. Pushes to main and manual runs always do the full build.
+# is on. Pushes to main and manual runs (mode "full") always do the full build.
+#
+# GitHub's own schedule proved unreliable (it never started for this repo), so an
+# outside cron service (cron-job.org) also starts this workflow every 15 minutes
+# through the API with mode "auto". See "Outside trigger" in CLAUDE.md.
 # Everything runs in this one workflow, so two runs never write the data at once.
 name: Update and publish
 
@@ -10,6 +14,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'full = fetch everything now; auto = full only when due, otherwise the quick live check'
+        type: choice
+        options: [full, auto]
+        default: full
 
 permissions:
   contents: write
@@ -25,8 +35,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
-      publish: ${{ steps.save.outputs.changed == 'true' || github.event_name != 'schedule' }}
+      publish: ${{ steps.save.outputs.changed == 'true' || steps.mode.outputs.mode == 'full' }}
     steps:
+      - name: Pick the mode
+        id: mode
+        run: echo "mode=${{ github.event_name == 'schedule' && 'auto' || (github.event_name == 'workflow_dispatch' && inputs.mode) || 'full' }}" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v7
@@ -39,7 +53,7 @@ jobs:
       - name: Fetch and score events
         run: node scripts/auto.mjs
         env:
-          FULL: ${{ github.event_name == 'schedule' && '0' || '1' }}
+          FULL: ${{ steps.mode.outputs.mode == 'full' && '1' || '0' }}
 
       - name: Check the data is spoiler-free
         run: npm test
@@ -61,11 +75,11 @@ jobs:
           fi
 
       - name: Version the page's files (stops browsers mixing old and new files)
-        if: steps.save.outputs.changed == 'true' || github.event_name != 'schedule'
+        if: steps.save.outputs.changed == 'true' || steps.mode.outputs.mode == 'full'
         run: node scripts/stamp.mjs "${GITHUB_SHA::7}"
 
       - uses: actions/upload-pages-artifact@v5
-        if: steps.save.outputs.changed == 'true' || github.event_name != 'schedule'
+        if: steps.save.outputs.changed == 'true' || steps.mode.outputs.mode == 'full'
         with:
           path: docs
 

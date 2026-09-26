@@ -34,6 +34,17 @@ Each run does the following:
 
 There's no server and there are no API keys. **Don't commit `docs/data/*.json` or `data/state.json` from a local build,** because the bot owns them and a local commit can conflict with its push. Discard local changes with `git checkout docs/data data`.
 
+## Outside trigger (cron-job.org)
+
+GitHub's built-in `schedule` never fired for this repo, even after disabling and re-enabling the workflow. So a free cron-job.org job starts the workflow every 15 minutes:
+- **Request:** `POST https://api.github.com/repos/dbugger85/PrimeTime/actions/workflows/update.yml/dispatches`
+- **Body:** `{"ref":"main","inputs":{"mode":"auto"}}`
+- **Headers:** `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`
+- **Token:** a fine-grained GitHub token limited to this repo, with only **Actions: Read and write**. It expires after at most a year, so renew it in GitHub settings and paste the new one into cron-job.org.
+- A successful call returns HTTP 204.
+
+The `schedule:` block stays as a backup. A manual "Run workflow" defaults to mode `full`.
+
 ## Data sources (all free, no keys, unofficial, so they could change)
 
 | Sport | Source | Used for |
