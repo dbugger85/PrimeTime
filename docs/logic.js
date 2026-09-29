@@ -62,10 +62,66 @@ function matchesCommon(e, prefs) {
   return true;
 }
 
+// favs: { teams: [], players: [], f1: false }. Tennis players only count under
+// "Coming up": in replays, seeing a player's later-round match would tell you
+// they won the earlier ones. F1 is followed as a whole, since every driver races.
+export function isFavorite(e, favs, view) {
+  if (!favs) return false;
+  if (e.sport === 'football') return e.teams.some((t) => favs.teams.includes(t));
+  if (e.sport === 'tennis') return view === 'upcoming' && e.players.some((p) => favs.players.includes(p));
+  return e.sport === 'f1' && favs.f1;
+}
+
+export const favCount = (favs) => (favs ? favs.teams.length + favs.players.length + (favs.f1 ? 1 : 0) : 0);
+
+// Adds the name if it's missing, removes it if it's there. kind: 'teams' | 'players'.
+export function toggleFav(favs, kind, name) {
+  const list = favs[kind].includes(name) ? favs[kind].filter((x) => x !== name) : [...favs[kind], name].sort((a, b) => a.localeCompare(b));
+  return { ...favs, [kind]: list };
+}
+
+// Every team and player in the data, for the favorites search box.
+export function favNames(lists) {
+  const teams = new Set();
+  const players = new Set();
+  for (const e of lists.flat()) {
+    for (const t of e.teams ?? []) teams.add(t);
+    for (const p of e.players ?? []) players.add(p);
+  }
+  return [
+    ...[...teams].map((name) => ({ kind: 'teams', name })),
+    ...[...players].map((name) => ({ kind: 'players', name })),
+  ];
+}
+
+// "bodo" finds "Bodø" and "zidane" finds "Zidané": case and accents are ignored.
+// ø, æ, ł and ß don't split into letter + accent, so they're swapped by hand.
+const LETTERS = { ø: 'o', æ: 'ae', ł: 'l', đ: 'd', ß: 'ss' };
+const fold = (s) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[øæłđß]/g, (c) => LETTERS[c]);
+
+// Up to `max` names containing the text, names starting with it first, leaving out current favorites.
+export function searchNames(names, query, favs, max = 8) {
+  const q = fold(query.trim());
+  if (!q) return [];
+  return names
+    .filter((n) => !favs[n.kind].includes(n.name))
+    .map((n) => {
+      const f = fold(n.name);
+      const at = f.indexOf(q);
+      const word = f.split(/[\s-]+/).some((w) => w.startsWith(q));
+      return { ...n, rank: at === 0 ? 0 : word ? 1 : at > 0 ? 2 : -1 };
+    })
+    .filter((n) => n.rank >= 0)
+    .sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name))
+    .slice(0, max)
+    .map(({ kind, name }) => ({ kind, name }));
+}
+
 // Upcoming and live events, soonest first (live ones on top).
 export function filterUpcoming(list, prefs) {
   return list
     .filter((e) => matchesCommon(e, prefs))
+    .filter((e) => !prefs.favsOnly || isFavorite(e, prefs.favs, 'upcoming'))
     .sort((a, b) => (b.status === 'live') - (a.status === 'live') || a.start.localeCompare(b.start));
 }
 
@@ -78,13 +134,14 @@ export function dayLabel(iso, now = new Date()) {
   return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Oslo', weekday: 'short', day: 'numeric', month: 'short' }).format(d);
 }
 
-// prefs: { sport, services[], comp, days, minScore, sort, round, draw, hideWatched }
+// prefs: { sport, services[], comp, days, minScore, sort, round, draw, hideWatched, favsOnly, favs }
 export function filterEvents(events, prefs, watched = new Set(), now = Date.now()) {
   const list = events.filter((e) => {
     if (!matchesCommon(e, prefs)) return false;
     if (prefs.days && now - Date.parse(e.start) > prefs.days * 864e5) return false;
     if (prefs.minScore && e.score < prefs.minScore) return false;
     if (prefs.hideWatched && watched.has(e.id)) return false;
+    if (prefs.favsOnly && !isFavorite(e, prefs.favs, 'replays')) return false;
     return true;
   });
   return prefs.sort === 'score'
@@ -178,4 +235,35 @@ export function reasonLines(reasons, score) {
   const sum = Math.round(reasons.reduce((a, [p]) => a + p, 0) * 10) / 10;
   const note = sum > 10 ? `Adds up to ${sum.toFixed(1)}, capped at 10` : sum < 0 ? 'Adds up to below 0, so it counts as 0' : '';
   return { lines, note, score };
+}
+
+// "Share my settings": the settings travel inside the link itself (after the #, which
+// browsers never send to a server), so there are no accounts and nothing is stored anywhere.
+// Only "watched" marks for events from the last `days` days go along, to keep the link short.
+export function encodeSettings(prefs, watched, events, now = Date.now(), days = 30) {
+  const recent = new Set(events.filter((e) => now - Date.parse(e.start) <= days * 864e5).map((e) => e.id));
+  const { view, ...rest } = prefs; // which tab you're on isn't a setting
+  const json = JSON.stringify({ p: rest, w: [...watched].filter((id) => recent.has(id)) });
+  const bin = String.fromCharCode(...new TextEncoder().encode(json)); // btoa only takes Latin-1, names can be Bodø
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+// The other way round. Keeps only known settings of the right type, so a broken or
+// edited link can't break the page. Returns null if it can't be read at all.
+export function decodeSettings(code, defaults) {
+  try {
+    const bin = atob(code.replace(/-/g, '+').replace(/_/g, '/'));
+    const data = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0))));
+    const p = {};
+    for (const [k, v] of Object.entries(data.p ?? {})) {
+      if (k === 'view' || !(k in defaults) || typeof v !== typeof defaults[k] || Array.isArray(v) !== Array.isArray(defaults[k])) continue;
+      p[k] = v;
+    }
+    const strings = (a) => (Array.isArray(a) ? a.filter((x) => typeof x === 'string') : []);
+    if (p.services) p.services = strings(p.services);
+    if (p.favs) p.favs = { teams: strings(p.favs.teams), players: strings(p.favs.players), f1: p.favs.f1 === true };
+    return { prefs: p, watched: strings(data.w) };
+  } catch {
+    return null;
+  }
 }

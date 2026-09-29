@@ -105,6 +105,14 @@ The competitions are in `src/competitions.mjs`. The owner chose them: the Premie
 
 Settings, "watched" marks and chosen services live in the browser's localStorage (`pt-prefs`, `pt-watched`). `migratePrefs` turns older saved settings into the current shape.
 
+**Favorites** (`prefs.favs = {teams, players, f1}` plus the `prefs.favsOnly` switch, saved in `pt-prefs`; "Reset filters" leaves them alone). You add one with the ☆ after a name on any card (the F1 star follows F1 as a whole) or with the search box under "My favorites", which suggests names from the data (`favNames`/`searchNames`; case, accents and ø/æ are ignored). `isFavorite()` in `logic.js` holds the rules the owner chose:
+- Football: either team.
+- Tennis players **only count under "Coming up"**. In replays, seeing a player's later-round match would tell you they won the earlier ones.
+- F1: every driver is in every race, so there are no driver favorites. Instead you follow F1 as a whole, and when you don't, races are hidden in favorites mode.
+Stars aren't shown while names are hidden.
+
+**"Share my settings"** (footer) moves settings to another device with no accounts: `encodeSettings()` packs the prefs (not the current tab) and the "watched" marks for events from the last 30 days into a `#s=…` link. Browsers never send the part after `#` to the server. The button uses the phone's share sheet, or copies the link. Opening the link runs `importSettings()` in `app.js`, which asks first in `#import-dlg`, keeps only known settings of the right type (`decodeSettings()`), replaces the settings, adds the watched marks, and clears the `#` from the address bar.
+
 **The filters adapt to the chosen sport and view.** `facets()` in `docs/logic.js` counts the events each option would give, ignoring that option's own filter:
 - Competition chips appear only for football and tennis.
 - Service chips show only services that carry the sport, each with a count.

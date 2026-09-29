@@ -144,6 +144,36 @@ try {
     await page.click('#views [data-view="replays"]');
     await page.waitForSelector('.card .num');
 
+    // Favorites: star a team on a card, filter to favorites only, search, remove.
+    await page.click('#sports [data-sport="football"]');
+    assert.ok(await page.$eval('#favs .only', (e) => e.disabled), '"Only favorites" is off until you have one');
+    const team = await page.$eval('.card .title .name', (e) => e.firstChild.textContent);
+    const other = await page.$eval('.card .title .name:nth-child(2)', (e) => e.firstChild.textContent);
+    await page.click('.card .title .name .star');
+    assert.equal(await page.$eval('.card .title .name .star', (e) => e.textContent), '★');
+    await page.click('#favs .only');
+    const titles = await page.$$eval('.card .title', (els) => els.map((e) => e.textContent));
+    assert.ok(titles.length > 0 && titles.every((t) => t.includes(team)), `only ${team} matches show`);
+    await page.screenshot({ path: `${shots}/favorites.png` });
+    await page.$eval('.card', (e) => e.scrollIntoView());
+    await page.screenshot({ path: `${shots}/favorites-cards.png` });
+    await page.fill('#fav-q', 'f1');
+    await page.click('#fav-hits .chip:has-text("F1")');
+    await page.click('#sports [data-sport="f1"]');
+    assert.ok((await page.$$eval('.card', (els) => els.length)) > 0, 'followed F1 races show');
+    await page.click('#favs .fav:has-text("F1")');
+    assert.equal(await page.$$eval('.card', (els) => els.length), 0, 'unfollowed F1 races are gone');
+    await page.fill('#fav-q', other.slice(0, 4));
+    assert.ok(await page.$(`#fav-hits .chip:has-text("${other}")`), 'search suggests the other team');
+    await page.fill('#fav-q', team);
+    assert.match(await page.$eval('#fav-hits', (e) => e.textContent), /Already/);
+    await page.fill('#fav-q', other.slice(0, 4));
+    await page.screenshot({ path: `${shots}/favorites-search.png` });
+    await page.fill('#fav-q', '');
+    await page.click(`#favs .fav:has-text("${team}")`);
+    assert.ok(await page.$eval('#favs .only', (e) => e.disabled && e.getAttribute('aria-pressed') === 'false'), 'removing the last favorite turns the filter off');
+    await page.click('#sports [data-sport="all"]');
+
     // Mark watched survives a reload.
     const firstId = await page.$eval('.card', (e) => e.dataset.id);
     await page.click('.card .watched');
@@ -165,6 +195,40 @@ try {
 
     assert.deepEqual(errors, []);
     await page.close();
+  }
+
+  // "Share my settings": copy the link on one device, open it on another (a fresh browser profile).
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, permissions: ['clipboard-read', 'clipboard-write'] });
+    await ctx.addInitScript(() => { delete Navigator.prototype.share; }); // use the "copy" path
+    const one = await ctx.newPage();
+    await one.goto(base);
+    await one.waitForSelector('.card');
+    await one.click('#sports [data-sport="football"]');
+    const team = await one.$eval('.card .title .name', (e) => e.firstChild.textContent);
+    await one.click('.card .title .name .star');
+    await one.click('.card .watched');
+    await one.click('#share-btn');
+    await one.waitForSelector('#share-note:has-text("copied")');
+    const link = await one.evaluate(() => navigator.clipboard.readText());
+    assert.match(link, /#s=[\w-]+$/);
+
+    const other = await (await browser.newContext({ viewport: { width: 390, height: 844 } })).newPage();
+    await other.goto(link);
+    await other.waitForSelector('#import-dlg[open]');
+    assert.match(await other.$eval('#import-dlg .dlg-text', (e) => e.textContent), /1 favorite, 0 streaming services and 1 watched mark/);
+    await other.screenshot({ path: `${shots}/import-settings.png` });
+    await other.click('#import-dlg button[value="ok"]');
+    await other.waitForSelector('#favs .fav');
+    assert.equal(await other.$eval('#favs .fav', (e) => e.firstChild.textContent), team);
+    assert.equal(await other.$eval('#sports [aria-pressed="true"]', (e) => e.dataset.sport), 'football');
+    assert.equal(new URL(other.url()).hash, '', 'the address bar is tidied');
+    assert.equal(await other.$$eval('.card.is-watched', (els) => els.length), 1);
+    await other.goto(base + '#s=abc');
+    await other.waitForSelector('#import-dlg[open]');
+    assert.match(await other.$eval('#import-dlg h2', (e) => e.textContent), /broken/);
+    await other.close();
+    await ctx.close();
   }
 
   // iPhone Safari has no install button, so it gets the "Add to Home Screen" tip.

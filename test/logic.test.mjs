@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf } from '../docs/logic.js';
+import { migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings } from '../docs/logic.js';
 
 const now = Date.parse('2026-09-26T12:00:00Z');
 const ev = (o) => ({ services: [], segments: [], advice: { code: 'full' }, compName: 'X', ...o });
@@ -124,4 +124,47 @@ test('publishing stamps a version on the page files', async () => {
   assert.match(out.html, /href="\.\/style\.css\?v=abc1234"/);
   assert.match(out.js, /from '\.\/logic\.js\?v=abc1234'/);
   assert.doesNotMatch(out.js, /from '\.\/logic\.js'/);
+});
+
+test('favorites: football teams, tennis players only under Coming up, F1 as a whole', () => {
+  const favs = { teams: ['A'], players: ['E'], f1: true };
+  const on = { ...base, favsOnly: true, favs };
+  assert.equal(ids(filterEvents(events, on, new Set(), now)), 'ad', 'tennis is left out of replays: it would spoil who went through');
+  assert.equal(ids(filterEvents(events, { ...on, favs: { ...favs, f1: false } }, new Set(), now)), 'a');
+  assert.equal(ids(filterEvents(events, { ...base, favs }, new Set(), now)), 'abcd', 'off: everything shows');
+  const soon = events.map((e) => ({ ...e, status: 'upcoming' }));
+  assert.equal(ids(filterUpcoming(soon, on)), 'dca', 'tennis favorites do count under Coming up');
+  assert.ok(isFavorite(events[2], favs, 'upcoming'));
+  assert.ok(!isFavorite(events[2], favs, 'replays'));
+  assert.equal(facets(events, on, 'replays', new Set(), now).minCounts[0], 2, 'counts follow the favorites filter');
+  assert.equal(favCount(favs), 3);
+});
+
+test('favorites: toggling, and the search box', () => {
+  let favs = { teams: [], players: [], f1: false };
+  favs = toggleFav(favs, 'teams', 'Viking');
+  favs = toggleFav(favs, 'teams', 'Bodø/Glimt');
+  assert.deepEqual(favs.teams, ['Bodø/Glimt', 'Viking']);
+  assert.deepEqual(toggleFav(favs, 'teams', 'Viking').teams, ['Bodø/Glimt']);
+
+  const names = favNames([[{ teams: ['Manchester City', 'Manchester United'] }, { teams: ['Bodø/Glimt', 'Brann'] }], [{ players: ['Casper Ruud', 'Iga Swiatek'] }]]);
+  assert.equal(names.length, 6);
+  assert.deepEqual(searchNames(names, 'bodo', favs), [], 'already a favorite');
+  assert.deepEqual(searchNames(names, 'bodo', { teams: [], players: [] }).map((n) => n.name), ['Bodø/Glimt'], 'accents ignored');
+  assert.deepEqual(searchNames(names, 'ruud', favs), [{ kind: 'players', name: 'Casper Ruud' }], 'matches a surname');
+  assert.deepEqual(searchNames(names, 'man', favs).map((n) => n.name), ['Manchester City', 'Manchester United']);
+  assert.deepEqual(searchNames(names, '  ', favs), []);
+});
+
+test('settings link: round trip, recent watched marks only, broken links', () => {
+  const defaults = { view: 'replays', sport: 'all', services: [], hints: true, favs: { teams: [], players: [], f1: false } };
+  const prefs = { ...defaults, view: 'upcoming', sport: 'f1', services: ['viaplay'], hints: false, favs: { teams: ['Bodø/Glimt'], players: [], f1: true } };
+  const code = encodeSettings(prefs, new Set(['a', 'd', 'gone']), events, now);
+  assert.match(code, /^[\w-]+$/, 'safe to put in a link');
+  const back = decodeSettings(code, defaults);
+  assert.deepEqual(back.prefs, { sport: 'f1', services: ['viaplay'], hints: false, favs: prefs.favs }, 'the tab you are on is not copied');
+  assert.deepEqual(back.watched, ['a'], 'd is from June, and "gone" is no longer in the data');
+  assert.equal(decodeSettings('not-a-real-link', defaults), null);
+  const odd = btoa(JSON.stringify({ p: { sport: 3, hints: 'yes', extra: 1, services: ['tv2play', 5] }, w: 'x' }));
+  assert.deepEqual(decodeSettings(odd, defaults), { prefs: { services: ['tv2play'] }, watched: [] }, 'wrong types are dropped');
 });

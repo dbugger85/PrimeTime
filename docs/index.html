@@ -47,6 +47,13 @@
     <div class="chips" id="services"></div>
   </section>
 
+  <section class="favs" aria-labelledby="favs-label">
+    <h2 id="favs-label">My favorites <span class="hint" id="favs-hint"></span></h2>
+    <div class="chips" id="favs"></div>
+    <input type="search" id="fav-q" placeholder="Add a team, player or F1…" autocomplete="off" aria-label="Search for a team, player or F1">
+    <div class="chips" id="fav-hits"></div>
+  </section>
+
   <details class="filters" id="filters">
     <summary><span>More filters</span> <span class="count" id="filter-count" hidden></span></summary>
     <div class="grid">
@@ -89,6 +96,10 @@
   <footer class="foot">
     <p>Scores are worked out from match data, never from results you can see here. Data: ESPN and OpenF1. Streaming info is for Norway.</p>
     <p id="updated"></p>
+    <p class="share">
+      <button type="button" id="share-btn">Share my settings</button>
+      <span class="small" id="share-note">Moves your favorites, services and filters to another phone or computer.</span>
+    </p>
     <p class="install" id="install" hidden>
       <button type="button" id="install-btn" hidden>Install app</button>
       <span id="install-ios" hidden>Tip: install PrimeTime as an app. Tap Share, then “Add to Home Screen”.</span>
@@ -134,6 +145,18 @@
       <div class="dlg-buttons">
         <button value="cancel" class="secondary">Keep it secret</button>
         <button value="ok" class="danger">Show spoilers</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="import-dlg">
+    <form method="dialog">
+      <h2>Load these settings?</h2>
+      <p class="dlg-text"></p>
+      <p>This replaces the settings on this device. Your “watched” marks are added to the ones you have.</p>
+      <div class="dlg-buttons">
+        <button value="cancel" class="secondary">No thanks</button>
+        <button value="ok" class="danger">Load settings</button>
       </div>
     </form>
   </dialog>

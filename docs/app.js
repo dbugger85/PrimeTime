@@ -1,4 +1,4 @@
-import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, subtitleOf, hiddenTitleOf } from './logic.js';
+import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf } from './logic.js';
 
 const SERVICES = {
   viaplay: { name: 'Viaplay', url: 'https://viaplay.no/sport' },
@@ -11,6 +11,7 @@ const SERVICES = {
 const DEFAULTS = {
   view: 'replays', sport: 'all', services: [], comp: 'all', days: 30, minScore: 0, sort: 'date',
   round: '', draw: '', hideTennis: true, hideFootball: false, hints: true, hideWatched: false,
+  favsOnly: false, favs: { teams: [], players: [], f1: false },
 };
 
 const store = {
@@ -23,6 +24,7 @@ const store = {
 };
 
 const prefs = { ...DEFAULTS, ...migratePrefs(store.load('pt-prefs', {})) };
+prefs.favs = { ...DEFAULTS.favs, ...prefs.favs };
 const watched = new Set(store.load('pt-watched', []));
 const revealed = new Set(); // names revealed this visit only
 const whyShown = new Set(); // "Why this score?" opened this visit only
@@ -96,6 +98,8 @@ function renderControls() {
     ? `none of yours show ${prefs.sport === 'all' ? 'these' : SPORTS[prefs.sport]}`
     : 'tap the ones you have';
 
+  renderFavs();
+
   // Minimum rating, with how many events each choice leaves.
   $('#f-min').replaceChildren(...[0, 4, 6, 8].map((t) => new Option(`${t ? `${t}+` : 'Any'} (${f.minCounts[t]})`, t)));
 
@@ -115,28 +119,107 @@ function renderControls() {
   $('#f-reset').hidden = !active;
 }
 
+const F1_NAME = 'F1 (every race)';
+
+function setFav(kind, name) {
+  prefs.favs = kind === 'f1' ? { ...prefs.favs, f1: !prefs.favs.f1 } : toggleFav(prefs.favs, kind, name);
+  if (!favCount(prefs.favs)) prefs.favsOnly = false;
+  savePrefs();
+  render();
+}
+
+// "My favorites": an "Only favorites" switch, one chip per favorite (tap to remove), and a search box.
+function renderFavs() {
+  const { favs } = prefs;
+  const n = favCount(favs);
+  const only = chip('★ Only favorites', null, prefs.favsOnly, () => { prefs.favsOnly = !prefs.favsOnly; savePrefs(); render(); });
+  only.classList.add('only');
+  only.disabled = !n;
+  const remove = (kind, name, label = name) => {
+    const b = chip(label, null, false, () => setFav(kind, name));
+    b.classList.add('fav');
+    b.setAttribute('aria-label', `Remove ${label} from favorites`);
+    return b;
+  };
+  $('#favs').replaceChildren(
+    only,
+    ...favs.teams.map((t) => remove('teams', t)),
+    ...favs.players.map((p) => remove('players', p)),
+    ...(favs.f1 ? [remove('f1', null, F1_NAME)] : []),
+  );
+  $('#favs-hint').textContent = !n
+    ? 'tap ☆ on a card, or search'
+    : prefs.favsOnly && favs.players.length && prefs.view === 'replays' && ['all', 'tennis'].includes(prefs.sport)
+      ? 'tennis players only count under Coming up, so replays don\'t spoil who went through'
+      : 'tap one to remove it';
+  renderFavHits();
+}
+
+function renderFavHits() {
+  const q = $('#fav-q').value;
+  const hits = searchNames(favNames([events, upcoming]), q, prefs.favs, prefs.favs.f1 ? 8 : 7);
+  const typed = q.trim().toLowerCase();
+  const f1 = !prefs.favs.f1 && typed && ['f1', 'formula 1', 'formula one'].some((w) => w.startsWith(typed));
+  const add = (kind, name, label = name) => chip(`+ ${label}`, null, false, () => {
+    $('#fav-q').value = '';
+    setFav(kind, name);
+    $('#fav-q').focus();
+  });
+  $('#fav-hits').replaceChildren(...(f1 ? [add('f1', null, F1_NAME)] : []), ...hits.map((h) => add(h.kind, h.name)));
+  $('#fav-hits').hidden = !q.trim();
+  if (q.trim() && !hits.length && !f1) {
+    const already = searchNames(favNames([events, upcoming]), q, { teams: [], players: [] }, 1).length || (prefs.favs.f1 && typed.startsWith('f'));
+    const text = already ? 'Already one of your favorites.' : 'No team or player by that name in the data yet.';
+    $('#fav-hits').replaceChildren(Object.assign(document.createElement('span'), { className: 'small', textContent: text }));
+  }
+}
+
+// A small ☆ after a name; filled ★ when it's a favorite.
+function star(kind, name, label) {
+  const on = kind === 'f1' ? prefs.favs.f1 : prefs.favs[kind].includes(name);
+  const b = Object.assign(document.createElement('button'), { type: 'button', className: 'star', textContent: on ? '★' : '☆' });
+  b.setAttribute('aria-pressed', String(on));
+  b.setAttribute('aria-label', `${on ? 'Unfollow' : 'Follow'} ${label}`);
+  b.title = b.getAttribute('aria-label');
+  b.onclick = () => setFav(kind, name);
+  return b;
+}
+
+// The card title, with a star after each team or player (or after the race, to follow F1).
+function fillTitle(title, e) {
+  if (namesHidden(e, prefs) && !revealed.has(e.id)) {
+    const b = Object.assign(document.createElement('button'), { type: 'button', className: 'reveal' });
+    b.textContent = `${hiddenTitleOf(e)} — tap to show`;
+    b.onclick = () => { revealed.add(e.id); render(); };
+    title.append(b);
+    return;
+  }
+  if (e.sport === 'f1') {
+    title.append(titleOf(e), star('f1', null, 'F1'));
+    return;
+  }
+  const [kind, names, sep] = e.sport === 'football' ? ['teams', e.teams, ' – '] : ['players', e.players, ' vs '];
+  names.forEach((name, i) => {
+    if (i) title.append(sep);
+    const span = Object.assign(document.createElement('span'), { className: 'name' });
+    span.append(name, star(kind, name, name));
+    title.append(span);
+  });
+}
+
 function card(e) {
   const li = $('#card-tpl').content.firstElementChild.cloneNode(true);
   const tier = tierOf(e.score);
   li.dataset.tier = tier.key;
   li.dataset.id = e.id;
   li.classList.toggle('is-watched', watched.has(e.id));
+  li.classList.toggle('is-fav', isFavorite(e, prefs.favs, 'replays'));
   li.querySelector('.num').textContent = e.score.toFixed(1);
   li.querySelector('.tier').textContent = tier.label;
   li.querySelector('.sport').textContent = SPORTS[e.sport];
   li.querySelector('.when').textContent = fmt.format(new Date(e.start));
 
-  const title = li.querySelector('.title');
-  if (namesHidden(e, prefs) && !revealed.has(e.id)) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'reveal';
-    b.textContent = `${hiddenTitleOf(e)} — tap to show`;
-    b.onclick = () => { revealed.add(e.id); render(); };
-    title.append(b);
-  } else {
-    title.textContent = titleOf(e);
-  }
+  fillTitle(li.querySelector('.title'), e);
   li.querySelector('.sub').textContent = subtitleOf(e);
 
   const strip = li.querySelector('.strip');
@@ -262,19 +345,12 @@ function soonCard(e) {
   const li = $('#soon-tpl').content.firstElementChild.cloneNode(true);
   li.dataset.id = e.id;
   li.classList.toggle('live', e.status === 'live');
+  li.classList.toggle('is-fav', isFavorite(e, prefs.favs, 'upcoming'));
   li.querySelector('.time').textContent = e.status === 'live' ? 'LIVE' : timeFmt.format(new Date(e.start));
   li.querySelector('.tier').textContent = e.status === 'live' ? 'now' : '';
   li.querySelector('.sport').textContent = SPORTS[e.sport];
   li.querySelector('.comp').textContent = e.sport === 'f1' ? e.circuit : e.compName;
-  const title = li.querySelector('.title');
-  if (namesHidden(e, prefs) && !revealed.has(e.id)) {
-    const b = Object.assign(document.createElement('button'), { type: 'button', className: 'reveal' });
-    b.textContent = `${hiddenTitleOf(e)} — tap to show`;
-    b.onclick = () => { revealed.add(e.id); render(); };
-    title.append(b);
-  } else {
-    title.textContent = titleOf(e);
-  }
+  fillTitle(li.querySelector('.title'), e);
   li.querySelector('.sub').textContent = e.sport === 'tennis' ? subtitleOf(e) : '';
   li.querySelector('.sub').hidden = e.sport !== 'tennis'; // the meta line already says it
   li.querySelector('.svc').append(...e.services.map((id) => {
@@ -309,7 +385,7 @@ function renderUpcoming() {
   }
   $('#status').textContent = list.length
     ? `${list.length} coming up. No scores here: they appear under Replays once the event has finished.`
-    : 'Nothing coming up that matches these filters.';
+    : prefs.favsOnly ? 'None of your favorites are coming up. Turn off “Only favorites” to see everything.' : 'Nothing coming up that matches these filters.';
 }
 
 function render() {
@@ -326,7 +402,9 @@ function render() {
   }
   const shown = list.length === 1 ? '1 event' : `${list.length} events`;
   $('#status').textContent = events.length
-    ? (list.length ? shown : 'Nothing matches these filters. Try a longer period or fewer filters.')
+    ? (list.length ? shown : prefs.favsOnly
+      ? 'None of your favorites match these filters. Turn off “Only favorites” to see everything.'
+      : 'Nothing matches these filters. Try a longer period or fewer filters.')
     : 'No events yet.';
 }
 
@@ -364,6 +442,12 @@ function bind() {
     savePrefs();
     render();
   };
+  $('#fav-q').oninput = renderFavHits;
+  $('#fav-q').onkeydown = (ev) => {
+    if (ev.key !== 'Enter') return;
+    $('#fav-hits .chip')?.click(); // Enter adds the top suggestion
+  };
+  $('#share-btn').onclick = shareSettings;
   on('#f-hints', 'hints');
   on('#f-watched', 'hideWatched');
 }
@@ -414,12 +498,66 @@ function setupInstall() {
   if (ios) box.hidden = $('#install-ios').hidden = false;
 }
 
+// "Share my settings": the phone's share sheet where there is one, otherwise copy the link.
+async function shareSettings() {
+  const url = `${location.origin}${location.pathname}#s=${encodeSettings(prefs, watched, events)}`;
+  const note = $('#share-note');
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'My PrimeTime settings', url });
+      return;
+    } catch (err) {
+      if (err.name === 'AbortError') return; // closed the share sheet
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    note.textContent = 'Link copied. Open it on your other device.';
+  } catch {
+    prompt('Copy this link and open it on your other device:', url);
+  }
+}
+
+// Opening a settings link asks first, then loads it and tidies the address bar.
+async function importSettings() {
+  const code = location.hash.match(/^#s=([\w-]+)$/)?.[1];
+  if (!code) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  const data = decodeSettings(code, DEFAULTS);
+  const dlg = $('#import-dlg');
+  if (!data) {
+    dlg.querySelector('h2').textContent = 'This settings link is broken';
+    dlg.querySelector('.dlg-text').textContent = 'Try copying it again from your other device.';
+    dlg.querySelector('button[value="ok"]').hidden = true;
+    dlg.showModal();
+    return;
+  }
+  const f = { ...DEFAULTS.favs, ...data.prefs.favs };
+  const favN = f.teams.length + f.players.length + (f.f1 ? 1 : 0);
+  const svcN = data.prefs.services?.length ?? 0;
+  const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+  dlg.querySelector('.dlg-text').textContent =
+    `It has ${plural(favN, 'favorite')}, ${plural(svcN, 'streaming service')} and ${plural(data.watched.length, 'watched mark')}, plus your filters.`;
+  dlg.returnValue = '';
+  dlg.showModal();
+  await new Promise((r) => dlg.addEventListener('close', r, { once: true }));
+  if (dlg.returnValue !== 'ok') return;
+  Object.assign(prefs, { ...DEFAULTS, ...data.prefs, view: prefs.view });
+  prefs.favs = { ...DEFAULTS.favs, ...prefs.favs };
+  for (const id of data.watched) watched.add(id);
+  savePrefs();
+  store.save('pt-watched', [...watched]);
+  render();
+}
+
 function load() {
   window.primetimeStarted = true; // tells the safety net in index.html that the app is running
   setupInstall();
   bind();
   renderControls();
   fetchData();
+  importSettings();
+  addEventListener('hashchange', importSettings); // a link opened while the page is already open
   setInterval(() => document.visibilityState === 'visible' && fetchData({ quiet: true }), REFRESH_MS);
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && Date.now() - lastFetch > REFRESH_MS) fetchData({ quiet: true });

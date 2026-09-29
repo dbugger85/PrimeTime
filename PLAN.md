@@ -26,4 +26,6 @@ A static site on GitHub Pages, fed by a scheduled GitHub Action that fetches fre
 2. F1. ✅
 3. Tennis. ✅
 4. Installable app (home-screen icon; no offline mode, by the owner's choice). ✅
-5. Later ideas: Norwegian UI text, more leagues (La Liga etc.), upcoming fixtures, per-event rights overrides.
+5. Favorites (2026-09-29): follow teams and tennis players, or F1 as a whole, and filter to them. Tennis favorites only filter "Coming up" (spoilers). ✅
+6. "Share my settings" link to move settings to another device, with no accounts (2026-09-29). ✅
+7. Later ideas: Norwegian UI text, more leagues (La Liga etc.), upcoming fixtures, per-event rights overrides.
