@@ -1,4 +1,4 @@
-import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, f1SessionName, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf } from './logic.js';
+import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, f1SessionName, isFavorite, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf } from './logic.js';
 
 const SERVICES = {
   viaplay: { name: 'Viaplay', url: 'https://viaplay.no/sport' },
@@ -11,7 +11,7 @@ const SERVICES = {
 const DEFAULTS = {
   view: 'replays', sport: 'all', services: [], comp: 'all', days: 30, minScore: 0, sort: 'date',
   round: '', draw: '', f1Session: '', hideTennis: true, hideFootball: false, hints: true, hideWatched: false,
-  favsOnly: false, favs: { teams: [], players: [], f1: false },
+  favsOnly: false, favs: { teams: [], players: [], f1: false, winter: [] }, gender: '',
 };
 
 const store = {
@@ -109,6 +109,7 @@ function renderControls() {
   $('#f-round').value = prefs.round;
   $('#f-draw').value = prefs.draw;
   $('#f-f1session').value = prefs.f1Session;
+  $('#f-gender').value = prefs.gender;
   $('#f-hide-tn').checked = prefs.hideTennis;
   $('#f-hide-fb').checked = prefs.hideFootball;
   $('#f-hints').checked = prefs.hints;
@@ -152,6 +153,7 @@ function renderFavs() {
   $('#favs').replaceChildren(
     ...favs.teams.map((t) => remove('teams', t)),
     ...favs.players.map((p) => remove('players', p)),
+    ...favs.winter.map((k) => remove('winter', k, winterLabel(k))),
     ...(favs.f1 ? [remove('f1', null, F1_NAME)] : []),
   );
   $('#favs-hint').textContent = !n
@@ -172,7 +174,7 @@ function renderFavHits() {
     setFav(kind, name);
     $('#fav-q').focus();
   });
-  $('#fav-hits').replaceChildren(...(f1 ? [add('f1', null, F1_NAME)] : []), ...hits.map((h) => add(h.kind, h.name)));
+  $('#fav-hits').replaceChildren(...(f1 ? [add('f1', null, F1_NAME)] : []), ...hits.map((h) => add(h.kind, h.name, h.label)));
   $('#fav-hits').hidden = !q.trim();
   if (q.trim() && !hits.length && !f1) {
     const already = searchNames(favNames([events, upcoming]), q, { teams: [], players: [] }, 1).length || (prefs.favs.f1 && typed.startsWith('f'));
@@ -183,7 +185,7 @@ function renderFavHits() {
 
 // A small ☆ after a name; filled ★ when it's a favorite.
 function star(kind, name, label) {
-  const on = kind === 'f1' ? prefs.favs.f1 : prefs.favs[kind].includes(name);
+  const on = kind === 'f1' ? prefs.favs.f1 : (prefs.favs[kind] ?? []).includes(name);
   const b = Object.assign(document.createElement('button'), { type: 'button', className: 'star', textContent: on ? '★' : '☆' });
   b.setAttribute('aria-pressed', String(on));
   b.setAttribute('aria-label', `${on ? 'Unfollow' : 'Follow'} ${label}`);
@@ -199,6 +201,10 @@ function fillTitle(title, e) {
     b.textContent = `${hiddenTitleOf(e)} — tap to show`;
     b.onclick = () => { revealed.add(e.id); render(); };
     title.append(b);
+    return;
+  }
+  if (e.sport === 'winter') { // follows the sport and gender, e.g. "Biathlon (women)"
+    title.append(titleOf(e), star('winter', winterKey(e), winterLabel(winterKey(e))));
     return;
   }
   if (e.sport === 'f1') {
@@ -223,7 +229,7 @@ function card(e) {
   li.classList.toggle('is-fav', isFavorite(e, prefs.favs, 'replays'));
   li.querySelector('.num').textContent = e.score.toFixed(1);
   li.querySelector('.tier').textContent = tier.label;
-  li.querySelector('.sport').textContent = SPORTS[e.sport];
+  li.querySelector('.sport').textContent = e.sport === 'winter' ? e.compName : SPORTS[e.sport];
   li.querySelector('.when').textContent = fmt.format(new Date(e.start));
 
   fillTitle(li.querySelector('.title'), e);
@@ -355,8 +361,9 @@ function soonCard(e) {
   li.classList.toggle('is-fav', isFavorite(e, prefs.favs, 'upcoming'));
   li.querySelector('.time').textContent = e.status === 'live' ? 'LIVE' : timeFmt.format(new Date(e.start));
   li.querySelector('.tier').textContent = e.status === 'live' ? 'now' : '';
-  li.querySelector('.sport').textContent = SPORTS[e.sport];
-  li.querySelector('.comp').textContent = e.sport === 'f1' ? `${f1SessionName(e)} · ${e.circuit}` : e.compName;
+  li.querySelector('.sport').textContent = e.sport === 'winter' ? e.compName : SPORTS[e.sport];
+  li.querySelector('.comp').textContent = e.sport === 'f1' ? `${f1SessionName(e)} · ${e.circuit}`
+    : e.sport === 'winter' ? e.place : e.compName;
   fillTitle(li.querySelector('.title'), e);
   li.querySelector('.sub').textContent = e.sport === 'tennis' ? subtitleOf(e) : '';
   li.querySelector('.sub').hidden = e.sport !== 'tennis'; // the meta line already says it
@@ -443,10 +450,11 @@ function bind() {
   on('#f-round', 'round');
   on('#f-draw', 'draw');
   on('#f-f1session', 'f1Session');
+  on('#f-gender', 'gender');
   on('#f-hide-tn', 'hideTennis');
   on('#f-hide-fb', 'hideFootball');
   $('#f-reset').onclick = () => {
-    Object.assign(prefs, { comp: 'all', days: 30, minScore: 0, sort: 'date', round: '', draw: '', f1Session: '', hideWatched: false });
+    Object.assign(prefs, { comp: 'all', days: 30, minScore: 0, sort: 'date', round: '', draw: '', f1Session: '', gender: '', hideWatched: false });
     savePrefs();
     render();
   };

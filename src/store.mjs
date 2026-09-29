@@ -39,5 +39,5 @@ export function saveData({ events, upcoming, reasons, results, state }, now = ne
   writeFileSync(STATE, JSON.stringify(state, null, 1) + '\n');
   const count = (s) => list.filter((e) => e.sport === s).length;
   const live = soon.filter((e) => e.status === 'live').length;
-  return `events.json: ${list.length} events (football ${count('football')}, tennis ${count('tennis')}, f1 ${count('f1')}), ${soon.length} upcoming (${live} live)`;
+  return `events.json: ${list.length} events (football ${count('football')}, tennis ${count('tennis')}, f1 ${count('f1')}, winter ${count('winter')}), ${soon.length} upcoming (${live} live)`;
 }

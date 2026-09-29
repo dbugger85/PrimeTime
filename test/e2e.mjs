@@ -88,6 +88,27 @@ try {
     await page.selectOption('#f-f1session', '');
     await page.click('#filters summary');
 
+    // Winter: one tab, chips per sport, a gender filter, and favorites per sport and gender.
+    await page.click('#sports [data-sport="winter"]');
+    await page.click('#filters summary');
+    await page.selectOption('#f-days', '400');
+    if (await page.$('.card')) {
+      const chips = await page.$$eval('#comps .chip', (els) => els.map((e) => e.firstChild.textContent));
+      assert.ok(chips.includes('Biathlon') && chips.includes('Alpine'), `winter chips: ${chips}`);
+      await page.click('#comps .chip:has-text("Biathlon")');
+      assert.ok((await page.$$eval('.card .sport', (els) => els.map((e) => e.textContent))).every((t) => t === 'Biathlon'));
+      await page.selectOption('#f-gender', 'women');
+      assert.ok((await page.$$eval('.card .title', (els) => els.map((e) => e.textContent))).every((t) => /^Women/.test(t)));
+      await page.$eval('.card', (e) => e.scrollIntoView());
+      await page.screenshot({ path: `${shots}/winter.png` });
+      await page.click('.card .title .star');
+      assert.ok(await page.$('#favs .fav:has-text("Biathlon (women)")'), 'following a winter sport from a card');
+      await page.click('#favs .fav:has-text("Biathlon (women)")');
+      await page.selectOption('#f-gender', '');
+      await page.click('#comps .chip:has-text("All")');
+    }
+    await page.click('#filters summary');
+
     // Tennis names are hidden until tapped.
     await page.click('#sports [data-sport="tennis"]');
     await page.click('#filters summary');

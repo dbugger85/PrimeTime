@@ -107,7 +107,15 @@ async function liveTennis() {
   upcoming = [...upcoming.filter((e) => e.sport !== 'tennis'), ...tennis.upcomingFromSlam(current).map(upcomingTennis)];
 }
 
-for (const [sport, run] of Object.entries({ football: liveFootball, f1: liveF1, tennis: liveTennis })) {
+// Winter races: only the LIVE badge, by the clock. They're scored by the full
+// build (every 3 hours), which reads FIS's web pages at a gentle pace.
+function liveWinter() {
+  for (const e of upcoming.filter((x) => x.sport === 'winter')) {
+    if (new Date(e.start).getTime() <= now.getTime()) e.status = 'live';
+  }
+}
+
+for (const [sport, run] of Object.entries({ football: liveFootball, f1: liveF1, tennis: liveTennis, winter: liveWinter })) {
   try {
     await run();
   } catch (err) {

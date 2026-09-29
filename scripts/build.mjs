@@ -1,7 +1,7 @@
 // Fetches finished events, scores them and writes docs/data/events.json.
 // Run by GitHub Actions every few hours; you can also run it yourself:
 //   npm run build            (everything)
-//   npm run build -- f1      (just one sport: football, tennis or f1)
+//   npm run build -- f1      (just one sport: football, tennis, f1 or winter)
 //
 // To stay polite to the free APIs, it remembers what it has already done:
 // events already in events.json are not fetched again, and data/state.json
@@ -15,7 +15,8 @@ import { scoreF1, scoreQuali } from '../src/scoring/f1.mjs';
 import * as football from '../src/sources/espn-football.mjs';
 import * as tennis from '../src/sources/espn-tennis.mjs';
 import * as f1 from '../src/sources/openf1.mjs';
-import { publishFootball, publishTennis, publishF1, upcomingFootball, upcomingTennis, upcomingF1, expiringRights } from '../src/publish.mjs';
+import * as winter from '../src/sources/winter.mjs';
+import { publishFootball, publishTennis, publishF1, publishWinter, upcomingFootball, upcomingTennis, upcomingF1, upcomingWinter, expiringRights } from '../src/publish.mjs';
 import { loadData, saveData } from '../src/store.mjs';
 
 const warn = (msg) => console.log(`::warning::${msg}`);
@@ -53,7 +54,7 @@ const outOfTime = () => {
 
 // Not-yet-finished events are rebuilt from scratch every run (times change, matches go live).
 const upcoming = [];
-const UPCOMING_DAYS = { football: 14, f1: 60 };
+const UPCOMING_DAYS = { football: 14, f1: 60, winter: 14 };
 
 // Already scored with the current formula and weights for its sport (false for new events).
 const isCurrent = (id) => {
@@ -154,7 +155,30 @@ async function buildF1() {
   }
 }
 
-const builders = { football: [buildFootball, buildUpcomingFootball], tennis: [buildTennis], f1: [buildF1] };
+// Biathlon, alpine and cross-country, newest first (in case time runs out).
+async function buildWinter() {
+  if (state.versions?.winter !== SCORING_VERSIONS.winter) state.winterEventsDone = []; // weights changed: look at every event again
+  const races = await winter.listRaces(now, state, { aheadDays: UPCOMING_DAYS.winter, keepDays: KEEP_DAYS.winter });
+  races.sort((a, b) => b.start.localeCompare(a.start));
+  for (const race of races) {
+    const compName = winter.WINTER[race.comp].name;
+    if (!race.finished) {
+      if (new Date(race.start) - now < UPCOMING_DAYS.winter * 864e5) upcoming.push(upcomingWinter(race, compName));
+      continue;
+    }
+    if (isCurrent(race.id) || now - new Date(race.start) > KEEP_DAYS.winter * 864e5 || outOfTime()) continue;
+    try {
+      const scored = await winter.scoreRace(race);
+      if (!scored) continue; // no result yet; try next run
+      save(publishWinter(race, compName, scored), scored);
+      console.log(`winter: ${compName} ${race.name}, ${race.place} ${race.start.slice(0, 10)}`);
+    } catch (err) {
+      warn(`winter ${race.id}: ${err.message}`);
+    }
+  }
+}
+
+const builders = { football: [buildFootball, buildUpcomingFootball], tennis: [buildTennis], f1: [buildF1], winter: [buildWinter] };
 const previousUpcoming = data.upcoming;
 for (const [sport, steps] of Object.entries(builders)) {
   if (only && only !== sport) {

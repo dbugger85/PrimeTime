@@ -1,6 +1,6 @@
 // Pure helpers for the page (no DOM), so they can be unit-tested with node --test.
 
-export const SPORTS = { football: 'Football', tennis: 'Tennis', f1: 'F1' };
+export const SPORTS = { football: 'Football', tennis: 'Tennis', f1: 'F1', winter: 'Winter' };
 
 export function tierOf(score) {
   if (score >= 8) return { key: 'must', label: 'Must-watch' };
@@ -21,6 +21,9 @@ export function adviceText(a) {
     const many = r.length > 1 || r[0][0] !== r[0][1];
     return `Skip set${many ? 's' : ''} ${joinAnd(sets)}`;
   }
+  if (a.unit === 'stage') return `Start after shooting ${r[0][1]}`; // biathlon: never the last shooting or the finish
+  if (a.unit === 'leg') return `Start at leg ${r[0][1] + 1}`; // relays: never the last leg
+  if (a.unit === 'run') return 'Skip run 1'; // alpine: run 2 decides it
   if (a.unit === 'part') { // F1 qualifying: Q1, Q2 (Q3 is never skipped)
     const [x, y] = r[0];
     return x === y ? `Skip Q${x}` : `Skip Q${x} and Q${y}`;
@@ -61,6 +64,7 @@ function matchesCommon(e, prefs) {
   if (e.sport === 'f1' && prefs.sport === 'f1' && prefs.f1Session) { // only shows on the F1 tab
     if (f1Kind(e) !== prefs.f1Session) return false;
   }
+  if (e.sport === 'winter' && prefs.sport === 'winter' && prefs.gender && e.gender !== prefs.gender) return false;
   if (e.sport === 'tennis' && prefs.sport === 'tennis') { // these settings only show on the Tennis tab
     if (prefs.round && LATE_ROUNDS[prefs.round] && !LATE_ROUNDS[prefs.round].includes(e.round)) return false;
     if (prefs.draw === 'men' && !/^men/i.test(e.draw)) return false;
@@ -69,35 +73,48 @@ function matchesCommon(e, prefs) {
   return true;
 }
 
-// favs: { teams: [], players: [], f1: false }. Tennis players only count under
-// "Coming up": in replays, seeing a player's later-round match would tell you
-// they won the earlier ones. F1 is followed as a whole, since every driver races.
+// favs: { teams: [], players: [], f1: false, winter: ['biathlon:women', …] }.
+// Tennis players only count under "Coming up": in replays, seeing a player's
+// later-round match would tell you they won the earlier ones. F1 is followed as
+// a whole, since every driver races. Winter sports are followed per sport and
+// gender (athletes would spoil: start lists show who qualified); mixed races
+// count for anyone following that sport.
+export const winterKey = (e) => `${e.comp}:${e.gender}`;
 export function isFavorite(e, favs, view) {
   if (!favs) return false;
   if (e.sport === 'football') return e.teams.some((t) => favs.teams.includes(t));
+  if (e.sport === 'winter') return (favs.winter ?? []).some((k) => k === winterKey(e) || (e.gender === 'mixed' && k.startsWith(`${e.comp}:`)));
   if (e.sport === 'tennis') return view === 'upcoming' && e.players.some((p) => favs.players.includes(p));
   return e.sport === 'f1' && favs.f1;
 }
 
-export const favCount = (favs) => (favs ? favs.teams.length + favs.players.length + (favs.f1 ? 1 : 0) : 0);
+export const favCount = (favs) => (favs ? favs.teams.length + favs.players.length + (favs.winter?.length ?? 0) + (favs.f1 ? 1 : 0) : 0);
 
-// Adds the name if it's missing, removes it if it's there. kind: 'teams' | 'players'.
+// "biathlon:women" -> "Biathlon (women)".
+const WINTER_NAMES = { biathlon: 'Biathlon', alpine: 'Alpine', 'cross-country': 'Cross-country' };
+export const winterLabel = (key) => { const [comp, g] = key.split(':'); return `${WINTER_NAMES[comp] ?? comp} (${g})`; };
+
+// Adds the name if it's missing, removes it if it's there. kind: 'teams' | 'players' | 'winter'.
 export function toggleFav(favs, kind, name) {
+  favs = { ...favs, [kind]: favs[kind] ?? [] };
   const list = favs[kind].includes(name) ? favs[kind].filter((x) => x !== name) : [...favs[kind], name].sort((a, b) => a.localeCompare(b));
   return { ...favs, [kind]: list };
 }
 
-// Every team and player in the data, for the favorites search box.
+// Every team and player in the data, and each winter sport and gender, for the favorites search box.
 export function favNames(lists) {
   const teams = new Set();
   const players = new Set();
+  const winter = new Set();
   for (const e of lists.flat()) {
     for (const t of e.teams ?? []) teams.add(t);
     for (const p of e.players ?? []) players.add(p);
+    if (e.sport === 'winter' && e.gender !== 'mixed') winter.add(winterKey(e));
   }
   return [
     ...[...teams].map((name) => ({ kind: 'teams', name })),
     ...[...players].map((name) => ({ kind: 'players', name })),
+    ...[...winter].map((name) => ({ kind: 'winter', name, label: winterLabel(name) })),
   ];
 }
 
@@ -111,17 +128,17 @@ export function searchNames(names, query, favs, max = 8) {
   const q = fold(query.trim());
   if (!q) return [];
   return names
-    .filter((n) => !favs[n.kind].includes(n.name))
+    .filter((n) => !(favs[n.kind] ?? []).includes(n.name))
     .map((n) => {
-      const f = fold(n.name);
+      const f = fold(n.label ?? n.name);
       const at = f.indexOf(q);
       const word = f.split(/[\s-]+/).some((w) => w.startsWith(q));
       return { ...n, rank: at === 0 ? 0 : word ? 1 : at > 0 ? 2 : -1 };
     })
     .filter((n) => n.rank >= 0)
-    .sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name))
+    .sort((a, b) => a.rank - b.rank || (a.label ?? a.name).localeCompare(b.label ?? b.name))
     .slice(0, max)
-    .map(({ kind, name }) => ({ kind, name }));
+    .map(({ kind, name, label }) => (label ? { kind, name, label } : { kind, name }));
 }
 
 // Upcoming and live events, soonest first (live ones on top).
@@ -193,7 +210,7 @@ const count = (list, key) => {
 export function facets(pool, prefs, view, watched = new Set(), now = Date.now()) {
   const run = (p) => (view === 'upcoming' ? filterUpcoming(pool, p) : filterEvents(pool, p, watched, now));
   const withComp = run({ ...prefs, comp: 'all' });
-  const comps = prefs.sport === 'football' || prefs.sport === 'tennis'
+  const comps = ['football', 'tennis', 'winter'].includes(prefs.sport)
     ? [...count(withComp, (e) => e.compName)].map(([name, n]) => ({ name, n })).sort((a, b) => b.n - a.n)
     : [];
   const services = [...count(run({ ...prefs, services: [] }), (e) => e.services)].map(([id, n]) => ({ id, n }));
@@ -217,6 +234,7 @@ export function activeFilters(prefs, view) {
     if (prefs.draw) n++;
   }
   if (prefs.sport === 'f1' && prefs.f1Session) n++;
+  if (prefs.sport === 'winter' && prefs.gender) n++;
   return n;
 }
 
@@ -229,12 +247,14 @@ const f1Kind = (e) => (e.session === 'sprint' || e.session === 'sprint-qualifyin
 export function titleOf(event) {
   if (event.sport === 'football') return event.teams.join(' – ');
   if (event.sport === 'tennis') return event.players.join(' vs ');
+  if (event.sport === 'winter') return event.race;
   return event.session ? `${event.compName} ${f1SessionName(event).toLowerCase()}` : event.compName;
 }
 
 export function subtitleOf(event) {
   if (event.sport === 'football') return event.compName;
   if (event.sport === 'tennis') return `${event.compName} · ${event.draw} · ${event.round}`;
+  if (event.sport === 'winter') return `${event.series} · ${event.place}`; // the sport is on the line above
   return `Formula 1 · ${f1SessionName(event)} · ${event.circuit}`;
 }
 
@@ -275,7 +295,7 @@ export function decodeSettings(code, defaults) {
     }
     const strings = (a) => (Array.isArray(a) ? a.filter((x) => typeof x === 'string') : []);
     if (p.services) p.services = strings(p.services);
-    if (p.favs) p.favs = { teams: strings(p.favs.teams), players: strings(p.favs.players), f1: p.favs.f1 === true };
+    if (p.favs) p.favs = { teams: strings(p.favs.teams), players: strings(p.favs.players), f1: p.favs.f1 === true, winter: strings(p.favs.winter) };
     return { prefs: p, watched: strings(data.w) };
   } catch {
     return null;

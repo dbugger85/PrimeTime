@@ -54,6 +54,8 @@ The `schedule:` block stays as a backup. A manual "Run workflow" defaults to mod
 | Football | ESPN `site.api.espn.com/apis/site/v2/sports/soccer/{comp}/scoreboard?dates=YYYYMMDD` and `/summary?event=ID` | Fixtures; goals, cards, penalties, VAR (`keyEvents`); every shot with its minute (`commentary`); shot totals (`boxscore`); pre-match betting odds (`pickcenter`, DraftKings moneylines) for team strength. Date ranges don't work, so it's one day per request |
 | Tennis | ESPN `sports/tennis/atp/scoreboard?dates=` | During a Grand Slam, any day returns the whole tournament (men's and women's). Set scores and tiebreaks only, with no seeds or rankings |
 | F1 | OpenF1 `api.openf1.org/v1/` | sessions, meetings, session_result, overtakes, race_control, position, laps (the winner's, or everyone's for qualifying), pit, weather. Returns 429 quickly, so requests are 700 ms apart |
+| Biathlon | IBU `biathlonresults.com/modules/sportapi/api/` (unofficial JSON) | `Events?SeasonId=2526&Level=1` (World Cup, World Championships, Olympics), `Competitions?EventId=`, `Results?RaceId=` (misses per shooting), `AnalyticResults?RaceId=&TypeId=CRS1…/RNG1…` (lap and range times) |
+| Alpine, cross-country | `fis-ski.com/DB/general/` **web pages** (HTML, no API): `calendar-results.html`, `event-details.html`, `results.html` | Finish times, alpine run times. No split times. Read at 1 page per second. |
 
 **OpenF1 closes to free users while any F1 session is live** (practice, qualifying or the race), even for old races, and answers 401 "Live F1 session in progress". `getJson` marks that error `f1Live`. The build and the live check then log a calm note instead of a warning and try again next run. If a sport fails before listing anything, the build keeps that sport's previous "Coming up" entries. The owner doesn't need live updates during F1 races, so `liveF1` doesn't call OpenF1 for the first `F1_RACE_HOURS` (3) after the start; it just sets the LIVE badge by the clock.
 
@@ -105,9 +107,39 @@ The competitions are in `src/competitions.mjs`. The owner chose them: the Premie
 - **F1:** clean overtakes (not on lap 1, no car pitting within a lap, not reversed within 2 laps), lead changes (the same pit filter), SC/VSC/red flags, the P1–P2 gap, DNFs, rain and late action. The raw OpenF1 overtake counts are mostly pit shuffles and noise, so keep the filters in `factsFromRace`.
 - Tests check the ordering against known matches: France 6–4 England (WC 2026) is high, Bournemouth 0–1 Liverpool is low, Britain 2025 is high, and Japan 2025 is low.
 
+## Winter sports (the "Winter" tab)
+
+Biathlon, alpine and cross-country are all `sport: 'winter'`. `comp` is `biathlon`, `alpine` or `cross-country`, and `compName` drives the chips.
+- **Fields:** `race` ("Women's 10 km pursuit"), `place`, `series` (World Cup / Tour de Ski / World Championships / Olympics) and `gender` (women/men/mixed).
+- **Coverage:** the World Cup (including Tour de Ski stages, FIS category `SWC`), World Championships and Olympics. Snowboard, freestyle, ski jumping and Nordic combined are left out (owner's choice).
+- **Left out because FIS has no usable times:** cross-country sprints, heat mass starts, relays and team sprints. Alpine team events, parallel races and combineds are also left out.
+
+**Code:**
+- `src/sources/winter.mjs` puts all three sports behind `listRaces(now, state)` and `scoreRace(race)`.
+- `ibu.mjs` handles biathlon. It rebuilds the order after each shooting from lap and range times, plus 25 s per penalty loop.
+- `fis.mjs` reads the FIS pages. `texts()` splits HTML into text pieces. Olympic events at several venues have an extra venue column.
+- **If FIS changes its site, `fis.mjs` is what breaks.** `test/fixtures/winter/*.json` hold trimmed copies of real pages.
+- FIS races without official results two days after their start count as cancelled. `state.winterEventsDone` lists finished FIS events, so their pages aren't read again. It's reset when the winter version changes.
+
+**Spoilers:**
+- **No athlete names anywhere on the cards.** Pursuit start order, mass start fields and the alpine run-2 order all give earlier results away.
+- **Favorites follow a sport and gender** (`favs.winter: ['biathlon:women']`). Mixed races count for anyone following that sport.
+- **Strip length depends only on the race type** (`winterSegments` in `publish.mjs`). Biathlon: sprint 3 blocks, relays 4 (legs), other races 5 (four shootings plus the finish). Alpine slalom and giant slalom: 2 (runs). Downhill, super-G and cross-country: none.
+- **Skip tips:** biathlon head-to-head races can say "Start after shooting 2" (never the last shooting or the finish), or "Start at leg 3" in relays (never the last leg). Alpine two-run races can say "Skip run 1". Everything else gets "Watch it all" or "Highlights".
+- **Scoring:** `src/scoring/winter.mjs`, with weights `BIATHLON`, `ALPINE` and `CROSS_COUNTRY`. The tests use real 2025/26 races:
+  - Annecy mass start (0.3 s): 10. Oberhof sprint: low.
+  - Gurgl slalom won from 13th after run 1: high. Levi, won by 1.66 s: low.
+  - Oslo 50 km (0.4 s): high. Lahti 10 km: low.
+- The live check only sets the LIVE badge for winter races. The full build (every 3 hours) scores them.
+
 ## Streaming rights
 
-`src/rights/norway.json` maps competitions to services, each with a `validTo` date and a source link. It's kept by hand, because no free feed exists. The build prints a GitHub warning when an entry expires within 60 days. The service names and links are repeated in `SERVICES` in `docs/app.js`, so keep both in sync.
+`src/rights/norway.json` maps competitions to services, each with a `validTo` date and a source link. Winter entries have `rules`, and the first match wins (`servicesFor(key, { country, series, start })` in `publish.mjs`).
+- Biathlon: NRK and TV 2 until 2030, and the Olympics on NRK and HBO Max.
+- FIS races abroad: TV 2 and Viaplay from 2026/27, Viaplay before that.
+- FIS races in Norway: NRK.
+- World Championships 2027: alpine on NRK, Nordic on TV 2.
+- Austrian alpine races in 2026/27: unconfirmed, so both TV 2 and Viaplay are shown. It's kept by hand, because no free feed exists. The build prints a GitHub warning when an entry expires within 60 days. The service names and links are repeated in `SERVICES` in `docs/app.js`, so keep both in sync.
 
 ## Files
 

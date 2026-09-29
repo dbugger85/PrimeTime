@@ -32,3 +32,30 @@ A static site on GitHub Pages, fed by a scheduled GitHub Action that fetches fre
 8. F1 qualifying, and underdog shocks score higher (2026-09-29). ✅
 9. F1 sprints and sprint qualifying (2026-09-29). ✅
 10. Later ideas: a few preset "scoring styles" users can pick (worked out at build time, so no spoilers); Norwegian UI text, more leagues (La Liga etc.), upcoming fixtures, per-event rights overrides.
+
+## Winter sports plan (2026-09-29)
+
+**Scope:** biathlon, cross-country and alpine skiing, men and women. The competitions are the World Cup (including the Tour de Ski), the World Championships and the Olympics. Snowboard, freestyle, ski jumping and Nordic combined are left out for now (owner's choice).
+
+**Data:**
+- Biathlon: the IBU results API (biathlonresults.com/modules/sportapi/api). It has times, gaps, misses per shooting and split times, and it works.
+- Cross-country and alpine: the fis-ski.com results pages (HTML, unofficial). Final times work. Split times from FIS live timing still have to be checked.
+
+**Owner's decisions:**
+1. The competitions: World Cup, Tour de Ski, World Championships and Olympics.
+2. One "Winter" tab, with chips for Biathlon, Cross-country and Alpine, plus a Men/Women/Mixed filter.
+3. Favorites follow a sport or discipline (★ Biathlon, ★ Alpine women), not athletes. Start lists and qualifying would spoil earlier results.
+
+**Spoiler rules to keep:**
+- No athlete names on cards. Pursuit start order, mass start fields and the alpine run-2 order all give away earlier results.
+- Strips have a fixed length per race type.
+- Tips never skip the last shooting or the finish.
+- Alpine speed events only get "Watch it all" or "Highlights".
+
+**Phases:**
+0. Check FIS split times and the Norwegian rights (NRK, TV 2, Viaplay, HBO Max/Eurosport). ✅ FIS has no split times; rights are in norway.json.
+1. Biathlon. ✅
+2. Alpine. ✅
+3. Cross-country. ✅ No sprints: FIS gives no times for sprint finals.
+
+The alpine season starts in Sölden in late October. Each sport keeps about a year of races. The owner will name some remembered thrillers and duds to check the scores against.

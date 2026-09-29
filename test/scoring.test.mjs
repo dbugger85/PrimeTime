@@ -12,6 +12,10 @@ import { scoreTennis, tennisAdvice } from '../src/scoring/tennis.mjs';
 import { scoreF1, f1Advice, scoreQuali, qualiAdvice } from '../src/scoring/f1.mjs';
 import { quietRuns, heat, SCORING_VERSIONS } from '../src/scoring/common.mjs';
 import * as WEIGHTS from '../src/scoring/weights.mjs';
+import { factsFromRace as biathlonFacts, seconds } from '../src/sources/ibu.mjs';
+import * as fis from '../src/sources/fis.mjs';
+import { scoreBiathlon, scoreAlpine, scoreCrossCountry, biathlonAdvice } from '../src/scoring/winter.mjs';
+import { calendarDays } from '../src/sources/winter.mjs';
 
 const fixture = (path) => JSON.parse(readFileSync(new URL(`./fixtures/${path}`, import.meta.url)));
 const fb = (id) => scoreFootball(factsFromSummary(fixture(`football/${id}.json`)));
@@ -196,7 +200,7 @@ test('weights.mjs: every weight is a number from 0 to 5', () => {
     }
   }
   for (const v of Object.values(SCORING_VERSIONS)) assert.match(v, /^\d+\.[0-9a-f]{8}$/, 'each version includes a fingerprint of its weights');
-  assert.deepEqual(Object.keys(SCORING_VERSIONS).sort(), ['f1', 'football', 'tennis']);
+  assert.deepEqual(Object.keys(SCORING_VERSIONS).sort(), ['f1', 'football', 'tennis', 'winter']);
 });
 
 test('weights.mjs: team strength can be switched off', () => {
@@ -259,4 +263,68 @@ test('F1 sprints: a third of the distance, so overtakes count three times', () =
   assert.ok(scoreF1(qatar, { sprint: true }).score < 3, 'a procession stays low');
   assert.ok(sprintChina.score > scoreF1(china).score, 'scored as a sprint, it beats the same facts scored as a full race');
   assert.equal(sprintChina.segments.length, 10);
+});
+
+// Winter sports: real races from the 2025/26 season (test/fixtures/winter).
+const winter = (name) => fixture(`winter/${name}.json`);
+const biathlon = (name) => { const { r, d } = winter(name); return scoreBiathlon(biathlonFacts(r, d)); };
+const fisPage = (name) => fis.resultFromPage(winter(name).html);
+
+test('biathlon: a mass start decided by 0.3 s beats a runaway sprint', () => {
+  const ms = biathlon('biathlon-annecy-2025-women-mass-start'); // 0.3 s, four lead changes
+  const sp = biathlon('biathlon-oberhof-2026-women-sprint'); // won by 21 s
+  const relay = biathlon('biathlon-ruhpolding-2026-women-relay'); // won by 0.9 s
+  assert.ok(ms.score >= 9, `mass start got ${ms.score}`);
+  assert.ok(relay.score >= 7, `relay got ${relay.score}`);
+  assert.ok(sp.score < 3.5, `sprint got ${sp.score}`);
+  assert.equal(ms.segments.length, 5, 'four shootings and the finish');
+  assert.equal(relay.segments.length, 4, 'four legs');
+  assert.ok(ms.reasons.some(([, l]) => /last shooting/.test(l)));
+});
+
+test('biathlon: facts from the IBU data', () => {
+  const { r, d } = winter('biathlon-annecy-2025-women-mass-start');
+  const f = biathlonFacts(r, d);
+  assert.equal(f.gapP2.toFixed(1), '0.3');
+  assert.equal(f.leaders.length, 4, 'a leader after each of the four shootings');
+  assert.equal(f.lastShootingLeaderWon, false);
+  assert.equal(seconds('1:02:03.4'), 3723.4);
+  assert.equal(seconds('+12.6'), 12.6);
+});
+
+test('biathlon advice never skips the last shooting, the finish or the last leg', () => {
+  const h2h = { h2h: true, relay: false };
+  assert.deepEqual(biathlonAdvice(5, [0, 0, 0, 0, 5], h2h), { code: 'skip', unit: 'stage', ranges: [[1, 3]] });
+  assert.deepEqual(biathlonAdvice(5, [3, 0, 0, 0, 5], h2h), { code: 'full' });
+  assert.deepEqual(biathlonAdvice(5, [0, 0, 0, 0], { h2h: true, relay: true }), { code: 'skip', unit: 'leg', ranges: [[1, 3]] });
+  assert.deepEqual(biathlonAdvice(6, [0, 0, 5], { h2h: false }), { code: 'full' }, 'against the clock: no skipping');
+});
+
+test('alpine: a comeback from 13th after run 1 beats a 1.66 s runaway', () => {
+  const gurgl = scoreAlpine(fis.alpineFacts(fisPage('alpine-gurgl-2025-men-slalom')));
+  const levi = scoreAlpine(fis.alpineFacts(fisPage('alpine-levi-2025-women-slalom')));
+  const dh = scoreAlpine(fis.alpineFacts(fisPage('alpine-val-di-fassa-2026-women-downhill'))); // won by 0.01 s
+  assert.ok(gurgl.score >= 8, `Gurgl got ${gurgl.score}`);
+  assert.ok(levi.score <= 3.5, `Levi got ${levi.score}`);
+  assert.ok(dh.score >= 6, `downhill by 0.01 s got ${dh.score}`);
+  assert.equal(gurgl.segments.length, 2, 'one block per run');
+  assert.equal(dh.segments.length, 0, 'no strip for one-run races');
+});
+
+test('FIS pages: result rows, times and gaps', () => {
+  const p = fisPage('alpine-levi-2025-women-slalom');
+  assert.equal(p.name, "Women's Slalom");
+  assert.equal(p.rows[0].name, 'SHIFFRIN Mikaela');
+  assert.equal(p.rows[0].times.length, 3, 'run 1, run 2, total');
+  const oslo = fisPage('cross-country-oslo-2026-men-50km');
+  assert.equal(oslo.rows[0].times[0], 6698.2, 'hours are read: 1:51:38.2');
+  assert.deepEqual(calendarDays('29 Nov-01 Dec 2025').map((d) => d.toISOString().slice(0, 10)), ['2025-11-29', '2025-12-01']);
+});
+
+test('cross-country: a 50 km decided by 0.4 s beats a 22 s interval start', () => {
+  const oslo = scoreCrossCountry(fis.crossCountryFacts(fisPage('cross-country-oslo-2026-men-50km'), '50km Mass Start Free'));
+  const lahti = scoreCrossCountry(fis.crossCountryFacts(fisPage('cross-country-lahti-2026-men-10km'), '10km Interval Start Classic'));
+  assert.ok(oslo.score >= 7, `Oslo got ${oslo.score}`);
+  assert.ok(lahti.score < 3.5, `Lahti got ${lahti.score}`);
+  assert.equal(oslo.segments.length, 0);
 });

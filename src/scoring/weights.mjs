@@ -107,3 +107,60 @@ export const F1_QUALIFYING = {
   deletedLapQ3: 0.3, //       each lap deleted in Q3, e.g. for track limits (up to 0.9)
   rain: 1.0, //               it rained during the session
 };
+
+// Biathlon. "Head-to-head" races (pursuit, mass start, relays) are ones where
+// the first across the line wins; in the others (sprint, individual) skiers
+// start one by one and race the clock.
+export const BIATHLON = {
+  base: 2.0, //               every race starts with this (biathlon is rarely dull to watch)
+  photoFinish: 3.0, //        head-to-head: won by less than 1 s
+  closeFinish: 2.2, //        … by 1–3 s
+  fairlyCloseFinish: 1.4, //  … by 3–8 s
+  someFight: 0.6, //          … by 8–15 s
+  clockUnder2: 2.5, //        against the clock: won by less than 2 s
+  clockUnder5: 1.8, //        … by 2–5 s
+  clockUnder10: 1.0, //       … by 5–10 s
+  clockUnder20: 0.4, //       … by 10–20 s
+  closePodium: 0.8, //        third place close too (5 s head-to-head, 10 s against the clock)
+  openRace: 1.2, //           against the clock: 6 or more within 30 s of the winner
+  fairlyOpenRace: 0.6, //     … 4–5 within 30 s
+  bigGroup: 0.8, //           head-to-head: 4 or more within 10 s at the finish
+  leadChange: 0.5, //         each time the lead changed after a shooting (up to 2.5)
+  lastShootingTwist: 1.5, //  the leader after the last shooting (or handover) didn't win
+  comebackPursuit: 1.0, //    pursuit won from 6th or further back at the start
+  bigComebackPursuit: 1.5, // … from 11th or further back
+  comebackMassStart: 0.8, //  mass start won by someone who was 8th or worse after a shooting
+  chaosAtRange: 0.6, //       head-to-head: 5+ misses by the top 10 at the last shooting (3+ penalty loops in relays)
+};
+
+// Alpine skiing. Slalom and giant slalom have two runs; downhill and super-G one.
+export const ALPINE = {
+  base: 2.5, //               every race starts with this
+  under005: 3.0, //           won by less than 0.05 s
+  under015: 2.3, //           … by 0.05–0.15 s
+  under030: 1.6, //           … by 0.15–0.30 s
+  under060: 0.8, //           … by 0.30–0.60 s
+  tightTop5: 1.2, //          top 5 within 0.5 s
+  closeTop5: 0.6, //          … within 1.0 s
+  comeback: 1.2, //           two runs: won from 4th or worse after run 1
+  bigComeback: 1.8, //        … from 8th or worse
+  leaderLost: 1.0, //         two runs: the leader after run 1 didn't win
+  lateBibPodium: 0.8, //      one run: someone starting 30th or later reached the podium
+  bigMoverTop10: 0.5, //      two runs: someone climbed 10+ places into the top 10
+};
+
+// Cross-country skiing (FIS publishes only finish times, no split times).
+export const CROSS_COUNTRY = {
+  base: 2.5, //               every race starts with this
+  photoFinish: 3.0, //        mass start or pursuit: won by less than 0.5 s
+  closeFinish: 2.2, //        … by 0.5–2 s
+  fairlyCloseFinish: 1.2, //  … by 2–6 s
+  clockUnder3: 2.5, //        interval start: won by less than 3 s
+  clockUnder8: 1.6, //        … by 3–8 s
+  clockUnder15: 0.8, //       … by 8–15 s
+  bigGroup: 1.2, //           mass start or pursuit: 6 or more within 5 s at the finish
+  groupFinish: 0.6, //        … 3–5 within 5 s
+  closePodium: 0.8, //        third place within 2 s (mass start) or 10 s (interval start)
+  sprintFinal: 2.0, //        sprints: the final was close (top 3 within 1 s)
+  sprintTight: 1.0, //        … within 2 s
+};

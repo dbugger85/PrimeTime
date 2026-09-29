@@ -8,9 +8,19 @@ import { SCORING_VERSIONS } from './scoring/common.mjs';
 const rights = JSON.parse(readFileSync(new URL('./rights/norway.json', import.meta.url)));
 
 export const ADVICE_CODES = ['full', 'highlights', 'skip'];
-const UNITS = ['min', 'lap', 'set', 'part']; // part: Q1, Q2, Q3 of F1 qualifying
+const UNITS = ['min', 'lap', 'set', 'part', 'stage', 'leg', 'run']; // part: F1 qualifying; stage, leg: biathlon; run: alpine
 
-const servicesFor = (rightsKey) => rights.competitions[rightsKey]?.services ?? [];
+// ctx { country, series, start } is used by entries with rules (winter sports):
+// the first rule whose conditions all match decides, otherwise `services`.
+export function servicesFor(rightsKey, ctx = {}) {
+  const entry = rights.competitions[rightsKey];
+  if (!entry) return [];
+  const rule = (entry.rules ?? []).find((r) =>
+    (!r.country || r.country === ctx.country)
+    && (!r.series || r.series === ctx.series)
+    && (!r.before || (ctx.start && ctx.start < r.before)));
+  return (rule ?? entry).services;
+}
 
 function cleanAdvice(a) {
   if (!ADVICE_CODES.includes(a?.code)) throw new Error(`Unknown advice code: ${a?.code}`);
@@ -20,7 +30,7 @@ function cleanAdvice(a) {
   return { code: 'skip', unit: a.unit, ranges };
 }
 
-function base(id, sport, comp, compName, start, scored, rightsKey) {
+function base(id, sport, comp, compName, start, scored, rightsKey, ctx) {
   return {
     id,
     sport,
@@ -30,7 +40,7 @@ function base(id, sport, comp, compName, start, scored, rightsKey) {
     score: scored.score,
     segments: scored.segments.map((s) => Math.max(0, Math.min(3, s | 0))),
     advice: cleanAdvice(scored.advice),
-    services: servicesFor(rightsKey),
+    services: servicesFor(rightsKey, ctx),
     v: SCORING_VERSIONS[sport],
   };
 }
@@ -58,6 +68,24 @@ export const publishF1 = (race, scored) => ({
   ...f1Session(race),
 });
 
+// Winter sports: biathlon, alpine and cross-country races. No athlete names:
+// start lists (pursuit order, mass start fields, run-2 order) give earlier results away.
+// The strip has a fixed length per race type, whatever happened.
+export function winterSegments(race, segments) {
+  const n = race.comp === 'biathlon'
+    ? (/relay/i.test(race.name) ? 4 : /sprint/i.test(race.name) ? 3 : 5)
+    : race.comp === 'alpine' && /slalom/i.test(race.name) ? 2 : 0;
+  return Array.from({ length: n }, (_, i) => segments[i] ?? 0);
+}
+
+const winterFields = (race) => ({ race: race.name, place: race.place, series: race.series, gender: race.gender });
+const winterCtx = (race) => ({ country: race.country, series: race.series, start: race.start });
+
+export const publishWinter = (race, compName, scored) => ({
+  ...base(race.id, 'winter', race.comp, compName, race.start, { ...scored, segments: winterSegments(race, scored.segments) }, race.comp, winterCtx(race)),
+  ...winterFields(race),
+});
+
 // Rights entries that run out within `days` days (or already have).
 export function expiringRights(now = new Date(), days = 60) {
   return Object.entries(rights.competitions)
@@ -66,8 +94,13 @@ export function expiringRights(now = new Date(), days = 60) {
 }
 
 // Upcoming and live events: when and where to watch, no score of any kind.
-const upcomingBase = (id, sport, comp, compName, start, live, rightsKey) => ({
-  id, sport, comp, compName, start, status: live ? 'live' : 'upcoming', services: servicesFor(rightsKey),
+const upcomingBase = (id, sport, comp, compName, start, live, rightsKey, ctx) => ({
+  id, sport, comp, compName, start, status: live ? 'live' : 'upcoming', services: servicesFor(rightsKey, ctx),
+});
+
+export const upcomingWinter = (race, compName) => ({
+  ...upcomingBase(race.id, 'winter', race.comp, compName, race.start, race.live, race.comp, winterCtx(race)),
+  ...winterFields(race),
 });
 
 export const upcomingFootball = (comp, match) => ({

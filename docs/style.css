@@ -100,7 +100,7 @@ body[data-view="upcoming"] .replay-only { display: none; }
 .soon .time { font: 700 26px/1 'Barlow Condensed', system-ui, sans-serif; }
 .soon.live .badge { border: 0; background: var(--live); color: #fff; }
 .sports {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
   margin: 14px 0; padding: 4px; border-radius: 12px; background: var(--chip);
 }
 .sports button {

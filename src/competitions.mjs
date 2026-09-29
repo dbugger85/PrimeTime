@@ -12,4 +12,4 @@ export const FOOTBALL = [
 ];
 
 // How far back each sport is kept on the site.
-export const KEEP_DAYS = { football: 30, tennis: 400, f1: 400 };
+export const KEEP_DAYS = { football: 30, tennis: 400, f1: 400, winter: 400 };

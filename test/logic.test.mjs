@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings } from '../docs/logic.js';
+import { migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel } from '../docs/logic.js';
 
 const now = Date.parse('2026-09-26T12:00:00Z');
 const ev = (o) => ({ services: [], segments: [], advice: { code: 'full' }, compName: 'X', ...o });
@@ -162,7 +162,7 @@ test('settings link: round trip, recent watched marks only, broken links', () =>
   const code = encodeSettings(prefs, new Set(['a', 'd', 'gone']), events, now);
   assert.match(code, /^[\w-]+$/, 'safe to put in a link');
   const back = decodeSettings(code, defaults);
-  assert.deepEqual(back.prefs, { sport: 'f1', services: ['viaplay'], hints: false, favs: prefs.favs }, 'the tab you are on is not copied');
+  assert.deepEqual(back.prefs, { sport: 'f1', services: ['viaplay'], hints: false, favs: { ...prefs.favs, winter: [] } }, 'the tab you are on is not copied');
   assert.deepEqual(back.watched, ['a'], 'd is from June, and "gone" is no longer in the data');
   assert.equal(decodeSettings('not-a-real-link', defaults), null);
   const odd = btoa(JSON.stringify({ p: { sport: 3, hints: 'yes', extra: 1, services: ['tv2play', 5] }, w: 'x' }));
@@ -188,4 +188,29 @@ test('F1 qualifying: titles, skip text and the sessions filter', () => {
   assert.equal(subtitleOf(sq), 'Formula 1 · Sprint qualifying · Silverstone');
   assert.equal(ids(filterEvents([...all, sp, sq], { ...f1, f1Session: 'sprint' }, new Set(), now)), 'st', 'sprint weekends: the sprint and its qualifying');
   assert.equal(ids(filterEvents([...all, sp, sq], { ...f1, f1Session: 'qualifying' }, new Set(), now)), 'q', 'Grand Prix qualifying only');
+});
+
+test('winter: titles, gender filter, sport chips and favorites per sport and gender', () => {
+  const w = (o) => ev({ sport: 'winter', start: '2026-09-20T12:00Z', score: 6, series: 'World Cup', place: 'Oberhof', ...o });
+  const list = [
+    w({ id: 'w1', comp: 'biathlon', compName: 'Biathlon', race: "Women's 10 km pursuit", gender: 'women' }),
+    w({ id: 'w2', comp: 'biathlon', compName: 'Biathlon', race: 'Mixed relay', gender: 'mixed' }),
+    w({ id: 'w3', comp: 'alpine', compName: 'Alpine', race: "Men's slalom", gender: 'men' }),
+  ];
+  assert.equal(titleOf(list[0]), "Women's 10 km pursuit");
+  assert.equal(subtitleOf(list[0]), 'World Cup · Oberhof');
+  const tab = { ...base, sport: 'winter' };
+  assert.equal(ids(filterEvents(list, { ...tab, gender: 'women' }, new Set(), now)), 'w1');
+  assert.equal(ids(filterEvents(list, { ...tab, comp: 'Alpine' }, new Set(), now)), 'w3');
+  assert.deepEqual(facets(list, tab, 'replays', new Set(), now).comps.map((c) => c.name), ['Biathlon', 'Alpine']);
+  const favs = { teams: [], players: [], f1: false, winter: ['biathlon:women'] };
+  assert.equal(ids(filterEvents(list, { ...tab, favsOnly: true, favs }, new Set(), now)), 'w1w2', 'mixed races count for anyone following the sport');
+  assert.equal(winterLabel('cross-country:men'), 'Cross-country (men)');
+  const names = favNames([list]);
+  assert.deepEqual(searchNames(names, 'biath', favs), [], 'already followed');
+  assert.deepEqual(searchNames(names, 'alp', favs), [{ kind: 'winter', name: 'alpine:men', label: 'Alpine (men)' }]);
+  assert.deepEqual(toggleFav(favs, 'winter', 'alpine:men').winter, ['alpine:men', 'biathlon:women']);
+  assert.equal(adviceText({ code: 'skip', unit: 'stage', ranges: [[1, 2]] }), 'Start after shooting 2');
+  assert.equal(adviceText({ code: 'skip', unit: 'leg', ranges: [[1, 2]] }), 'Start at leg 3');
+  assert.equal(adviceText({ code: 'skip', unit: 'run', ranges: [[1, 1]] }), 'Skip run 1');
 });
