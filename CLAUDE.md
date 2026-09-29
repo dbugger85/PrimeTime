@@ -49,7 +49,7 @@ The `schedule:` block stays as a backup. A manual "Run workflow" defaults to mod
 
 | Sport | Source | Used for |
 |---|---|---|
-| Football | ESPN `site.api.espn.com/apis/site/v2/sports/soccer/{comp}/scoreboard?dates=YYYYMMDD` and `/summary?event=ID` | Fixtures; goals, cards, penalties, VAR (`keyEvents`); every shot with its minute (`commentary`); shot totals (`boxscore`). Date ranges don't work, so it's one day per request |
+| Football | ESPN `site.api.espn.com/apis/site/v2/sports/soccer/{comp}/scoreboard?dates=YYYYMMDD` and `/summary?event=ID` | Fixtures; goals, cards, penalties, VAR (`keyEvents`); every shot with its minute (`commentary`); shot totals (`boxscore`); pre-match betting odds (`pickcenter`, DraftKings moneylines) for team strength. Date ranges don't work, so it's one day per request |
 | Tennis | ESPN `sports/tennis/atp/scoreboard?dates=` | During a Grand Slam, any day returns the whole tournament (men's and women's). Set scores and tiebreaks only, with no seeds or rankings |
 | F1 | OpenF1 `api.openf1.org/v1/` | sessions, meetings, session_result, overtakes, race_control, position, laps (the winner's), pit, weather. Returns 429 quickly, so requests are 700 ms apart |
 
@@ -80,6 +80,7 @@ The competitions are in `src/competitions.mjs`. The owner chose them: the Premie
 
 ## Scoring (`src/scoring/*.mjs`, pure functions, checked in `test/scoring.test.mjs`)
 
+- **Football team strength:** `winChances()` in `espn-football.mjs` turns the pre-match odds into home/draw/away chances (`facts.odds`, or null). The odds are only used for scoring and never published. The favorite's goals count for less the bigger the mismatch, and the underdog's for more. An underdog win or draw earns an upset bonus, and an evenly matched game earns up to +0.5. Whether or not there are odds, goals scored when a team was already 2+ up count for less, the "won by 3+" penalty grows with the margin (up to −3.5), and late goals only count while the result was within one goal. Before this, Viking 8–1 Kristiansund scored 10; now it's about 3.6.
 - **Football:** goals, the share of minutes within one goal, equalisers and lead changes, late goals, shots on target, red cards, penalties, goals ruled out by VAR ("Deleted After Review" in the commentary), shots off the woodwork, lots of corners (12+) or bookings (6+), extra time and shootouts. Segments are 15-minute blocks weighted by goals, disallowed goals, penalties, reds, VAR, woodwork and shots. Skip windows come from 5-minute slots with little action (quiet ≤ 0.45, about one shot on target).
 - **Tennis:** number of sets compared with the maximum, how close each set was (a tiebreak or 7-5 counts as close), tiebreaks, comebacks and the round. Retirements score 1, and walkovers and qualifying are left out.
 - **F1:** clean overtakes (not on lap 1, no car pitting within a lap, not reversed within 2 laps), lead changes (the same pit filter), SC/VSC/red flags, the P1–P2 gap, DNFs, rain and late action. The raw OpenF1 overtake counts are mostly pit shuffles and noise, so keep the filters in `factsFromRace`.
@@ -115,7 +116,7 @@ Stars aren't shown while names are hidden.
 
 **The filters adapt to the chosen sport and view.** `facets()` in `docs/logic.js` counts the events each option would give, ignoring that option's own filter:
 - Competition chips appear only for football and tennis.
-- Service chips show only services that carry the sport, each with a count.
+- Service chips show only services that carry the sport (no counts, to save space).
 - The minimum-rating options show counts.
 - `periodOptions()` offers "last year" everywhere except football, which is kept for 30 days.
 - Elements marked `data-for="tennis football all"` only show on those tabs. Tennis rounds and draw only apply on the Tennis tab.

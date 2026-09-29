@@ -81,11 +81,11 @@ function renderControls() {
     ...f.comps.map((c) => chip(c.name, c.n, prefs.comp === c.name, setComp(c.name))),
   );
 
-  // Service chips: only services that carry this sport, with counts.
+  // Service chips: only services that carry this sport (no counts, to save space).
   const shown = Object.keys(SERVICES).filter((id) => f.services.some((x) => x.id === id));
   $('#services').replaceChildren(...shown.map((id) => chip(
     SERVICES[id].name,
-    f.services.find((x) => x.id === id).n,
+    null,
     prefs.services.includes(id),
     () => {
       prefs.services = prefs.services.includes(id) ? prefs.services.filter((x) => x !== id) : [...prefs.services, id];

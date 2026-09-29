@@ -31,6 +31,20 @@ const minuteOf = (e) => {
   return Math.min(Math.max((e.clock?.value ?? 0) / 60, lo), hi - 0.1);
 };
 
+// Pre-match win chances from the betting odds ESPN shows (American "moneyline"
+// odds: +250 pays 250 on 100, -340 means stake 340 to win 100). The bookmaker's
+// margin makes the raw chances add up to more than 1, so they're scaled back.
+// Returns { home, draw, away } adding up to 1, or null without odds.
+export function winChances(summary) {
+  const o = (summary.pickcenter ?? summary.odds ?? [])[0];
+  const lines = [o?.homeTeamOdds?.moneyLine, o?.drawOdds?.moneyLine, o?.awayTeamOdds?.moneyLine];
+  if (!lines.every((m) => Number.isFinite(m) && m !== 0)) return null;
+  const raw = lines.map((m) => (m > 0 ? 100 / (m + 100) : -m / (-m + 100)));
+  const sum = raw.reduce((a, b) => a + b, 0);
+  const [home, draw, away] = raw.map((p) => p / sum);
+  return { home, draw, away };
+}
+
 // Turns an ESPN summary into the plain facts the scorer needs.
 export function factsFromSummary(summary) {
   const comp = summary.header.competitions[0];
@@ -80,6 +94,7 @@ export function factsFromSummary(summary) {
   return {
     result: { text: result, goals: goalLines },
     goals,
+    odds: winChances(summary),
     reds: events.filter((e) => /red card/i.test(e.type.text)).map((e) => minuteOf(e)),
     pens: typed(/^penalty/i),
     vars: typed(/^VAR/i),

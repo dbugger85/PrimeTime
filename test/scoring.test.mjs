@@ -30,13 +30,40 @@ test('football: thrillers score high, routine wins score low', () => {
   assert.ok(franceSweden30.score < mexicoEngland23.score);
 });
 
+test('football: team strength from the odds, blowouts score low', () => {
+  const viking81 = fb(401843437); // Eliteserien, Viking 79% favorites, 8-1
+  const bayernBodo50 = fb(401915443); // Champions League, Bayern 89% favorites, 5-0
+  const spursVilla23 = fb(401879269); // evenly matched, 2-3
+  assert.ok(viking81.score < 5, `8-1 got ${viking81.score}`);
+  assert.ok(bayernBodo50.score < 5, `5-0 got ${bayernBodo50.score}`);
+  assert.ok(spursVilla23.score >= 9, `even 2-3 got ${spursVilla23.score}`);
+  assert.ok(viking81.reasons.some(([, l]) => /favorite/.test(l)), 'the breakdown mentions the favorite');
+  // The same match without odds still punishes the blowout, just less.
+  const noOdds = scoreFootball({ ...factsFromSummary(fixture('football/401843437.json')), odds: null });
+  assert.ok(noOdds.score < 6 && noOdds.score > viking81.score, `8-1 without odds got ${noOdds.score}`);
+});
+
+test('football: an upset scores higher than the same result the expected way round', () => {
+  const facts = factsFromSummary(fixture('football/760514.json')); // France 0-2 Spain
+  const expected = scoreFootball({ ...facts, odds: { home: 0.15, draw: 0.2, away: 0.65 } }).score;
+  const upset = scoreFootball({ ...facts, odds: { home: 0.65, draw: 0.2, away: 0.15 } }).score;
+  assert.ok(upset >= expected + 1.5, `upset ${upset}, expected ${expected}`);
+});
+
+test('football: odds become win chances that add up to 1', () => {
+  const o = factsFromSummary(fixture('football/760492.json')).odds; // France -340, draw +500, Sweden +900
+  assert.ok(Math.abs(o.home + o.draw + o.away - 1) < 1e-9);
+  assert.ok(o.home > 0.7 && o.away < 0.12, JSON.stringify(o));
+  assert.equal(factsFromSummary({ ...fixture('football/760492.json'), pickcenter: undefined }).odds, null);
+});
+
 test('football: a 0-0 decided on penalties beats a plain 1-0 but is not a thriller', () => {
   const pens00 = fb(760508).score;
   assert.ok(pens00 < 7, `got ${pens00}`);
 });
 
 test('football: scores stay within 0–10 with one decimal', () => {
-  for (const id of [401879276, 760489, 760492, 760493, 760505, 760508, 760512, 760514, 760516]) {
+  for (const id of [401843437, 401879269, 401915443, 401879276, 760489, 760492, 760493, 760505, 760508, 760512, 760514, 760516]) {
     const { score, segments } = fb(id);
     assert.ok(score >= 0 && score <= 10);
     assert.equal(Math.round(score * 10) / 10, score);
@@ -57,7 +84,7 @@ test('football advice: skip windows anywhere before 75, never the last 15 minute
 });
 
 test('football advice on real matches stays before 75 minutes', () => {
-  for (const id of [401879276, 760489, 760492, 760493, 760505, 760508, 760512, 760514, 760516]) {
+  for (const id of [401843437, 401879269, 401915443, 401879276, 760489, 760492, 760493, 760505, 760508, 760512, 760514, 760516]) {
     const { advice } = fb(id);
     if (advice.code === 'skip') assert.ok(advice.ranges.every(([a, b]) => a < b && b <= 75), `${id}`);
   }

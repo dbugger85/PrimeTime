@@ -1,7 +1,7 @@
 // Shared helpers for all scorers.
 
 // Bump this when a scoring formula changes, so old events get re-scored.
-export const SCORING_VERSION = 6;
+export const SCORING_VERSION = 7;
 
 export const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 export const round1 = (x) => Math.round(x * 10) / 10;
