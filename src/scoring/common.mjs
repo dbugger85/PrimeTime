@@ -1,7 +1,7 @@
 // Shared helpers for all scorers.
 
 // Bump this when a scoring formula changes, so old events get re-scored.
-export const SCORING_VERSION = 7;
+export const SCORING_VERSION = 8;
 
 export const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 export const round1 = (x) => Math.round(x * 10) / 10;
@@ -13,9 +13,8 @@ export function tally() {
   const reasons = [];
   return {
     add(points, label) {
-      if (!points) return;
       total += points;
-      reasons.push([round1(points), label]);
+      if (round1(points)) reasons.push([round1(points), label]); // no "+0.0" lines
     },
     get total() { return total; },
     reasons,

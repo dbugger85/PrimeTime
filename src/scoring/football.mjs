@@ -28,12 +28,12 @@ export function scoreFootball(f) {
     const worth = counted++ < 4 ? 1.2 : 0.6; // what the line above gave it
     const ahead = lead[g.side] - lead[g.side === 'home' ? 'away' : 'home'];
     // Already 3 up: the match is over, and more goals add little. Making it 3–0 matters a bit more.
-    const cut = ahead >= 3 ? 0.75 : ahead === 2 ? 0.35 : 0;
+    const cut = ahead >= 3 ? 0.5 : ahead === 2 ? 0.2 : 0;
     decided += worth * cut;
     if (cut) decidedGoals++;
     const rest = worth * (1 - cut);
-    if (fav && g.side === fav) favCut += rest * 0.5 * gap;
-    else if (fav) dogBonus += rest * 0.4 * gap;
+    if (fav && g.side === fav) favCut += rest * 0.25 * gap;
+    else if (fav) dogBonus += rest * 0.3 * gap;
     lead[g.side]++;
   }
   t.add(-decided, `${plural(decidedGoals, 'goal')} with one team already 2+ goals up`);
@@ -57,7 +57,7 @@ export function scoreFootball(f) {
   }
   if (Math.abs(diff) <= 1) closeMinutes += end - prevMin;
   t.add(2.0 * (closeMinutes / end), `Within one goal for ${Math.round((100 * closeMinutes) / end)}% of the match`);
-  if (Math.abs(diff) >= 3) t.add(-Math.min(1.5 + 1.0 * (Math.abs(diff) - 3), 3.5), `One-sided: won by ${Math.abs(diff)} goals`);
+  if (Math.abs(diff) >= 3) t.add(-Math.min(1.5 + 0.5 * (Math.abs(diff) - 3), 2.5), `One-sided: won by ${Math.abs(diff)} goals`);
 
   // Upsets and even matches. `diff` is now the final goal difference, home minus away.
   if (odds) {
