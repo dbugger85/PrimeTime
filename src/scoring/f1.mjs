@@ -2,28 +2,29 @@
 // Input: the facts from factsFromRace() in src/sources/openf1.mjs.
 
 import { finalScore, heat, quietRuns, tally, plural, times } from './common.mjs';
+import { F1 as W } from './weights.mjs';
 
 const SEGMENTS = 10; // equal slices of the race, so the strip doesn't reveal the lap count
 
 export function scoreF1(f) {
   const top5 = f.overtakes.filter((o) => o.position <= 5);
   const t = tally();
-  t.add(1.0, 'Base');
+  t.add(W.base, 'Base');
 
-  t.add((Math.min(f.overtakes.length, 60) / 60) * 3, `${plural(f.overtakes.length, 'overtake')} on track (pit stops not counted)`);
-  t.add(Math.min(0.1 * top5.length, 1.5), `${plural(top5.length, 'overtake')} for a top-5 place`);
-  t.add(Math.min(0.8 * f.leadChanges.length, 2.4), `The lead changed ${times(f.leadChanges.length)}`);
+  t.add((Math.min(f.overtakes.length, 60) / 60) * W.overtakes, `${plural(f.overtakes.length, 'overtake')} on track (pit stops not counted)`);
+  t.add(Math.min(W.top5Overtake * top5.length, 1.5), `${plural(top5.length, 'overtake')} for a top-5 place`);
+  t.add(W.leadChange * Math.min(f.leadChanges.length, 3), `The lead changed ${times(f.leadChanges.length)}`);
   const neutralised = [
     f.safetyCars.length && plural(f.safetyCars.length, 'safety car'),
     f.vscs.length && plural(f.vscs.length, 'virtual safety car'),
     f.redFlags.length && plural(f.redFlags.length, 'red flag'),
   ].filter(Boolean).join(', ');
-  t.add(Math.min(0.7 * f.safetyCars.length + 0.3 * f.vscs.length + 1.0 * f.redFlags.length, 2.5), neutralised);
-  if (f.gapP2 != null) t.add(f.gapP2 < 1 ? 1.5 : f.gapP2 < 3 ? 1.0 : f.gapP2 < 10 ? 0.5 : 0, `Won by ${f.gapP2.toFixed(1)} s`);
-  t.add(Math.min(0.2 * f.dnfs, 1), plural(f.dnfs, 'retirement'));
-  if (f.rain) t.add(0.5, 'Rain during the race');
+  t.add(Math.min(W.safetyCar * f.safetyCars.length + W.virtualSafetyCar * f.vscs.length + W.redFlag * f.redFlags.length, W.neutralisedMax), neutralised);
+  if (f.gapP2 != null) t.add(f.gapP2 < 1 ? W.finishUnder1s : f.gapP2 < 3 ? W.finishUnder3s : f.gapP2 < 10 ? W.finishUnder10s : 0, `Won by ${f.gapP2.toFixed(1)} s`);
+  t.add(Math.min(W.retirement * f.dnfs, 1), plural(f.dnfs, 'retirement'));
+  if (f.rain) t.add(W.rain, 'Rain during the race');
   const lateFrom = f.totalLaps * 0.8;
-  if (top5.some((o) => o.lap > lateFrom) || f.leadChanges.some((l) => l > lateFrom)) t.add(0.5, 'Fights at the front in the last laps');
+  if (top5.some((o) => o.lap > lateFrom) || f.leadChanges.some((l) => l > lateFrom)) t.add(W.lateFight, 'Fights at the front in the last laps');
 
   const score = finalScore(t.total);
 

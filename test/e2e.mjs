@@ -146,12 +146,12 @@ try {
 
     // Favorites: star a team on a card, filter to favorites only, search, remove.
     await page.click('#sports [data-sport="football"]');
-    assert.ok(await page.$eval('#favs .only', (e) => e.disabled), '"Only favorites" is off until you have one');
+    assert.ok(await page.$eval('#fav-only', (e) => e.disabled), '"Only favorites" is off until you have one');
     const team = await page.$eval('.card .title .name', (e) => e.firstChild.textContent);
     const other = await page.$eval('.card .title .name:nth-child(2)', (e) => e.firstChild.textContent);
     await page.click('.card .title .name .star');
     assert.equal(await page.$eval('.card .title .name .star', (e) => e.textContent), '★');
-    await page.click('#favs .only');
+    await page.click('#fav-only');
     const titles = await page.$$eval('.card .title', (els) => els.map((e) => e.textContent));
     assert.ok(titles.length > 0 && titles.every((t) => t.includes(team)), `only ${team} matches show`);
     await page.screenshot({ path: `${shots}/favorites.png` });
@@ -171,7 +171,20 @@ try {
     await page.screenshot({ path: `${shots}/favorites-search.png` });
     await page.fill('#fav-q', '');
     await page.click(`#favs .fav:has-text("${team}")`);
-    assert.ok(await page.$eval('#favs .only', (e) => e.disabled && e.getAttribute('aria-pressed') === 'false'), 'removing the last favorite turns the filter off');
+    assert.ok(await page.$eval('#fav-only', (e) => e.disabled && e.getAttribute('aria-pressed') === 'false'), 'removing the last favorite turns the filter off');
+    // The section folds up, but "Only favorites" stays reachable, and it remembers.
+    await page.click('#sports [data-sport="football"]');
+    await page.click('.card .title .name .star');
+    await page.click('#favs-toggle');
+    assert.ok(await page.$eval('#favs-body', (e) => e.hidden));
+    assert.ok(await page.$eval('#fav-only', (e) => !e.disabled && e.offsetParent !== null));
+    assert.equal(await page.$eval('#favs-count', (e) => e.textContent), '1');
+    await page.screenshot({ path: `${shots}/favorites-closed.png` });
+    await page.reload();
+    await page.waitForSelector('.card');
+    assert.ok(await page.$eval('#favs-body', (e) => e.hidden), 'stays folded after a reload');
+    await page.click('#favs-toggle');
+    await page.click('#favs .fav');
     await page.click('#sports [data-sport="all"]');
 
     // Mark watched survives a reload.

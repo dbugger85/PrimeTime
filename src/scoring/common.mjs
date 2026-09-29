@@ -1,7 +1,14 @@
 // Shared helpers for all scorers.
 
-// Bump this when a scoring formula changes, so old events get re-scored.
-export const SCORING_VERSION = 8;
+import { createHash } from 'node:crypto';
+import * as WEIGHTS from './weights.mjs';
+
+// Bump FORMULA_VERSION when a scoring formula changes, so old events get re-scored.
+// Changing a number in weights.mjs re-scores by itself: the version includes a
+// fingerprint of the weights, like "9.3fa2c1d0".
+const FORMULA_VERSION = 9;
+const fingerprint = createHash('sha1').update(JSON.stringify(WEIGHTS)).digest('hex').slice(0, 8);
+export const SCORING_VERSION = `${FORMULA_VERSION}.${fingerprint}`;
 
 export const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 export const round1 = (x) => Math.round(x * 10) / 10;

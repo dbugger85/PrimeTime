@@ -10,7 +10,8 @@ import { factsFromRace } from '../src/sources/openf1.mjs';
 import { scoreFootball, footballAdvice } from '../src/scoring/football.mjs';
 import { scoreTennis, tennisAdvice } from '../src/scoring/tennis.mjs';
 import { scoreF1, f1Advice } from '../src/scoring/f1.mjs';
-import { quietRuns, heat } from '../src/scoring/common.mjs';
+import { quietRuns, heat, SCORING_VERSION } from '../src/scoring/common.mjs';
+import * as WEIGHTS from '../src/scoring/weights.mjs';
 
 const fixture = (path) => JSON.parse(readFileSync(new URL(`./fixtures/${path}`, import.meta.url)));
 const fb = (id) => scoreFootball(factsFromSummary(fixture(`football/${id}.json`)));
@@ -186,4 +187,24 @@ test('result lines (only ever shown behind the second spoiler warning)', () => {
   const final = matches.find((m) => m.round === 'Final' && m.draw.startsWith('Men'));
   assert.equal(scoreTennis(final).result, 'Alexander Zverev beat Ben Shelton 6-3 7-6(2) 5-7 6-2');
   assert.match(race('british-grand-prix-2025').result, /^1\. .+, 2\. .+, 3\. .+ \(won by \d+\.\d s\)$/);
+});
+
+test('weights.mjs: every weight is a number from 0 to 5', () => {
+  for (const [sport, weights] of Object.entries(WEIGHTS)) {
+    for (const [name, w] of Object.entries(weights)) {
+      assert.ok(typeof w === 'number' && Number.isFinite(w) && w >= 0 && w <= 5, `${sport}.${name} is ${w}: use a number from 0 to 5`);
+    }
+  }
+  assert.match(SCORING_VERSION, /^\d+\.[0-9a-f]{8}$/, 'the version includes a fingerprint of the weights');
+});
+
+test('weights.mjs: team strength can be switched off', () => {
+  const facts = factsFromSummary(fixture('football/401843437.json')); // Viking 8-1
+  const before = WEIGHTS.FOOTBALL.teamStrength;
+  try {
+    WEIGHTS.FOOTBALL.teamStrength = 0;
+    assert.equal(scoreFootball(facts).score, scoreFootball({ ...facts, odds: null }).score);
+  } finally {
+    WEIGHTS.FOOTBALL.teamStrength = before;
+  }
 });

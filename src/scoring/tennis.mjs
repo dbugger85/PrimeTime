@@ -7,6 +7,7 @@
 // sets 1–2 in best-of-5), so it can't hint at how the match ended.
 
 import { finalScore, tally, plural } from './common.mjs';
+import { TENNIS as W } from './weights.mjs';
 
 function closeness({ games: [a, b], tiebreak }) {
   const hi = Math.max(a, b), lo = Math.min(a, b);
@@ -17,7 +18,7 @@ function closeness({ games: [a, b], tiebreak }) {
   return 0.1;
 }
 
-const ROUND_BONUS = { Quarterfinal: 0.3, Semifinal: 0.5, Final: 0.8 };
+const ROUND_BONUS = { Quarterfinal: W.quarterfinal, Semifinal: W.semifinal, Final: W.final };
 
 const setText = (set) => set.games.join('-');
 
@@ -41,21 +42,21 @@ export function scoreTennis(m) {
   const close = sets.map(closeness);
   const tiebreaks = sets.filter((s) => s.tiebreak).length;
   const t = tally();
-  t.add(1.0, 'Base');
+  t.add(W.base, 'Base');
 
-  if (sets.length === m.bestOf) t.add(3.0, `Went the full ${m.bestOf} sets`);
-  else if (m.bestOf === 5 && sets.length === 4) t.add(1.5, 'Went to four sets');
+  if (sets.length === m.bestOf) t.add(W.allSets, `Went the full ${m.bestOf} sets`);
+  else if (m.bestOf === 5 && sets.length === 4) t.add(W.fourSets, 'Went to four sets');
 
-  t.add(Math.min(close.reduce((a, b) => a + b, 0) * 1.2, 4), `How close the sets were: ${sets.map(setText).join(' ')}`);
-  t.add(Math.min(0.8 * tiebreaks, 2.4), plural(tiebreaks, 'tiebreak'));
-  if (sets.length === m.bestOf && sets.at(-1).tiebreak) t.add(1.0, 'Deciding-set tiebreak');
+  t.add(Math.min(close.reduce((a, b) => a + b, 0) * W.closeSets, W.closeSetsMax), `How close the sets were: ${sets.map(setText).join(' ')}`);
+  t.add(W.tiebreak * Math.min(tiebreaks, 3), plural(tiebreaks, 'tiebreak'));
+  if (sets.length === m.bestOf && sets.at(-1).tiebreak) t.add(W.decidingTiebreak, 'Deciding-set tiebreak');
 
   // Comebacks: the winner lost the first set (or the first two).
   const lostBy = (set) => set.games[m.winnerIndex] < set.games[1 - m.winnerIndex];
   const winner = m.players[m.winnerIndex];
   if (lostBy(sets[0])) {
     const two = sets[1] && lostBy(sets[1]);
-    t.add(two ? 1.0 : 0.5, `${winner} came back from ${two ? 'two sets' : 'a set'} down to win`);
+    t.add(two ? W.comebackTwoSets : W.comebackOneSet, `${winner} came back from ${two ? 'two sets' : 'a set'} down to win`);
   }
 
   t.add(ROUND_BONUS[m.round] ?? 0, `It's a ${m.round.toLowerCase()}`);

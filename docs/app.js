@@ -121,6 +121,10 @@ function renderControls() {
 
 const F1_NAME = 'F1 (every race)';
 
+// Whether "My favorites" is unfolded. Remembered on this device; the first time,
+// it's open when there are no favorites yet, so people find the search box.
+let favsOpen = store.load('pt-favs-open', null) ?? !favCount(prefs.favs);
+
 function setFav(kind, name) {
   prefs.favs = kind === 'f1' ? { ...prefs.favs, f1: !prefs.favs.f1 } : toggleFav(prefs.favs, kind, name);
   if (!favCount(prefs.favs)) prefs.favsOnly = false;
@@ -132,9 +136,12 @@ function setFav(kind, name) {
 function renderFavs() {
   const { favs } = prefs;
   const n = favCount(favs);
-  const only = chip('★ Only favorites', null, prefs.favsOnly, () => { prefs.favsOnly = !prefs.favsOnly; savePrefs(); render(); });
-  only.classList.add('only');
+  const only = $('#fav-only');
+  only.setAttribute('aria-pressed', String(prefs.favsOnly));
   only.disabled = !n;
+  $('#favs-count').textContent = n ? String(n) : '';
+  $('#favs-toggle').setAttribute('aria-expanded', String(favsOpen));
+  $('#favs-body').hidden = !favsOpen;
   const remove = (kind, name, label = name) => {
     const b = chip(label, null, false, () => setFav(kind, name));
     b.classList.add('fav');
@@ -142,16 +149,15 @@ function renderFavs() {
     return b;
   };
   $('#favs').replaceChildren(
-    only,
     ...favs.teams.map((t) => remove('teams', t)),
     ...favs.players.map((p) => remove('players', p)),
     ...(favs.f1 ? [remove('f1', null, F1_NAME)] : []),
   );
   $('#favs-hint').textContent = !n
-    ? 'tap ☆ on a card, or search'
+    ? 'Tap ☆ after a name on a card, or search below.'
     : prefs.favsOnly && favs.players.length && prefs.view === 'replays' && ['all', 'tennis'].includes(prefs.sport)
-      ? 'tennis players only count under Coming up, so replays don\'t spoil who went through'
-      : 'tap one to remove it';
+      ? 'Tennis players only count under Coming up, so replays don\'t spoil who went through.'
+      : 'Tap one to remove it.';
   renderFavHits();
 }
 
@@ -441,6 +447,12 @@ function bind() {
     Object.assign(prefs, { comp: 'all', days: 30, minScore: 0, sort: 'date', round: '', draw: '', hideWatched: false });
     savePrefs();
     render();
+  };
+  $('#fav-only').onclick = () => { prefs.favsOnly = !prefs.favsOnly; savePrefs(); render(); };
+  $('#favs-toggle').onclick = () => {
+    favsOpen = !favsOpen;
+    store.save('pt-favs-open', favsOpen);
+    renderFavs();
   };
   $('#fav-q').oninput = renderFavHits;
   $('#fav-q').onkeydown = (ev) => {

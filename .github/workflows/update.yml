@@ -41,7 +41,12 @@ jobs:
         id: mode
         run: echo "mode=${{ github.event_name == 'schedule' && 'auto' || (github.event_name == 'workflow_dispatch' && inputs.mode) || 'full' }}" >> "$GITHUB_OUTPUT"
 
+      # Always start from the newest main, not the commit that started the run: a
+      # run started by a push could otherwise miss data saved by the run before it
+      # and clash when saving (this happened on 2026-09-29).
       - uses: actions/checkout@v7
+        with:
+          ref: main
 
       - uses: actions/setup-node@v7
         with:
@@ -76,7 +81,7 @@ jobs:
 
       - name: Version the page's files (stops browsers mixing old and new files)
         if: steps.save.outputs.changed == 'true' || steps.mode.outputs.mode == 'full'
-        run: node scripts/stamp.mjs "${GITHUB_SHA::7}"
+        run: node scripts/stamp.mjs "$(git rev-parse --short=7 HEAD)"
 
       - uses: actions/upload-pages-artifact@v5
         if: steps.save.outputs.changed == 'true' || steps.mode.outputs.mode == 'full'

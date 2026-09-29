@@ -47,11 +47,19 @@
     <div class="chips" id="services"></div>
   </section>
 
-  <section class="favs" aria-labelledby="favs-label">
-    <h2 id="favs-label">My favorites <span class="hint" id="favs-hint"></span></h2>
-    <div class="chips" id="favs"></div>
-    <input type="search" id="fav-q" placeholder="Add a team, player or F1…" autocomplete="off" aria-label="Search for a team, player or F1">
-    <div class="chips" id="fav-hits"></div>
+  <section class="favs">
+    <div class="favs-head">
+      <button type="button" class="favs-toggle" id="favs-toggle" aria-expanded="true" aria-controls="favs-body">
+        <span class="caret" aria-hidden="true">▶</span> My favorites <span class="count" id="favs-count"></span>
+      </button>
+      <button type="button" class="chip only" id="fav-only" aria-pressed="false">★ Only favorites</button>
+    </div>
+    <div id="favs-body">
+      <p class="small" id="favs-hint"></p>
+      <div class="chips" id="favs"></div>
+      <input type="search" id="fav-q" placeholder="Add a team, player or F1…" autocomplete="off" aria-label="Search for a team, player or F1">
+      <div class="chips" id="fav-hits"></div>
+    </div>
   </section>
 
   <details class="filters" id="filters">

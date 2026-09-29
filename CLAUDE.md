@@ -27,6 +27,8 @@ The GitHub Actions workflow `.github/workflows/update.yml` is triggered every 15
 - The page re-fetches `events.json` every 5 minutes while it's open, and when you return to the tab.
 - **Cache-busting:** before publishing, `scripts/stamp.mjs` adds `?v=<commit>` to `style.css`, `app.js` and the `logic.js` import in the published copy. GitHub Pages lets browsers cache files for 10 minutes, and a new `app.js` paired with a cached old `logic.js` once left the page stuck on "Loading…". If you add another JS module, add it to `stamp()`. A safety net in `index.html` replaces "Loading…" with a reload link if `window.primetimeStarted` isn't set within 8 seconds.
 
+The job checks out the newest `main` (`ref: main`), not the commit that started the run. A push-started run once began from a commit made before the previous run's data save, and its own save clashed with it.
+
 Each run does the following:
 1. Runs the code unit tests, then `scripts/auto.mjs`, then all the tests. `test/spoilers.test.mjs` checks the new `events.json`.
 2. Commits `docs/data/events.json`, `docs/data/reasons.json`, `docs/data/results.json` and `data/state.json` as "primetime-bot".
@@ -60,7 +62,7 @@ The competitions are in `src/competitions.mjs`. The owner chose them: the Premie
 `scripts/build.mjs` avoids re-fetching:
 - An event already in `events.json` with the current `v` (`SCORING_VERSION`) is skipped.
 - `data/state.json` lists football days and Slams that are complete.
-- **Bump `SCORING_VERSION` in `src/scoring/common.mjs` whenever a formula changes.** The next build then re-scores everything.
+- **Bump `FORMULA_VERSION` in `src/scoring/common.mjs` whenever a formula changes.** The next build then re-scores everything. `SCORING_VERSION` is `"<FORMULA_VERSION>.<fingerprint of weights.mjs>"`, so changing a weight re-scores by itself.
 
 ## Upcoming and live events ("Coming up" view)
 
@@ -79,6 +81,8 @@ The competitions are in `src/competitions.mjs`. The owner chose them: the Premie
 - **"⚠⚠ Show the result"** is a second level inside the breakdown. It shows a second warning, then loads `docs/data/results.json`, which has one line per event: "France 4–6 England (after extra time)", "Zverev beat Shelton 6-3 7-6(2) …" or an F1 podium with the winning margin. Scorers return it as `result`, and `store.mjs` writes it. Football results are an object instead, `{text, goals}`, where `goals` has one line per goal, like `"36' · 0–1 · Jude Bellingham (England)"`, with the running score and "pen" or "own goal" (penalty shootout kicks are left out). It comes from `participants[0]` in ESPN's `keyEvents`. The page shows the pieces between the ` · ` separators as three columns, and still accepts plain strings. Like the reasons, it never goes into `events.json`.
 
 ## Scoring (`src/scoring/*.mjs`, pure functions, checked in `test/scoring.test.mjs`)
+
+**All the points live in `src/scoring/weights.mjs`** (`FOOTBALL`, `TENNIS`, `F1`), with a plain-language comment on each. The owner can edit that file on github.com, and a push re-scores everything. Keep the scorers free of hard-coded points, although thresholds like "75'" or "12 corners" stay in the code. Weights that are subtracted are stored as positive numbers. The tests reject any weight outside 0–5, and the known-match ordering tests stop a change that makes thrillers score below dull matches. `FOOTBALL.teamStrength` is a master dial for everything that comes from the odds (0 turns it off).
 
 - **Football team strength:** `winChances()` in `espn-football.mjs` turns the pre-match odds into home/draw/away chances (`facts.odds`, or null). The odds are only used for scoring and never published. The favorite's goals count for less the bigger the mismatch, and the underdog's for more. An underdog win or draw earns an upset bonus, and an evenly matched game earns up to +0.5. Whether or not there are odds, goals scored when a team was already 2+ up count for less, the "won by 3+" penalty grows with the margin (up to −3.5), and late goals only count while the result was within one goal. Before this, Viking 8–1 Kristiansund scored 10 and PSG 6–1 Slovan Bratislava 8.5; now both are about 4–5. The owner found an earlier, stronger version (6–1 at 2.8) too harsh.
 - **Football:** goals, the share of minutes within one goal, equalisers and lead changes, late goals, shots on target, red cards, penalties, goals ruled out by VAR ("Deleted After Review" in the commentary), shots off the woodwork, lots of corners (12+) or bookings (6+), extra time and shootouts. Segments are 15-minute blocks weighted by goals, disallowed goals, penalties, reds, VAR, woodwork and shots. Skip windows come from 5-minute slots with little action (quiet ≤ 0.45, about one shot on target).
@@ -110,7 +114,7 @@ Settings, "watched" marks and chosen services live in the browser's localStorage
 - Football: either team.
 - Tennis players **only count under "Coming up"**. In replays, seeing a player's later-round match would tell you they won the earlier ones.
 - F1: every driver is in every race, so there are no driver favorites. Instead you follow F1 as a whole, and when you don't, races are hidden in favorites mode.
-Stars aren't shown while names are hidden.
+Stars aren't shown while names are hidden. The section folds up with the `#favs-toggle` button; "Only favorites" (`#fav-only`) stays outside the fold. Whether it's open is remembered in `pt-favs-open`, and by default it's open only when there are no favorites yet.
 
 **"Share my settings"** (footer) moves settings to another device with no accounts: `encodeSettings()` packs the prefs (not the current tab) and the "watched" marks for events from the last 30 days into a `#s=…` link. Browsers never send the part after `#` to the server. The button uses the phone's share sheet, or copies the link. Opening the link runs `importSettings()` in `app.js`, which asks first in `#import-dlg`, keeps only known settings of the right type (`decodeSettings()`), replaces the settings, adds the watched marks, and clears the `#` from the address bar.
 
