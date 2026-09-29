@@ -21,6 +21,10 @@ export function adviceText(a) {
     const many = r.length > 1 || r[0][0] !== r[0][1];
     return `Skip set${many ? 's' : ''} ${joinAnd(sets)}`;
   }
+  if (a.unit === 'part') { // F1 qualifying: Q1, Q2 (Q3 is never skipped)
+    const [x, y] = r[0];
+    return x === y ? `Skip Q${x}` : `Skip Q${x} and Q${y}`;
+  }
   if (a.unit === 'lap') {
     return `Watch the start, then skip laps ${joinAnd(r.map(([x, y]) => `${x}–${y}`))}`;
   }
@@ -54,6 +58,9 @@ function matchesCommon(e, prefs) {
   if (prefs.sport !== 'all' && e.sport !== prefs.sport) return false;
   if (prefs.services?.length && !e.services.some((s) => prefs.services.includes(s))) return false;
   if (prefs.comp && prefs.comp !== 'all' && e.compName !== prefs.comp) return false;
+  if (e.sport === 'f1' && prefs.sport === 'f1' && prefs.f1Session) { // only shows on the F1 tab
+    if ((e.session ?? 'race') !== prefs.f1Session) return false;
+  }
   if (e.sport === 'tennis' && prefs.sport === 'tennis') { // these settings only show on the Tennis tab
     if (prefs.round && LATE_ROUNDS[prefs.round] && !LATE_ROUNDS[prefs.round].includes(e.round)) return false;
     if (prefs.draw === 'men' && !/^men/i.test(e.draw)) return false;
@@ -209,19 +216,20 @@ export function activeFilters(prefs, view) {
     if (prefs.round) n++;
     if (prefs.draw) n++;
   }
+  if (prefs.sport === 'f1' && prefs.f1Session) n++;
   return n;
 }
 
 export function titleOf(event) {
   if (event.sport === 'football') return event.teams.join(' – ');
   if (event.sport === 'tennis') return event.players.join(' vs ');
-  return event.compName;
+  return event.session === 'qualifying' ? `${event.compName} qualifying` : event.compName;
 }
 
 export function subtitleOf(event) {
   if (event.sport === 'football') return event.compName;
   if (event.sport === 'tennis') return `${event.compName} · ${event.draw} · ${event.round}`;
-  return `Formula 1 · ${event.circuit}`;
+  return `Formula 1 · ${event.session === 'qualifying' ? 'Qualifying' : 'Race'} · ${event.circuit}`;
 }
 
 export function hiddenTitleOf(event) {

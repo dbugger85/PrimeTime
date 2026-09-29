@@ -3,12 +3,12 @@
 // scores, winners and match length never leave the build script.
 
 import { readFileSync } from 'node:fs';
-import { SCORING_VERSION } from './scoring/common.mjs';
+import { SCORING_VERSIONS } from './scoring/common.mjs';
 
 const rights = JSON.parse(readFileSync(new URL('./rights/norway.json', import.meta.url)));
 
 export const ADVICE_CODES = ['full', 'highlights', 'skip'];
-const UNITS = ['min', 'lap', 'set'];
+const UNITS = ['min', 'lap', 'set', 'part']; // part: Q1, Q2, Q3 of F1 qualifying
 
 const servicesFor = (rightsKey) => rights.competitions[rightsKey]?.services ?? [];
 
@@ -31,7 +31,7 @@ function base(id, sport, comp, compName, start, scored, rightsKey) {
     segments: scored.segments.map((s) => Math.max(0, Math.min(3, s | 0))),
     advice: cleanAdvice(scored.advice),
     services: servicesFor(rightsKey),
-    v: SCORING_VERSION,
+    v: SCORING_VERSIONS[sport],
   };
 }
 
@@ -48,9 +48,13 @@ export const publishTennis = (match, scored) => ({
   round: match.round,
 });
 
+// F1 races, and Grand Prix qualifying (marked session: 'qualifying').
+const f1Session = (race) => (race.session === 'qualifying' ? { session: 'qualifying' } : {});
+
 export const publishF1 = (race, scored) => ({
   ...base(`f1-${race.sessionKey}`, 'f1', 'f1', race.name, race.start, scored, 'f1'),
   circuit: race.circuit,
+  ...f1Session(race),
 });
 
 // Rights entries that run out within `days` days (or already have).
@@ -80,4 +84,5 @@ export const upcomingTennis = (match) => ({
 export const upcomingF1 = (race) => ({
   ...upcomingBase(`f1-${race.sessionKey}`, 'f1', 'f1', race.name, race.start, race.live, 'f1'),
   circuit: race.circuit,
+  ...f1Session(race),
 });

@@ -10,7 +10,7 @@ const SERVICES = {
 
 const DEFAULTS = {
   view: 'replays', sport: 'all', services: [], comp: 'all', days: 30, minScore: 0, sort: 'date',
-  round: '', draw: '', hideTennis: true, hideFootball: false, hints: true, hideWatched: false,
+  round: '', draw: '', f1Session: '', hideTennis: true, hideFootball: false, hints: true, hideWatched: false,
   favsOnly: false, favs: { teams: [], players: [], f1: false },
 };
 
@@ -108,6 +108,7 @@ function renderControls() {
   $('#f-sort').value = prefs.sort;
   $('#f-round').value = prefs.round;
   $('#f-draw').value = prefs.draw;
+  $('#f-f1session').value = prefs.f1Session;
   $('#f-hide-tn').checked = prefs.hideTennis;
   $('#f-hide-fb').checked = prefs.hideFootball;
   $('#f-hints').checked = prefs.hints;
@@ -355,7 +356,7 @@ function soonCard(e) {
   li.querySelector('.time').textContent = e.status === 'live' ? 'LIVE' : timeFmt.format(new Date(e.start));
   li.querySelector('.tier').textContent = e.status === 'live' ? 'now' : '';
   li.querySelector('.sport').textContent = SPORTS[e.sport];
-  li.querySelector('.comp').textContent = e.sport === 'f1' ? e.circuit : e.compName;
+  li.querySelector('.comp').textContent = e.sport === 'f1' ? `${e.session === 'qualifying' ? 'Qualifying' : 'Race'} · ${e.circuit}` : e.compName;
   fillTitle(li.querySelector('.title'), e);
   li.querySelector('.sub').textContent = e.sport === 'tennis' ? subtitleOf(e) : '';
   li.querySelector('.sub').hidden = e.sport !== 'tennis'; // the meta line already says it
@@ -441,10 +442,11 @@ function bind() {
   on('#f-sort', 'sort');
   on('#f-round', 'round');
   on('#f-draw', 'draw');
+  on('#f-f1session', 'f1Session');
   on('#f-hide-tn', 'hideTennis');
   on('#f-hide-fb', 'hideFootball');
   $('#f-reset').onclick = () => {
-    Object.assign(prefs, { comp: 'all', days: 30, minScore: 0, sort: 'date', round: '', draw: '', hideWatched: false });
+    Object.assign(prefs, { comp: 'all', days: 30, minScore: 0, sort: 'date', round: '', draw: '', f1Session: '', hideWatched: false });
     savePrefs();
     render();
   };

@@ -53,7 +53,7 @@ The `schedule:` block stays as a backup. A manual "Run workflow" defaults to mod
 |---|---|---|
 | Football | ESPN `site.api.espn.com/apis/site/v2/sports/soccer/{comp}/scoreboard?dates=YYYYMMDD` and `/summary?event=ID` | Fixtures; goals, cards, penalties, VAR (`keyEvents`); every shot with its minute (`commentary`); shot totals (`boxscore`); pre-match betting odds (`pickcenter`, DraftKings moneylines) for team strength. Date ranges don't work, so it's one day per request |
 | Tennis | ESPN `sports/tennis/atp/scoreboard?dates=` | During a Grand Slam, any day returns the whole tournament (men's and women's). Set scores and tiebreaks only, with no seeds or rankings |
-| F1 | OpenF1 `api.openf1.org/v1/` | sessions, meetings, session_result, overtakes, race_control, position, laps (the winner's), pit, weather. Returns 429 quickly, so requests are 700 ms apart |
+| F1 | OpenF1 `api.openf1.org/v1/` | sessions, meetings, session_result, overtakes, race_control, position, laps (the winner's, or everyone's for qualifying), pit, weather. Returns 429 quickly, so requests are 700 ms apart |
 
 **OpenF1 closes to free users while any F1 session is live** (practice, qualifying or the race), even for old races, and answers 401 "Live F1 session in progress". `getJson` marks that error `f1Live`. The build and the live check then log a calm note instead of a warning and try again next run. If a sport fails before listing anything, the build keeps that sport's previous "Coming up" entries. The owner doesn't need live updates during F1 races, so `liveF1` doesn't call OpenF1 for the first `F1_RACE_HOURS` (3) after the start; it just sets the LIVE badge by the clock.
 
@@ -62,7 +62,8 @@ The competitions are in `src/competitions.mjs`. The owner chose them: the Premie
 `scripts/build.mjs` avoids re-fetching:
 - An event already in `events.json` with the current `v` (`SCORING_VERSION`) is skipped.
 - `data/state.json` lists football days and Slams that are complete.
-- **Bump `FORMULA_VERSION` in `src/scoring/common.mjs` whenever a formula changes.** The next build then re-scores everything. `SCORING_VERSION` is `"<FORMULA_VERSION>.<fingerprint of weights.mjs>"`, so changing a weight re-scores by itself.
+- **Each sport has its own version** (`SCORING_VERSIONS` in `src/scoring/common.mjs`, e.g. `"10.3fa2c1d0"`): a formula number from `FORMULA_VERSIONS` plus a fingerprint of that sport's weights. **Bump the sport's number whenever its formula changes.** A weight change re-scores that sport by itself. The versions are per sport because re-fetching a year of F1 is slow. `state.versions` remembers what the saved days and Slams were built with.
+- **Time budget:** after 18 minutes (`BUDGET_MIN`; try `BUDGET_MIN=2 npm run build -- f1`) the build stops fetching, saves what's done, and continues at the next full build, because GitHub kills a run after 30 minutes and nothing gets saved. F1 is processed newest first.
 
 ## Upcoming and live events ("Coming up" view)
 
@@ -84,9 +85,17 @@ The competitions are in `src/competitions.mjs`. The owner chose them: the Premie
 
 **All the points live in `src/scoring/weights.mjs`** (`FOOTBALL`, `TENNIS`, `F1`), with a plain-language comment on each. The owner can edit that file on github.com, and a push re-scores everything. Keep the scorers free of hard-coded points, although thresholds like "75'" or "12 corners" stay in the code. Weights that are subtracted are stored as positive numbers. The tests reject any weight outside 0–5, and the known-match ordering tests stop a change that makes thrillers score below dull matches. `FOOTBALL.teamStrength` is a master dial for everything that comes from the odds (0 turns it off).
 
-- **Football team strength:** `winChances()` in `espn-football.mjs` turns the pre-match odds into home/draw/away chances (`facts.odds`, or null). The odds are only used for scoring and never published. The favorite's goals count for less the bigger the mismatch, and the underdog's for more. An underdog win or draw earns an upset bonus, and an evenly matched game earns up to +0.5. Whether or not there are odds, goals scored when a team was already 2+ up count for less, the "won by 3+" penalty grows with the margin (up to −3.5), and late goals only count while the result was within one goal. Before this, Viking 8–1 Kristiansund scored 10 and PSG 6–1 Slovan Bratislava 8.5; now both are about 4–5. The owner found an earlier, stronger version (6–1 at 2.8) too harsh.
+- **Football team strength:** `winChances()` in `espn-football.mjs` turns the pre-match odds into home/draw/away chances (`facts.odds`, or null). The odds are only used for scoring and never published. The favorite's goals count for less the bigger the mismatch, and the underdog's for more. An underdog win or draw earns an upset bonus (full at a 50-point gap in win chance), and an evenly matched game earns up to +0.5. When the underdog wins big, there's no blowout penalty and no "already decided" discount on its goals: the owner wanted a shock like Brighton 3–0 Arsenal to score high (8.1). Whether or not there are odds, goals scored when a team was already 2+ up count for less, the "won by 3+" penalty grows with the margin (up to −3.5), and late goals only count while the result was within one goal. Before this, Viking 8–1 Kristiansund scored 10 and PSG 6–1 Slovan Bratislava 8.5; now both are about 4–5. The owner found an earlier, stronger version (6–1 at 2.8) too harsh.
 - **Football:** goals, the share of minutes within one goal, equalisers and lead changes, late goals, shots on target, red cards, penalties, goals ruled out by VAR ("Deleted After Review" in the commentary), shots off the woodwork, lots of corners (12+) or bookings (6+), extra time and shootouts. Segments are 15-minute blocks weighted by goals, disallowed goals, penalties, reds, VAR, woodwork and shots. Skip windows come from 5-minute slots with little action (quiet ≤ 0.45, about one shot on target).
 - **Tennis:** number of sets compared with the maximum, how close each set was (a tiebreak or 7-5 counts as close), tiebreaks, comebacks and the round. Retirements score 1, and walkovers and qualifying are left out.
+- **F1 qualifying** (`scoreQuali`, from `factsFromQuali`):
+  - What scores: the pole margin, how close the top 10 was in Q3, provisional pole changes in Q3 (from all drivers' laps, counted as each lap finishes, with extra for the last 4 minutes), how close the Q1 and Q2 knockouts were (16 of 22 cars go through Q1, or 15 of 20; 10 go through Q2), red flags (messages within 3 minutes count as one), laps deleted in Q3, and rain.
+  - Race-control messages don't all carry `qualifying_phase`, so the part is worked out from time: each part starts at its first tagged message.
+  - OpenF1 answers 404 instead of an empty list, so `fetchQualiData` uses `maybe()`.
+  - Qualifying events have `session: 'qualifying'` (races don't have the field), and the strip is always 3 blocks (Q1, Q2, Q3).
+  - Advice uses unit `part`, and Q3 is never skipped ("Skip Q1", "Skip Q1 and Q2").
+  - The F1 tab has a "Sessions" filter (`prefs.f1Session`). The live check waits `F1_QUALI_HOURS` (1.5) before asking OpenF1.
+  - Hungary 2025 (pole by 0.026 s) is high and Japan 2026 is low. Sprint qualifying isn't included.
 - **F1:** clean overtakes (not on lap 1, no car pitting within a lap, not reversed within 2 laps), lead changes (the same pit filter), SC/VSC/red flags, the P1–P2 gap, DNFs, rain and late action. The raw OpenF1 overtake counts are mostly pit shuffles and noise, so keep the filters in `factsFromRace`.
 - Tests check the ordering against known matches: France 6–4 England (WC 2026) is high, Bournemouth 0–1 Liverpool is low, Britain 2025 is high, and Japan 2025 is low.
 
@@ -128,4 +137,4 @@ Stars aren't shown while names are hidden. The section folds up with the `#favs-
 
 ## Adding a sport
 
-Add `src/sources/<sport>.mjs` and `src/scoring/<sport>.mjs`, a `publish<Sport>` in `publish.mjs` with its extra fields, `ALLOWED` in `test/spoilers.test.mjs`, a builder in `scripts/build.mjs`, `KEEP_DAYS`, `SPORTS` / `titleOf` / `subtitleOf` in `docs/logic.js`, a tab in `index.html`, and a rights entry.
+Add `src/sources/<sport>.mjs` and `src/scoring/<sport>.mjs`, a `publish<Sport>` in `publish.mjs` with its extra fields, `ALLOWED` in `test/spoilers.test.mjs`, a builder in `scripts/build.mjs`, `KEEP_DAYS`, `SPORTS` / `titleOf` / `subtitleOf` in `docs/logic.js`, a tab in `index.html`, a rights entry, and the sport in `FORMULA_VERSIONS`/`SPORT_WEIGHTS` (`common.mjs`) with its weights in `weights.mjs`.

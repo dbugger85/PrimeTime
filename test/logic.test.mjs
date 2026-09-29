@@ -168,3 +168,17 @@ test('settings link: round trip, recent watched marks only, broken links', () =>
   const odd = btoa(JSON.stringify({ p: { sport: 3, hints: 'yes', extra: 1, services: ['tv2play', 5] }, w: 'x' }));
   assert.deepEqual(decodeSettings(odd, defaults), { prefs: { services: ['tv2play'] }, watched: [] }, 'wrong types are dropped');
 });
+
+test('F1 qualifying: titles, skip text and the sessions filter', () => {
+  const q = ev({ id: 'q', sport: 'f1', score: 7, start: '2026-06-09T14:00Z', compName: 'British Grand Prix', circuit: 'Silverstone', session: 'qualifying' });
+  assert.equal(titleOf(q), 'British Grand Prix qualifying');
+  assert.equal(adviceText({ code: 'skip', unit: 'part', ranges: [[1, 1]] }), 'Skip Q1');
+  assert.equal(adviceText({ code: 'skip', unit: 'part', ranges: [[1, 2]] }), 'Skip Q1 and Q2');
+  const all = [...events, q];
+  const f1 = { ...base, sport: 'f1' };
+  assert.equal(ids(filterEvents(all, f1, new Set(), now)), 'dq', 'newest first: the race is a day after qualifying');
+  assert.equal(ids(filterEvents(all, { ...f1, f1Session: 'qualifying' }, new Set(), now)), 'q');
+  assert.equal(ids(filterEvents(all, { ...f1, f1Session: 'race' }, new Set(), now)), 'd');
+  assert.equal(ids(filterEvents(all, { ...base, f1Session: 'race' }, new Set(), now)), 'abcdq', 'ignored off the F1 tab');
+  assert.equal(activeFilters({ ...f1, days: 30, sort: 'date', f1Session: 'race' }, 'replays'), 1);
+});

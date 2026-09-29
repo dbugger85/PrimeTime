@@ -29,4 +29,5 @@ A static site on GitHub Pages, fed by a scheduled GitHub Action that fetches fre
 5. Favorites (2026-09-29): follow teams and tennis players, or F1 as a whole, and filter to them. Tennis favorites only filter "Coming up" (spoilers). ✅
 6. "Share my settings" link to move settings to another device, with no accounts (2026-09-29). ✅
 7. Team strength from betting odds in football scores; all weights in `src/scoring/weights.mjs`, editable on GitHub (2026-09-29). ✅
-8. Later ideas: a few preset "scoring styles" users can pick (worked out at build time, so no spoilers); Norwegian UI text, more leagues (La Liga etc.), upcoming fixtures, per-event rights overrides.
+8. F1 qualifying, and underdog shocks score higher (2026-09-29). ✅
+9. Later ideas: sprint races and sprint qualifying; a few preset "scoring styles" users can pick (worked out at build time, so no spoilers); Norwegian UI text, more leagues (La Liga etc.), upcoming fixtures, per-event rights overrides.

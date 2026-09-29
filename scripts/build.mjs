@@ -8,10 +8,10 @@
 // lists football days and tennis Slams that are complete.
 
 import { FOOTBALL, KEEP_DAYS } from '../src/competitions.mjs';
-import { SCORING_VERSION } from '../src/scoring/common.mjs';
+import { SCORING_VERSIONS } from '../src/scoring/common.mjs';
 import { scoreFootball } from '../src/scoring/football.mjs';
 import { scoreTennis } from '../src/scoring/tennis.mjs';
-import { scoreF1 } from '../src/scoring/f1.mjs';
+import { scoreF1, scoreQuali } from '../src/scoring/f1.mjs';
 import * as football from '../src/sources/espn-football.mjs';
 import * as tennis from '../src/sources/espn-tennis.mjs';
 import * as f1 from '../src/sources/openf1.mjs';
@@ -31,15 +31,35 @@ const save = (event, scored) => {
   results.set(event.id, scored.result);
 };
 let state = data.state;
-if (state.version !== SCORING_VERSION) state = { version: SCORING_VERSION }; // formula changed: redo everything
+// A sport's formula or weights changed: forget which days and Slams are done, so they're fetched again.
+state.versions ??= {};
+delete state.version; // the old single version, before each sport had its own
+if (state.versions.football !== SCORING_VERSIONS.football) state.footballDays = {};
+if (state.versions.tennis !== SCORING_VERSIONS.tennis) state.slamsDone = [];
 state.footballDays ??= {};
 state.slamsDone ??= [];
+
+// GitHub stops a run after 30 minutes and then nothing is saved. Re-scoring a
+// whole year of F1 can take a while, so after 18 minutes the build stops
+// fetching more, saves what it has, and carries on at the next full build.
+const BUDGET_MS = Number(process.env.BUDGET_MIN ?? 18) * 60e3; // BUDGET_MIN=2 to try it out
+let outOfTimeNoted = false;
+const outOfTime = () => {
+  const out = Date.now() - now.getTime() > BUDGET_MS;
+  if (out && !outOfTimeNoted) console.log('Out of time for this run: saving what is done, the rest comes next run');
+  outOfTimeNoted ||= out;
+  return out;
+};
 
 // Not-yet-finished events are rebuilt from scratch every run (times change, matches go live).
 const upcoming = [];
 const UPCOMING_DAYS = { football: 14, f1: 60 };
 
-const isCurrent = (id) => events.get(id)?.v === SCORING_VERSION;
+// Already scored with the current formula and weights for its sport (false for new events).
+const isCurrent = (id) => {
+  const e = events.get(id);
+  return Boolean(e) && e.v === SCORING_VERSIONS[e.sport];
+};
 const ymd = (d) => d.toISOString().slice(0, 10).replaceAll('-', '');
 const daysAgo = (n) => new Date(now.getTime() - n * 864e5);
 
@@ -55,6 +75,7 @@ async function buildFootball() {
         if (!m.finished) { complete = false; continue; }
         const id = `fb-${m.espnId}`;
         if (isCurrent(id)) continue;
+        if (outOfTime()) { complete = false; continue; }
         try {
           const scored = scoreFootball(football.factsFromSummary(await football.fetchSummary(comp.key, m.espnId)));
           save(publishFootball(comp, m, scored), scored);
@@ -106,24 +127,27 @@ async function buildTennis() {
 async function buildF1() {
   const years = [now.getUTCFullYear() - 1, now.getUTCFullYear()];
   if (now.getUTCMonth() === 11) years.push(now.getUTCFullYear() + 1); // December: next season's first races
-  for (const year of years) {
-    for (const race of await f1.fetchRaces(year, now)) {
-      if (!race.finished) {
-        if (new Date(race.start) - now < UPCOMING_DAYS.f1 * 864e5) upcoming.push(upcomingF1(race));
-        continue;
-      }
-      const id = `f1-${race.sessionKey}`;
-      if (isCurrent(id) || now - new Date(race.start) > KEEP_DAYS.f1 * 864e5) continue;
-      try {
-        const data = await f1.fetchRaceData(race.sessionKey);
-        if (!data) continue; // results not published yet; try next run
-        const scored = scoreF1(f1.factsFromRace(data));
-        save(publishF1(race, scored), scored);
-        console.log(`f1: ${race.name} ${year}`);
-      } catch (err) {
-        if (err.f1Live) throw err; // every other request would be refused too
-        warn(`f1 ${race.name} ${year}: ${err.message}`);
-      }
+  const sessions = [];
+  for (const year of years) sessions.push(...await f1.fetchRaces(year, now), ...await f1.fetchRaces(year, now, 'qualifying'));
+  sessions.sort((a, b) => b.start.localeCompare(a.start)); // newest first, in case time runs out
+  for (const race of sessions) {
+    const year = race.start.slice(0, 4);
+    const quali = race.session === 'qualifying';
+    if (!race.finished) {
+      if (new Date(race.start) - now < UPCOMING_DAYS.f1 * 864e5) upcoming.push(upcomingF1(race));
+      continue;
+    }
+    const id = `f1-${race.sessionKey}`;
+    if (isCurrent(id) || now - new Date(race.start) > KEEP_DAYS.f1 * 864e5 || outOfTime()) continue;
+    try {
+      const data = quali ? await f1.fetchQualiData(race.sessionKey) : await f1.fetchRaceData(race.sessionKey);
+      if (!data) continue; // results not published yet; try next run
+      const scored = quali ? scoreQuali(f1.factsFromQuali(data)) : scoreF1(f1.factsFromRace(data));
+      save(publishF1(race, scored), scored);
+      console.log(`f1: ${race.name}${quali ? ' qualifying' : ''} ${year}`);
+    } catch (err) {
+      if (err.f1Live) throw err; // every other request would be refused too
+      warn(`f1 ${race.name} ${year}: ${err.message}`);
     }
   }
 }
@@ -153,4 +177,5 @@ for (const [id, e] of events) {
 for (const r of expiringRights(now)) warn(`Streaming rights need checking: ${r} (src/rights/norway.json)`);
 
 if (!only) state.lastFull = now.toISOString(); // the live check uses this to know when a full build is due
+state.versions = { ...SCORING_VERSIONS };
 console.log(saveData({ events, upcoming, reasons, results, state }, now));

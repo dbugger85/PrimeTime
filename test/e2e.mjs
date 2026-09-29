@@ -64,6 +64,23 @@ try {
       await page.screenshot({ path: `${shots}/${sport}.png` });
     }
 
+    // F1: races and qualifying, with a filter for each.
+    await page.click('#sports [data-sport="f1"]');
+    await page.click('#filters summary');
+    await page.selectOption('#f-days', '400');
+    await page.selectOption('#f-f1session', 'qualifying');
+    const qTitles = await page.$$eval('.card .title', (els) => els.map((e) => e.textContent));
+    if (qTitles.length) {
+      assert.ok(qTitles.every((t) => /qualifying/.test(t)), 'only qualifying shows');
+      assert.match(await page.$eval('.card .sub', (e) => e.textContent), /^Formula 1 · Qualifying · /);
+      await page.$eval('.card', (e) => e.scrollIntoView());
+      await page.screenshot({ path: `${shots}/f1-qualifying.png` });
+    }
+    await page.selectOption('#f-f1session', 'race');
+    assert.ok((await page.$$eval('.card .title', (els) => els.map((e) => e.textContent))).every((t) => !/qualifying/.test(t)));
+    await page.selectOption('#f-f1session', '');
+    await page.click('#filters summary');
+
     // Tennis names are hidden until tapped.
     await page.click('#sports [data-sport="tennis"]');
     await page.click('#filters summary');

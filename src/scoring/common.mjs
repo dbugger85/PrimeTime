@@ -3,12 +3,20 @@
 import { createHash } from 'node:crypto';
 import * as WEIGHTS from './weights.mjs';
 
-// Bump FORMULA_VERSION when a scoring formula changes, so old events get re-scored.
-// Changing a number in weights.mjs re-scores by itself: the version includes a
-// fingerprint of the weights, like "9.3fa2c1d0".
-const FORMULA_VERSION = 9;
-const fingerprint = createHash('sha1').update(JSON.stringify(WEIGHTS)).digest('hex').slice(0, 8);
-export const SCORING_VERSION = `${FORMULA_VERSION}.${fingerprint}`;
+// Each sport has its own version, so changing one sport doesn't re-fetch the
+// others (F1 is slow to re-fetch). Bump a sport's number in FORMULA_VERSIONS
+// when its formula changes. Changing a number in weights.mjs re-scores that
+// sport by itself: the version includes a fingerprint of its weights, like "10.3fa2c1d0".
+const FORMULA_VERSIONS = { football: 10, tennis: 9, f1: 10 };
+const SPORT_WEIGHTS = {
+  football: WEIGHTS.FOOTBALL,
+  tennis: WEIGHTS.TENNIS,
+  f1: { race: WEIGHTS.F1, qualifying: WEIGHTS.F1_QUALIFYING },
+};
+const fingerprint = (x) => createHash('sha1').update(JSON.stringify(x)).digest('hex').slice(0, 8);
+export const SCORING_VERSIONS = Object.fromEntries(
+  Object.entries(FORMULA_VERSIONS).map(([sport, n]) => [sport, `${n}.${fingerprint(SPORT_WEIGHTS[sport])}`]),
+);
 
 export const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 export const round1 = (x) => Math.round(x * 10) / 10;

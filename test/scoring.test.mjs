@@ -6,11 +6,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { factsFromSummary } from '../src/sources/espn-football.mjs';
 import { matchesFromSlam } from '../src/sources/espn-tennis.mjs';
-import { factsFromRace } from '../src/sources/openf1.mjs';
+import { factsFromRace, factsFromQuali } from '../src/sources/openf1.mjs';
 import { scoreFootball, footballAdvice } from '../src/scoring/football.mjs';
 import { scoreTennis, tennisAdvice } from '../src/scoring/tennis.mjs';
-import { scoreF1, f1Advice } from '../src/scoring/f1.mjs';
-import { quietRuns, heat, SCORING_VERSION } from '../src/scoring/common.mjs';
+import { scoreF1, f1Advice, scoreQuali, qualiAdvice } from '../src/scoring/f1.mjs';
+import { quietRuns, heat, SCORING_VERSIONS } from '../src/scoring/common.mjs';
 import * as WEIGHTS from '../src/scoring/weights.mjs';
 
 const fixture = (path) => JSON.parse(readFileSync(new URL(`./fixtures/${path}`, import.meta.url)));
@@ -195,7 +195,8 @@ test('weights.mjs: every weight is a number from 0 to 5', () => {
       assert.ok(typeof w === 'number' && Number.isFinite(w) && w >= 0 && w <= 5, `${sport}.${name} is ${w}: use a number from 0 to 5`);
     }
   }
-  assert.match(SCORING_VERSION, /^\d+\.[0-9a-f]{8}$/, 'the version includes a fingerprint of the weights');
+  for (const v of Object.values(SCORING_VERSIONS)) assert.match(v, /^\d+\.[0-9a-f]{8}$/, 'each version includes a fingerprint of its weights');
+  assert.deepEqual(Object.keys(SCORING_VERSIONS).sort(), ['f1', 'football', 'tennis']);
 });
 
 test('weights.mjs: team strength can be switched off', () => {
@@ -207,4 +208,45 @@ test('weights.mjs: team strength can be switched off', () => {
   } finally {
     WEIGHTS.FOOTBALL.teamStrength = before;
   }
+});
+
+const quali = (name) => factsFromQuali(fixture(`f1/${name}.json`).d);
+
+test('F1 qualifying: facts from OpenF1', () => {
+  const hu = quali('qualifying-hungary-2025'); // pole by 0.026 s, top 10 within 0.54 s
+  assert.equal(hu.poleGap.toFixed(3), '0.026');
+  assert.equal(hu.top10Spread.toFixed(2), '0.54');
+  assert.ok(hu.q2Cut > 0 && hu.q2Cut < 0.02, `Q2 knockout by ${hu.q2Cut}`);
+  assert.equal(hu.poleChanges, 4);
+  assert.deepEqual(hu.redFlags, []);
+  assert.equal(hu.deletedLaps.length, 3);
+  assert.match(hu.result, /^1\. .+ \(pole by 0\.026 s\)$/);
+});
+
+test('F1 qualifying: a knife-edge session beats a dull one', () => {
+  const hu = scoreQuali(quali('qualifying-hungary-2025'));
+  const jp = scoreQuali(quali('qualifying-japan-2026')); // pole by 0.3 s, nothing else happened
+  assert.ok(hu.score >= 7.5, `Hungary 2025 got ${hu.score}`);
+  assert.ok(jp.score < 3.5, `Japan 2026 got ${jp.score}`);
+  for (const s of [hu, jp]) {
+    assert.equal(s.segments.length, 3);
+    const sum = s.reasons.reduce((a, [p]) => a + p, 0);
+    assert.ok(Math.abs(Math.min(10, sum) - s.score) <= 0.3);
+  }
+});
+
+test('F1 qualifying advice never skips Q3', () => {
+  assert.deepEqual(qualiAdvice(5, [0, 0, 0]), { code: 'skip', unit: 'part', ranges: [[1, 2]] });
+  assert.deepEqual(qualiAdvice(5, [2, 0, 3]), { code: 'skip', unit: 'part', ranges: [[2, 2]] });
+  assert.deepEqual(qualiAdvice(5, [2, 2, 0]), { code: 'full' });
+  assert.deepEqual(qualiAdvice(2, [0, 0, 0]), { code: 'highlights' });
+  assert.deepEqual(qualiAdvice(9.5, [0, 0, 0]), { code: 'full' });
+});
+
+test('football: an underdog winning big is a shock, not a blowout', () => {
+  const facts = factsFromSummary(fixture('football/760492.json')); // France 3-0 Sweden
+  const expected = scoreFootball({ ...facts, odds: { home: 0.74, draw: 0.17, away: 0.09 } });
+  const shock = scoreFootball({ ...facts, odds: { home: 0.09, draw: 0.17, away: 0.74 } });
+  assert.ok(!shock.reasons.some(([, l]) => /One-sided/.test(l)), 'no blowout penalty for the underdog');
+  assert.ok(shock.score >= expected.score + 3, `shock ${shock.score}, expected ${expected.score}`);
 });

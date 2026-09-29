@@ -30,7 +30,9 @@ export function scoreFootball(f) {
     const worth = counted++ < 4 ? W.goal : W.extraGoal; // what the line above gave it
     const ahead = lead[g.side] - lead[g.side === 'home' ? 'away' : 'home'];
     // Already 3 up: the match is over, and more goals add little. Making it 3–0 matters a bit more.
-    const cut = ahead >= 3 ? W.alreadyDecided : ahead === 2 ? W.nearlyDecided : 0;
+    // An underdog 2 or 3 up against a clear favorite isn't a finished match, it's a shock.
+    const shock = fav && g.side !== fav && gap >= 0.15;
+    const cut = shock ? 0 : ahead >= 3 ? W.alreadyDecided : ahead === 2 ? W.nearlyDecided : 0;
     decided += worth * cut;
     if (cut) decidedGoals++;
     const rest = worth * (1 - cut);
@@ -59,13 +61,14 @@ export function scoreFootball(f) {
   }
   if (Math.abs(diff) <= 1) closeMinutes += end - prevMin;
   t.add(W.closeMatch * (closeMinutes / end), `Within one goal for ${Math.round((100 * closeMinutes) / end)}% of the match`);
-  if (Math.abs(diff) >= 3) t.add(-Math.min(W.blowout + W.blowoutPerGoal * (Math.abs(diff) - 3), W.blowoutMax), `One-sided: won by ${Math.abs(diff)} goals`);
+  const underdogWon = odds && gap >= 0.15 && diff !== 0 && (diff > 0 ? 'home' : 'away') !== fav;
+  if (Math.abs(diff) >= 3 && !underdogWon) t.add(-Math.min(W.blowout + W.blowoutPerGoal * (Math.abs(diff) - 3), W.blowoutMax), `One-sided: won by ${Math.abs(diff)} goals`);
 
   // Upsets and even matches. `diff` is now the final goal difference, home minus away.
   if (odds) {
     const winner = diff > 0 ? 'home' : diff < 0 ? 'away' : null;
-    if (gap >= 0.15 && winner && winner !== fav) t.add(ts * W.upsetWin * Math.min(1.5 * gap, 1), 'Upset: the underdog won');
-    else if (gap >= 0.15 && !winner && !f.shootout) t.add(ts * W.upsetDraw * Math.min(1.5 * gap, 1), 'The underdog held on for a draw');
+    if (gap >= 0.15 && winner && winner !== fav) t.add(ts * W.upsetWin * Math.min(2 * gap, 1), 'Upset: the underdog won');
+    else if (gap >= 0.15 && !winner && !f.shootout) t.add(ts * W.upsetDraw * Math.min(2 * gap, 1), 'The underdog held on for a draw');
     if (gap < 0.2) t.add(ts * W.evenMatch * (1 - gap / 0.2), 'Evenly matched on paper');
   }
   t.add(W.equaliser * equalisers, plural(equalisers, 'equaliser'));

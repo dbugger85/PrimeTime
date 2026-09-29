@@ -28,7 +28,7 @@ export const FOOTBALL = {
   // One-sided matches
   alreadyDecided: 0.5, //     taken off: share of a goal's points when the team was already 3+ up (0.5 = half)
   nearlyDecided: 0.2, //      taken off: the same, when the team was 2 up
-  blowout: 1.5, //            taken off: won by 3 goals
+  blowout: 1.5, //            taken off: won by 3 goals (not when the underdog won: that's a shock, not a mismatch)
   blowoutPerGoal: 0.5, //     taken off: for each goal more than 3 in the margin
   blowoutMax: 2.5, //         taken off: at most this much for the margin
 
@@ -36,8 +36,8 @@ export const FOOTBALL = {
   teamStrength: 1.0, //       master dial for everything below: 0 = ignore team strength, 1 = normal, 2 = double
   favoriteDiscount: 0.25, //  taken off: share of the favorite's goals, times how big the mismatch was
   underdogBonus: 0.3, //      extra share for the underdog's goals, times how big the mismatch was
-  upsetWin: 2.0, //           the underdog won (the most, for a big upset)
-  upsetDraw: 1.0, //          the underdog got a draw (the most, for a big upset)
+  upsetWin: 3.0, //           the underdog won (the full amount when the favorite was 50+ points likelier to win)
+  upsetDraw: 1.5, //          the underdog got a draw (same scale)
   evenMatch: 0.5, //          the teams were evenly matched on paper
 
   // Intensity and drama
@@ -86,4 +86,24 @@ export const F1 = {
   retirement: 0.2, //         each car that retired (up to 1 in total)
   rain: 0.5, //               it rained during the race
   lateFight: 0.5, //          a fight at the front in the last 20% of the race
+};
+
+// F1 qualifying: Q1 and Q2 knock out the slowest cars, and Q3 decides pole.
+export const F1_QUALIFYING = {
+  base: 1.0, //               every session starts with this
+  poleUnder003: 3.0, //       pole by less than 0.03 s
+  poleUnder007: 2.2, //       … by 0.03–0.07 s
+  poleUnder015: 1.4, //       … by 0.07–0.15 s
+  poleUnder030: 0.6, //       … by 0.15–0.3 s
+  tightTop10: 1.5, //         the whole top 10 within 0.6 s of pole in Q3
+  closeTop10: 0.8, //         … within 0.9 s
+  fairlyCloseTop10: 0.3, //   … within 1.2 s
+  poleChange: 0.4, //         each time provisional pole changed hands in Q3 (up to 2 in total)
+  latePoleChange: 0.6, //     each change in the last 4 minutes of Q3 (up to 1.5 in total)
+  knifeEdgeCut: 0.6, //       a knockout in Q1 or Q2 decided by less than 0.02 s (each)
+  closeCut: 0.3, //           … by 0.02–0.05 s (each)
+  redFlag: 0.6, //            each red flag (up to 2.5 in total)
+  redFlagInQ3: 0.5, //        extra for a red flag in Q3
+  deletedLapQ3: 0.3, //       each lap deleted in Q3, e.g. for track limits (up to 0.9)
+  rain: 1.0, //               it rained during the session
 };

@@ -8,7 +8,7 @@
 import { FOOTBALL } from '../src/competitions.mjs';
 import { scoreFootball } from '../src/scoring/football.mjs';
 import { scoreTennis } from '../src/scoring/tennis.mjs';
-import { scoreF1 } from '../src/scoring/f1.mjs';
+import { scoreF1, scoreQuali } from '../src/scoring/f1.mjs';
 import * as football from '../src/sources/espn-football.mjs';
 import * as tennis from '../src/sources/espn-tennis.mjs';
 import * as f1 from '../src/sources/openf1.mjs';
@@ -66,11 +66,13 @@ async function liveFootball() {
 // OpenF1 is closed to free users while a session is live, so during the race we
 // only flip the LIVE badge by the clock, and ask OpenF1 once it should be over.
 const F1_RACE_HOURS = 3; // a race lasts about 2 h; results appear an hour or so later
+const F1_QUALI_HOURS = 1.5; // qualifying lasts an hour
 
 async function liveF1() {
   for (const e of upcoming.filter((x) => x.sport === 'f1' && inWindow(x, 6))) {
     const start = new Date(e.start).getTime();
-    if (now.getTime() < start + F1_RACE_HOURS * 3600e3) {
+    const quali = e.session === 'qualifying';
+    if (now.getTime() < start + (quali ? F1_QUALI_HOURS : F1_RACE_HOURS) * 3600e3) {
       e.status = start <= now.getTime() ? 'live' : 'upcoming';
       continue;
     }
@@ -82,13 +84,13 @@ async function liveF1() {
       e.status = new Date(session.date_start) <= now ? 'live' : 'upcoming';
       continue;
     }
-    const raceData = await f1.fetchRaceData(sessionKey);
-    if (!raceData) continue; // results not out yet
-    const race = { sessionKey, name: e.compName, circuit: e.circuit, start: e.start };
-    const scored = scoreF1(f1.factsFromRace(raceData));
+    const data = quali ? await f1.fetchQualiData(sessionKey) : await f1.fetchRaceData(sessionKey);
+    if (!data) continue; // results not out yet
+    const race = { sessionKey, name: e.compName, circuit: e.circuit, start: e.start, session: e.session };
+    const scored = quali ? scoreQuali(f1.factsFromQuali(data)) : scoreF1(f1.factsFromRace(data));
     save(publishF1(race, scored), scored);
     upcoming = upcoming.filter((x) => x.id !== e.id);
-    console.log(`scored ${e.compName}`);
+    console.log(`scored ${e.compName}${quali ? ' qualifying' : ''}`);
   }
 }
 
