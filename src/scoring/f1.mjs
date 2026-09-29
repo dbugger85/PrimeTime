@@ -6,13 +6,19 @@ import { F1 as W, F1_QUALIFYING as Q } from './weights.mjs';
 
 const SEGMENTS = 10; // equal slices of the race, so the strip doesn't reveal the lap count
 
-export function scoreF1(f) {
+// A sprint is about a third of a Grand Prix (100 km instead of 300), so its
+// overtakes count three times and its winning-margin limits are a third as big.
+// Without that, every sprint would look dull next to a full race.
+const SPRINT_SHARE = 1 / 3;
+
+export function scoreF1(f, { sprint = false } = {}) {
+  const share = sprint ? SPRINT_SHARE : 1;
   const top5 = f.overtakes.filter((o) => o.position <= 5);
   const t = tally();
   t.add(W.base, 'Base');
 
-  t.add((Math.min(f.overtakes.length, 60) / 60) * W.overtakes, `${plural(f.overtakes.length, 'overtake')} on track (pit stops not counted)`);
-  t.add(Math.min(W.top5Overtake * top5.length, 1.5), `${plural(top5.length, 'overtake')} for a top-5 place`);
+  t.add((Math.min(f.overtakes.length / share, 60) / 60) * W.overtakes, `${plural(f.overtakes.length, 'overtake')} on track (pit stops not counted)`);
+  t.add(Math.min(W.top5Overtake * (top5.length / share), 1.5), `${plural(top5.length, 'overtake')} for a top-5 place`);
   t.add(W.leadChange * Math.min(f.leadChanges.length, 3), `The lead changed ${times(f.leadChanges.length)}`);
   const neutralised = [
     f.safetyCars.length && plural(f.safetyCars.length, 'safety car'),
@@ -20,7 +26,8 @@ export function scoreF1(f) {
     f.redFlags.length && plural(f.redFlags.length, 'red flag'),
   ].filter(Boolean).join(', ');
   t.add(Math.min(W.safetyCar * f.safetyCars.length + W.virtualSafetyCar * f.vscs.length + W.redFlag * f.redFlags.length, W.neutralisedMax), neutralised);
-  if (f.gapP2 != null) t.add(f.gapP2 < 1 ? W.finishUnder1s : f.gapP2 < 3 ? W.finishUnder3s : f.gapP2 < 10 ? W.finishUnder10s : 0, `Won by ${f.gapP2.toFixed(1)} s`);
+  const gap = f.gapP2 == null ? null : f.gapP2 / share;
+  if (gap != null) t.add(gap < 1 ? W.finishUnder1s : gap < 3 ? W.finishUnder3s : gap < 10 ? W.finishUnder10s : 0, `Won by ${f.gapP2.toFixed(1)} s`);
   t.add(Math.min(W.retirement * f.dnfs, 1), plural(f.dnfs, 'retirement'));
   if (f.rain) t.add(W.rain, 'Rain during the race');
   const lateFrom = f.totalLaps * 0.8;

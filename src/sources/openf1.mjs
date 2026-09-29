@@ -6,10 +6,14 @@ import { getJson } from '../http.mjs';
 const BASE = 'https://api.openf1.org/v1';
 const get = (path) => getJson(`${BASE}/${path}`, { gapMs: 700, retries: 5 });
 
-// Races (or, with session = 'qualifying', Grand Prix qualifying sessions) of a
-// season, oldest first, each marked finished (ended over an hour ago) or not.
+// OpenF1's session names for the sessions PrimeTime scores.
+export const SESSIONS = { race: 'Race', qualifying: 'Qualifying', sprint: 'Sprint', 'sprint-qualifying': 'Sprint Qualifying' };
+export const isQualiSession = (session) => session === 'qualifying' || session === 'sprint-qualifying';
+
+// Races of a season (or other sessions: see SESSIONS), oldest first, each
+// marked finished (ended over an hour ago) or not.
 export async function fetchRaces(year, now = new Date(), session = 'race') {
-  const name = session === 'qualifying' ? 'Qualifying' : 'Race';
+  const name = encodeURIComponent(SESSIONS[session]);
   const [sessions, meetings] = [await get(`sessions?year=${year}&session_name=${name}`), await get(`meetings?year=${year}`)];
   const names = new Map(meetings.map((m) => [m.meeting_key, m.meeting_name]));
   return sessions
@@ -25,20 +29,23 @@ export async function fetchRaces(year, now = new Date(), session = 'race') {
     }));
 }
 
+// OpenF1 answers "404 Not Found" instead of an empty list when it has no rows.
+const maybe = (path) => get(path).catch((err) => { if (/^404/.test(err.message)) return []; throw err; });
+
 // Everything the scorer needs for one race. Returns null if OpenF1 has no result yet.
 export async function fetchRaceData(sessionKey) {
-  const result = await get(`session_result?session_key=${sessionKey}`);
+  const result = await maybe(`session_result?session_key=${sessionKey}`);
   if (!result.length) return null;
   const winner = result.find((r) => r.position === 1)?.driver_number ?? result[0].driver_number;
   return {
     result,
-    overtakes: await get(`overtakes?session_key=${sessionKey}`),
-    raceControl: await get(`race_control?session_key=${sessionKey}`),
-    position: await get(`position?session_key=${sessionKey}`),
-    weather: await get(`weather?session_key=${sessionKey}`),
-    laps: await get(`laps?session_key=${sessionKey}&driver_number=${winner}`),
-    pit: await get(`pit?session_key=${sessionKey}`),
-    drivers: await get(`drivers?session_key=${sessionKey}`),
+    overtakes: await maybe(`overtakes?session_key=${sessionKey}`),
+    raceControl: await maybe(`race_control?session_key=${sessionKey}`),
+    position: await maybe(`position?session_key=${sessionKey}`),
+    weather: await maybe(`weather?session_key=${sessionKey}`),
+    laps: await maybe(`laps?session_key=${sessionKey}&driver_number=${winner}`),
+    pit: await maybe(`pit?session_key=${sessionKey}`),
+    drivers: await maybe(`drivers?session_key=${sessionKey}`),
   };
 }
 
@@ -110,9 +117,6 @@ export function factsFromRace(d) {
     rain: d.weather.some((w) => w.rainfall > 0 && Date.parse(w.date) >= raceStart),
   };
 }
-
-// OpenF1 answers "404 Not Found" instead of an empty list when it has no rows.
-const maybe = (path) => get(path).catch((err) => { if (/^404/.test(err.message)) return []; throw err; });
 
 // Everything the qualifying scorer needs. Returns null if OpenF1 has no result yet.
 export async function fetchQualiData(sessionKey) {

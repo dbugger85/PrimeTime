@@ -128,11 +128,13 @@ async function buildF1() {
   const years = [now.getUTCFullYear() - 1, now.getUTCFullYear()];
   if (now.getUTCMonth() === 11) years.push(now.getUTCFullYear() + 1); // December: next season's first races
   const sessions = [];
-  for (const year of years) sessions.push(...await f1.fetchRaces(year, now), ...await f1.fetchRaces(year, now, 'qualifying'));
+  for (const year of years) {
+    for (const kind of Object.keys(f1.SESSIONS)) sessions.push(...await f1.fetchRaces(year, now, kind));
+  }
   sessions.sort((a, b) => b.start.localeCompare(a.start)); // newest first, in case time runs out
   for (const race of sessions) {
     const year = race.start.slice(0, 4);
-    const quali = race.session === 'qualifying';
+    const quali = f1.isQualiSession(race.session);
     if (!race.finished) {
       if (new Date(race.start) - now < UPCOMING_DAYS.f1 * 864e5) upcoming.push(upcomingF1(race));
       continue;
@@ -142,9 +144,9 @@ async function buildF1() {
     try {
       const data = quali ? await f1.fetchQualiData(race.sessionKey) : await f1.fetchRaceData(race.sessionKey);
       if (!data) continue; // results not published yet; try next run
-      const scored = quali ? scoreQuali(f1.factsFromQuali(data)) : scoreF1(f1.factsFromRace(data));
+      const scored = quali ? scoreQuali(f1.factsFromQuali(data)) : scoreF1(f1.factsFromRace(data), { sprint: race.session === 'sprint' });
       save(publishF1(race, scored), scored);
-      console.log(`f1: ${race.name}${quali ? ' qualifying' : ''} ${year}`);
+      console.log(`f1: ${race.name} ${f1.SESSIONS[race.session].toLowerCase()} ${year}`);
     } catch (err) {
       if (err.f1Live) throw err; // every other request would be refused too
       warn(`f1 ${race.name} ${year}: ${err.message}`);

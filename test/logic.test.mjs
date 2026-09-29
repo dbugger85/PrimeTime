@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings } from '../docs/logic.js';
+import { migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings } from '../docs/logic.js';
 
 const now = Date.parse('2026-09-26T12:00:00Z');
 const ev = (o) => ({ services: [], segments: [], advice: { code: 'full' }, compName: 'X', ...o });
@@ -181,4 +181,11 @@ test('F1 qualifying: titles, skip text and the sessions filter', () => {
   assert.equal(ids(filterEvents(all, { ...f1, f1Session: 'race' }, new Set(), now)), 'd');
   assert.equal(ids(filterEvents(all, { ...base, f1Session: 'race' }, new Set(), now)), 'abcdq', 'ignored off the F1 tab');
   assert.equal(activeFilters({ ...f1, days: 30, sort: 'date', f1Session: 'race' }, 'replays'), 1);
+  const sp = ev({ id: 's', sport: 'f1', score: 6, start: '2026-06-08T14:00Z', compName: 'British Grand Prix', circuit: 'Silverstone', session: 'sprint' });
+  const sq = ev({ id: 't', sport: 'f1', score: 5, start: '2026-06-07T14:00Z', compName: 'British Grand Prix', circuit: 'Silverstone', session: 'sprint-qualifying' });
+  assert.equal(titleOf(sp), 'British Grand Prix sprint');
+  assert.equal(titleOf(sq), 'British Grand Prix sprint qualifying');
+  assert.equal(subtitleOf(sq), 'Formula 1 · Sprint qualifying · Silverstone');
+  assert.equal(ids(filterEvents([...all, sp, sq], { ...f1, f1Session: 'sprint' }, new Set(), now)), 'st', 'sprint weekends: the sprint and its qualifying');
+  assert.equal(ids(filterEvents([...all, sp, sq], { ...f1, f1Session: 'qualifying' }, new Set(), now)), 'q', 'Grand Prix qualifying only');
 });

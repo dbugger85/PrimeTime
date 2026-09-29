@@ -48,8 +48,9 @@ export const publishTennis = (match, scored) => ({
   round: match.round,
 });
 
-// F1 races, and Grand Prix qualifying (marked session: 'qualifying').
-const f1Session = (race) => (race.session === 'qualifying' ? { session: 'qualifying' } : {});
+// F1 Grand Prix races have no session field; qualifying, sprints and sprint
+// qualifying are marked with session: 'qualifying' | 'sprint' | 'sprint-qualifying'.
+const f1Session = (race) => (race.session && race.session !== 'race' ? { session: race.session } : {});
 
 export const publishF1 = (race, scored) => ({
   ...base(`f1-${race.sessionKey}`, 'f1', 'f1', race.name, race.start, scored, 'f1'),

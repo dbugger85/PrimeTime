@@ -95,7 +95,13 @@ The competitions are in `src/competitions.mjs`. The owner chose them: the Premie
   - Qualifying events have `session: 'qualifying'` (races don't have the field), and the strip is always 3 blocks (Q1, Q2, Q3).
   - Advice uses unit `part`, and Q3 is never skipped ("Skip Q1", "Skip Q1 and Q2").
   - The F1 tab has a "Sessions" filter (`prefs.f1Session`). The live check waits `F1_QUALI_HOURS` (1.5) before asking OpenF1.
-  - Hungary 2025 (pole by 0.026 s) is high and Japan 2026 is low. Sprint qualifying isn't included.
+  - Hungary 2025 (pole by 0.026 s) is high and Japan 2026 is low.
+- **F1 sprint weekends:** `SESSIONS` in `openf1.mjs` lists the four session types PrimeTime scores: `race`, `qualifying`, `sprint` and `sprint-qualifying`, where `session` is the published field (Grand Prix races have none).
+  - Sprint qualifying uses `scoreQuali` unchanged.
+  - Sprints use `scoreF1(facts, { sprint: true })`. A sprint is about a third of a race, so overtakes count three times and the winning-margin limits are divided by three. China 2026 (4 lead changes) scores 10, and Qatar 2025 (2 overtakes) scores 2.1.
+  - The "Sessions" filter has Races, Qualifying, and Sprints (the sprint and sprint qualifying together).
+  - The live check waits `F1_SHORT_HOURS` (1.5) for any non-race session.
+  - OpenF1 answers 404 instead of an empty list (for example, pit stops in a sprint with none), so every data fetch goes through `maybe()`.
 - **F1:** clean overtakes (not on lap 1, no car pitting within a lap, not reversed within 2 laps), lead changes (the same pit filter), SC/VSC/red flags, the P1–P2 gap, DNFs, rain and late action. The raw OpenF1 overtake counts are mostly pit shuffles and noise, so keep the filters in `factsFromRace`.
 - Tests check the ordering against known matches: France 6–4 England (WC 2026) is high, Bournemouth 0–1 Liverpool is low, Britain 2025 is high, and Japan 2025 is low.
 

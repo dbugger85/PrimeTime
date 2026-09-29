@@ -250,3 +250,13 @@ test('football: an underdog winning big is a shock, not a blowout', () => {
   assert.ok(!shock.reasons.some(([, l]) => /One-sided/.test(l)), 'no blowout penalty for the underdog');
   assert.ok(shock.score >= expected.score + 3, `shock ${shock.score}, expected ${expected.score}`);
 });
+
+test('F1 sprints: a third of the distance, so overtakes count three times', () => {
+  const china = factsFromRace(fixture('f1/sprint-china-2026.json').d); // 28 overtakes, lead changed 4 times
+  const qatar = factsFromRace(fixture('f1/sprint-qatar-2025.json').d); // 2 overtakes, won by 5 s
+  const sprintChina = scoreF1(china, { sprint: true });
+  assert.ok(sprintChina.score >= 8.5, `China 2026 sprint got ${sprintChina.score}`);
+  assert.ok(scoreF1(qatar, { sprint: true }).score < 3, 'a procession stays low');
+  assert.ok(sprintChina.score > scoreF1(china).score, 'scored as a sprint, it beats the same facts scored as a full race');
+  assert.equal(sprintChina.segments.length, 10);
+});

@@ -1,4 +1,4 @@
-import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf } from './logic.js';
+import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, f1SessionName, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf } from './logic.js';
 
 const SERVICES = {
   viaplay: { name: 'Viaplay', url: 'https://viaplay.no/sport' },
@@ -356,7 +356,7 @@ function soonCard(e) {
   li.querySelector('.time').textContent = e.status === 'live' ? 'LIVE' : timeFmt.format(new Date(e.start));
   li.querySelector('.tier').textContent = e.status === 'live' ? 'now' : '';
   li.querySelector('.sport').textContent = SPORTS[e.sport];
-  li.querySelector('.comp').textContent = e.sport === 'f1' ? `${e.session === 'qualifying' ? 'Qualifying' : 'Race'} · ${e.circuit}` : e.compName;
+  li.querySelector('.comp').textContent = e.sport === 'f1' ? `${f1SessionName(e)} · ${e.circuit}` : e.compName;
   fillTitle(li.querySelector('.title'), e);
   li.querySelector('.sub').textContent = e.sport === 'tennis' ? subtitleOf(e) : '';
   li.querySelector('.sub').hidden = e.sport !== 'tennis'; // the meta line already says it

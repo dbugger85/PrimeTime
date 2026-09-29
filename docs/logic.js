@@ -59,7 +59,7 @@ function matchesCommon(e, prefs) {
   if (prefs.services?.length && !e.services.some((s) => prefs.services.includes(s))) return false;
   if (prefs.comp && prefs.comp !== 'all' && e.compName !== prefs.comp) return false;
   if (e.sport === 'f1' && prefs.sport === 'f1' && prefs.f1Session) { // only shows on the F1 tab
-    if ((e.session ?? 'race') !== prefs.f1Session) return false;
+    if (f1Kind(e) !== prefs.f1Session) return false;
   }
   if (e.sport === 'tennis' && prefs.sport === 'tennis') { // these settings only show on the Tennis tab
     if (prefs.round && LATE_ROUNDS[prefs.round] && !LATE_ROUNDS[prefs.round].includes(e.round)) return false;
@@ -220,16 +220,22 @@ export function activeFilters(prefs, view) {
   return n;
 }
 
+// F1 sessions: Grand Prix races have no session field.
+const F1_SESSION_NAMES = { race: 'Race', qualifying: 'Qualifying', sprint: 'Sprint', 'sprint-qualifying': 'Sprint qualifying' };
+export const f1SessionName = (e) => F1_SESSION_NAMES[e.session ?? 'race'];
+// The "Sessions" filter: races, qualifying, or sprint weekends' extras (the sprint and its qualifying).
+const f1Kind = (e) => (e.session === 'sprint' || e.session === 'sprint-qualifying' ? 'sprint' : e.session ?? 'race');
+
 export function titleOf(event) {
   if (event.sport === 'football') return event.teams.join(' – ');
   if (event.sport === 'tennis') return event.players.join(' vs ');
-  return event.session === 'qualifying' ? `${event.compName} qualifying` : event.compName;
+  return event.session ? `${event.compName} ${f1SessionName(event).toLowerCase()}` : event.compName;
 }
 
 export function subtitleOf(event) {
   if (event.sport === 'football') return event.compName;
   if (event.sport === 'tennis') return `${event.compName} · ${event.draw} · ${event.round}`;
-  return `Formula 1 · ${event.session === 'qualifying' ? 'Qualifying' : 'Race'} · ${event.circuit}`;
+  return `Formula 1 · ${f1SessionName(event)} · ${event.circuit}`;
 }
 
 export function hiddenTitleOf(event) {

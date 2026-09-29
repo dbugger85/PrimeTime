@@ -36,9 +36,10 @@ export function checkEvent(e) {
   assert.ok(e.segments.every((s) => Number.isInteger(s) && s >= 0 && s <= 3));
   if (e.sport === 'football') assert.equal(e.segments.length, 6, 'fixed length, so extra time is not revealed');
   if (e.sport === 'tennis') assert.equal(e.segments.length, 0, 'no strip, so the number of sets is not revealed');
-  if (e.sport === 'f1' && e.session !== 'qualifying') assert.equal(e.segments.length, 10, 'fixed length, so a shortened race is not revealed');
-  if (e.session === 'qualifying') assert.equal(e.segments.length, 3, 'Q1, Q2, Q3');
-  if ('session' in e) assert.equal(e.session, 'qualifying');
+  const quali = e.session === 'qualifying' || e.session === 'sprint-qualifying';
+  if (e.sport === 'f1' && !quali) assert.equal(e.segments.length, 10, 'fixed length, so a shortened race is not revealed');
+  if (quali) assert.equal(e.segments.length, 3, 'Q1, Q2, Q3');
+  if ('session' in e) assert.ok(['qualifying', 'sprint', 'sprint-qualifying'].includes(e.session), `${e.id}: session ${e.session}`);
   const text = JSON.stringify({ ...e, id: '', start: '' });
   assert.doesNotMatch(text, /\d+\s*[-–:]\s*\d+/, `${e.id}: looks like a score`);
   assert.doesNotMatch(text, BANNED_WORDS, `${e.id}: spoiler word`);
@@ -54,6 +55,16 @@ test('published football, tennis and F1 events contain only safe fields', () => 
 
   const { race, d } = fixture('f1/british-grand-prix-2025.json');
   checkEvent(publishF1(race, scoreF1(factsFromRace(d))));
+
+  for (const name of ['sprint-china-2026', 'sprint-qatar-2025']) {
+    const { race: sprint, d: sd } = fixture(`f1/${name}.json`);
+    const e = publishF1(sprint, scoreF1(factsFromRace(sd), { sprint: true }));
+    checkEvent(e);
+    assert.equal(e.session, 'sprint');
+  }
+  const sq = { sessionKey: 5, name: 'Chinese Grand Prix', circuit: 'Shanghai', start: '2026-03-13T07:30Z', session: 'sprint-qualifying' };
+  checkEvent(publishF1(sq, scoreQuali(factsFromQuali(fixture('f1/qualifying-japan-2026.json').d))));
+  checkEvent(publishF1({ ...sq, session: 'race' }, scoreF1(factsFromRace(d))));
 
   for (const name of ['qualifying-hungary-2025', 'qualifying-japan-2026']) {
     const q = { sessionKey: 9924, name: 'Hungarian Grand Prix', circuit: 'Hungaroring', start: '2025-08-02T14:00Z', session: 'qualifying' };

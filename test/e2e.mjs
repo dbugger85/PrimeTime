@@ -76,6 +76,13 @@ try {
       await page.$eval('.card', (e) => e.scrollIntoView());
       await page.screenshot({ path: `${shots}/f1-qualifying.png` });
     }
+    await page.selectOption('#f-f1session', 'sprint');
+    const sTitles = await page.$$eval('.card .title', (els) => els.map((e) => e.textContent));
+    if (sTitles.length) {
+      assert.ok(sTitles.every((t) => /sprint/.test(t)), 'only sprints and sprint qualifying show');
+      await page.$eval('.card', (e) => e.scrollIntoView());
+      await page.screenshot({ path: `${shots}/f1-sprint.png` });
+    }
     await page.selectOption('#f-f1session', 'race');
     assert.ok((await page.$$eval('.card .title', (els) => els.map((e) => e.textContent))).every((t) => !/qualifying/.test(t)));
     await page.selectOption('#f-f1session', '');
