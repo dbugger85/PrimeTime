@@ -18,7 +18,8 @@ import * as tennis from '../src/sources/espn-tennis.mjs';
 import * as f1 from '../src/sources/openf1.mjs';
 import * as winter from '../src/sources/winter.mjs';
 import * as standings from '../src/sources/espn-standings.mjs';
-import { forecastOf, stakesFor, STAKES_COMPS } from '../src/prematch.mjs';
+import * as fotmob from '../src/sources/fotmob.mjs';
+import { forecastOf, outlookOf, stakesFor, STAKES_COMPS } from '../src/prematch.mjs';
 import { publishFootball, publishTennis, publishF1, publishWinter, upcomingFootball, upcomingTennis, upcomingF1, upcomingWinter, expiringRights } from '../src/publish.mjs';
 import { loadData, saveData, warn, saver } from '../src/store.mjs';
 
@@ -55,9 +56,12 @@ const upcoming = [];
 const UPCOMING_DAYS = { football: 14, f1: 60, winter: 14 };
 
 // Already scored with the current formula and weights for its sport (false for new events).
+// Already scored with the current version. A football match scored without xG (FotMob had
+// none yet, or was down) is tried again for 3 days, in case the xG turns up.
 const isCurrent = (id) => {
   const e = events.get(id);
-  return Boolean(e) && e.v === SCORING_VERSIONS[e.sport];
+  if (!e || e.v !== SCORING_VERSIONS[e.sport]) return false;
+  return !(e.limited && now - new Date(e.start) < 3 * 864e5);
 };
 const ymd = (d) => d.toISOString().slice(0, 10).replaceAll('-', '');
 const daysAgo = (n) => new Date(now.getTime() - n * 864e5);
@@ -79,7 +83,8 @@ async function buildFootball() {
         try {
           const summary = await football.fetchSummary(comp.key, m.espnId);
           const stakes = events.get(id)?.stakes ?? previous.get(id)?.stakes ?? state.stakes[id]?.code; // frozen before kick-off
-          const scored = scoreFootball({ ...football.factsFromSummary(summary), stakes });
+          const xg = await fotmob.xgFor(m); // optional: null when FotMob has none or is down
+          const scored = scoreFootball({ ...football.factsFromSummary(summary), stakes, xg });
           save(publishFootball(comp, m, scored, { lineups: football.lineupsFromSummary(summary), stakes }), scored);
         } catch (err) {
           complete = false;
@@ -126,14 +131,14 @@ async function tablesFor(compKey) {
 async function upcomingEntry(comp, m) {
   const old = previous.get(`fb-${m.espnId}`);
   const lineups = await lineupsFor(comp, m);
-  if (m.state !== 'pre') return upcomingFootball(comp, m, { lineups, stakes: old?.stakes, forecast: old?.forecast });
+  if (m.state !== 'pre') return upcomingFootball(comp, m, { lineups, stakes: old?.stakes, forecast: old?.forecast, outlook: old?.outlook });
   const table = await tablesFor(comp.key);
   const stakes = table ? stakesFor(table, m.home, m.away, comp.key) : old?.stakes; // keep the old one if ESPN failed
   // Also remembered in state, in case the match finishes but can't be scored at once
   // (it then isn't in the next run's upcoming list any more).
   if (stakes) state.stakes[`fb-${m.espnId}`] = { code: stakes, start: m.start };
   else delete state.stakes[`fb-${m.espnId}`];
-  return upcomingFootball(comp, m, { lineups, stakes, forecast: forecastOf(m.odds) });
+  return upcomingFootball(comp, m, { lineups, stakes, forecast: forecastOf(m.odds), outlook: outlookOf(m.odds, stakes) });
 }
 
 async function buildUpcomingFootball() {

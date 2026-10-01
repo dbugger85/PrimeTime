@@ -11,7 +11,7 @@ import { scoreFootball, footballAdvice } from '../src/scoring/football.mjs';
 import { scoreTennis, tennisAdvice } from '../src/scoring/tennis.mjs';
 import { scoreF1, f1Advice, scoreQuali, qualiAdvice } from '../src/scoring/f1.mjs';
 import { quietRuns, heat, SCORING_VERSIONS, fingerprint, finalScore, tally } from '../src/scoring/common.mjs';
-import { forecastOf, stakesFor } from '../src/prematch.mjs';
+import { forecastOf, outlookOf, stakesFor } from '../src/prematch.mjs';
 import { scoreboardOdds } from '../src/sources/espn-football.mjs';
 import { tablesFrom } from '../src/sources/espn-standings.mjs';
 import * as WEIGHTS from '../src/scoring/weights.mjs';
@@ -444,4 +444,49 @@ test('stakes: the bottom team is in a relegation battle, 2nd place in a top-4 ra
   const top = table([80, 58, 57, 57, 57, 50, 45, ...new Array(13).fill(30)]);
   assert.equal(stakesFor(top, 'T2', 'T5', 'eng.1'), 'top4');
   assert.equal(stakesFor(top, 'T2', 'T9', 'eng.1'), null, '9th is too far down');
+});
+
+test('FotMob xG: shots, sides and minutes; team names matched loosely', async () => {
+  const fm = await import('../src/sources/fotmob.mjs');
+  const xg = fm.xgFromDetails(fixture('football/fotmob-valerenga-fredrikstad.json')); // 1.45 – 0.75 on FotMob
+  assert.equal(xg.home, 1.45);
+  assert.equal(xg.away, 0.75);
+  assert.ok(xg.shots.every((s) => s.min >= 0 && s.min < 90 && ['home', 'away'].includes(s.side)));
+  assert.ok(xg.shots.some((s) => s.min === 89.9), 'stoppage time stays inside the second half');
+  assert.equal(fm.xgFromDetails({ general: { homeTeam: { id: 1 } }, content: {} }), null, 'no shot map: no xG');
+  for (const [a, b] of [['SK Brann', 'Brann'], ['Bodo/Glimt', 'Bodø/Glimt'], ['Tromso', 'Tromsø'], ['Republic of Ireland', 'Ireland'], ['Viking FK', 'Viking'], ['Internazionale', 'Inter'], ['Leeds United', 'Leeds'], ['Bosnia-Herzegovina', 'Bosnia and Herzegovina']]) {
+    assert.ok(fm.sameTeam(a, b), `${a} = ${b}`);
+  }
+  for (const [a, b] of [['Manchester City', 'Manchester United'], ['Viking FK', 'Brann'], ['IK Start', 'Stabæk']]) {
+    assert.ok(!fm.sameTeam(a, b), `${a} ≠ ${b}`);
+  }
+});
+
+test('outlook: a rough word for upcoming matches, or nothing', () => {
+  const odds = (home, away, goals) => ({ chances: { home, draw: 1 - home - away, away }, goals });
+  assert.equal(outlookOf(odds(0.36, 0.37, 3.4)), 'promising', 'even, and goals expected');
+  assert.equal(outlookOf(odds(0.83, 0.05, 2.5)), 'quiet', 'a big mismatch with few goals expected');
+  assert.equal(outlookOf(odds(0.55, 0.22, 2.7)), null, 'in between: nothing to say');
+  assert.equal(outlookOf(odds(0.55, 0.22, 2.7), 'title'), null);
+  assert.equal(outlookOf(odds(0.45, 0.28, 2.9), 'title'), 'promising', 'a title race tips it');
+  assert.equal(outlookOf(null), null, 'no odds, no guess');
+});
+
+test('football with and without xG; points above 7 count less', () => {
+  const facts = factsFromSummary(fixture('football/760516.json')); // France 4–6 England
+  const noXg = scoreFootball({ ...facts, xg: null });
+  assert.equal(noXg.limited, true, 'no xG: limited info');
+  assert.ok(noXg.reasons.some(([, l]) => /shots on target/.test(l)), 'falls back to shot counts');
+  const withXg = scoreFootball({ ...facts, xg: { home: 2.1, away: 2.4, shots: [] } });
+  assert.equal(withXg.limited, false);
+  assert.ok(withXg.reasons.some(([, l]) => /expected goals/.test(l)) && !withXg.reasons.some(([, l]) => /shots on target/.test(l)));
+  // The same 1–0: real chances beat potshots.
+  const oneNil = factsFromSummary(fixture('football/401879276.json')); // Bournemouth 0–1 Liverpool
+  const open = scoreFootball({ ...oneNil, xg: { home: 2.5, away: 1.5, shots: [] } }).score;
+  const closed = scoreFootball({ ...oneNil, xg: { home: 0.6, away: 0.5, shots: [] } }).score;
+  assert.ok(open > closed, `chances ${open} vs potshots ${closed}`);
+  // The squeeze: raw 12 becomes 9.0, with a line saying so.
+  assert.ok(noXg.reasons.some(([, l]) => l === 'Points above 7 count less'));
+  const raw = noXg.reasons.filter(([, l]) => l !== 'Points above 7 count less').reduce((a, [p]) => a + p, 0);
+  assert.equal(noXg.score, Math.min(10, Math.round((7 + (raw - 7) * 0.4) * 10) / 10));
 });

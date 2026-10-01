@@ -1,7 +1,7 @@
 // Football watchability score (0–10), heat strip and skip advice.
 // Input: the facts from factsFromSummary() in src/sources/espn-football.mjs.
 
-import { finalScore, heat, quietRuns, tally, plural, times } from './common.mjs';
+import { finalScore, heat, quietRuns, tally, plural, times, clamp } from './common.mjs';
 import { FOOTBALL as W } from './weights.mjs';
 import { STAKES } from '../prematch.mjs';
 
@@ -84,10 +84,27 @@ export function scoreFootball(f) {
   const late = lateGoals.reduce((a, g) => a + (g.min >= 85 ? W.veryLateGoal : W.lateGoal), 0);
   t.add(Math.min(late, W.lateGoalsMax), `${plural(lateGoals.length, 'goal')} after 75'`);
 
-  // Intensity.
-  t.add(f.shotsOnTarget >= 10 ? W.shotsOnTarget10 : f.shotsOnTarget >= 7 ? W.shotsOnTarget7 : 0, `${f.shotsOnTarget} shots on target`);
-  if (f.totalShots >= 30) t.add(W.manyShots, `${f.totalShots} shots in total`);
-  if (n === 0 && f.shotsOnTarget <= 4) t.add(-W.dullGoalless, `Goalless with only ${plural(f.shotsOnTarget, 'shot')} on target`);
+  // Intensity. With xG (from FotMob, optional) the quality of the chances replaces the shot
+  // counts: 30 long shots are less exciting than a few big chances.
+  const xg = f.xg && Number.isFinite(f.xg.home) && Number.isFinite(f.xg.away) ? f.xg : null;
+  const xgTotal = xg ? xg.home + xg.away : 0;
+  if (xg) {
+    t.add(W.chances * clamp((xgTotal - 1.5) / 2.5, 0, 1), `Chances worth ${xgTotal.toFixed(1)} expected goals`);
+  } else {
+    t.add(f.shotsOnTarget >= 10 ? W.shotsOnTarget10 : f.shotsOnTarget >= 7 ? W.shotsOnTarget7 : 0, `${f.shotsOnTarget} shots on target`);
+    if (f.totalShots >= 30) t.add(W.manyShots, `${f.totalShots} shots in total`);
+  }
+  // The result went against the chances: the winner created clearly less (draws already get upsetDraw).
+  if (xg && diff !== 0) {
+    const winner = diff > 0 ? 'home' : 'away';
+    const xgGap = Math.abs(xg.home - xg.away);
+    if (xgGap >= 1 && (xg.home >= xg.away ? 'home' : 'away') !== winner) {
+      t.add(W.againstTheRun * Math.min(1, 0.5 + 0.5 * (xgGap - 1)), `The ${winner === fav ? 'favorite' : 'winner'} won despite ${xgGap.toFixed(1)} fewer expected goals`);
+    }
+  }
+  if (n === 0 && (xg ? xgTotal < 1.5 : f.shotsOnTarget <= 4)) {
+    t.add(-W.dullGoalless, xg ? `Goalless with chances worth only ${xgTotal.toFixed(1)} expected goals` : `Goalless with only ${plural(f.shotsOnTarget, 'shot')} on target`);
+  }
   t.add(W.redCard * Math.min(f.reds.length, 2), plural(f.reds.length, 'red card'));
   t.add(W.penalty * Math.min(f.pens.length, 2), plural(f.pens.length, 'penalty', 'penalties'));
 
@@ -105,6 +122,8 @@ export function scoreFootball(f) {
   if (f.extraTime) t.add(W.extraTime, 'Went to extra time');
   if (f.shootout) t.add(W.shootout, 'Decided on penalties');
 
+  // The top end: each point above 7 counts less, so only a rare thriller reaches 10.
+  if (t.total > 7) t.add(-(t.total - 7) * (1 - W.aboveSevenCounts), 'Points above 7 count less');
   const score = finalScore(t.total);
 
   // How much happened in each 5-minute slot (extra time folds into the last one).
@@ -116,13 +135,18 @@ export function scoreFootball(f) {
   f.vars.forEach((m) => add(m, 1));
   f.disallowed.forEach((m) => add(m, 2));
   f.woodwork.forEach((m) => add(m, 1));
-  f.shotsOn.forEach((m) => add(m, 0.4));
-  f.shotsOff.forEach((m) => add(m, 0.15));
+  // Shots: with xG each adds twice its xG (a 0.2 xG chance is about one shot on target without xG).
+  if (xg) xg.shots.forEach((s) => add(s.min, 2 * s.xg));
+  else {
+    f.shotsOn.forEach((m) => add(m, 0.4));
+    f.shotsOff.forEach((m) => add(m, 0.15));
+  }
 
   // The strip on the card uses 15-minute blocks.
   const blocks = new Array(SEGMENTS).fill(0).map((_, b) => slots[b * 3] + slots[b * 3 + 1] + slots[b * 3 + 2]);
   // Full heat needs about a goal's worth (4: a goal and a shot or two) in the block.
-  return { score, segments: heat(blocks, { floor: 4 }), advice: footballAdvice(score, slots), reasons: t.reasons, result: f.result };
+  // `limited`: scored without xG (FotMob had none), so from shot counts only. Shown on the card.
+  return { score, segments: heat(blocks, { floor: 4 }), advice: footballAdvice(score, slots), reasons: t.reasons, result: f.result, limited: !xg };
 }
 
 // Skip windows in whole minutes. The last 15 minutes are never skipped: whether

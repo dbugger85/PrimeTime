@@ -230,7 +230,7 @@ try {
     // Pre-match hints: one quiet line on some football cards, gone when switched off.
     await page.click('#sports [data-sport="football"]');
     const hints = await page.$$eval('.card.soon .sub:not([hidden])', (els) => els.map((e) => e.textContent));
-    assert.ok(hints.every((t) => /^(Title race|Relegation battle|Top-4 race|Top-8 race|European spots|Play-off spots|Top of the group|Qualifying race|Looks even on paper|Could be lively|Looks one-sided)/.test(t)), `odd hint: ${hints}`);
+    assert.ok(hints.every((t) => /^(Title race|Relegation battle|Top-4 race|Top-8 race|European spots|Play-off spots|Top of the group|Qualifying race|Looks even on paper|Could be lively|Looks one-sided|Promising|Could be quiet)/.test(t)), `odd hint: ${hints}`);
     assert.doesNotMatch(hints.join(' '), /\d|%/, 'no numbers in the hints');
     if (hints.length) {
       await page.$eval('.card.soon:has(.sub:not([hidden]))', (e) => e.scrollIntoView({ block: 'start' }));

@@ -220,6 +220,8 @@ test('pre-match hints: one short line, or nothing', () => {
   assert.equal(prematchLine({ forecast: 'lively' }), 'Could be lively');
   assert.equal(prematchLine({ stakes: 'relegation' }), 'Relegation battle');
   assert.equal(prematchLine({}), '');
+  assert.equal(prematchLine({ stakes: 'title', forecast: 'lively', outlook: 'promising' }), 'Title race · promising', 'the outlook replaces the forecast words');
+  assert.equal(prematchLine({ forecast: 'one-sided', outlook: 'quiet' }), 'Could be quiet');
 });
 
 test('"Tomorrow" is right on the nights the clocks change', () => {

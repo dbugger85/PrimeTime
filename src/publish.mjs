@@ -4,7 +4,7 @@
 
 import { readFileSync } from 'node:fs';
 import { SCORING_VERSIONS } from './scoring/common.mjs';
-import { FORECASTS, STAKES } from './prematch.mjs';
+import { FORECASTS, OUTLOOKS, STAKES } from './prematch.mjs';
 
 const rights = JSON.parse(readFileSync(new URL('./rights/norway.json', import.meta.url)));
 
@@ -69,12 +69,17 @@ const stakesField = (stakes) => (stakes in STAKES ? { stakes } : {});
 // The forecast ('even', 'lively', 'one-sided') is for upcoming matches only. On a
 // replay, "looked one-sided" next to a score would hint at an upset. Raw odds never get out.
 const forecastField = (forecast) => (FORECASTS.includes(forecast) ? { forecast } : {});
+// The outlook ('promising', 'quiet') is for upcoming matches only too: "predicted quiet" next to a
+// high score would give away an upset.
+const outlookField = (outlook) => (OUTLOOKS.includes(outlook) ? { outlook } : {});
 
+// `limited: true` when the score had no xG to go on (FotMob had none or was down): the card says so.
 export const publishFootball = (comp, match, scored, { lineups, stakes } = {}) => ({
   ...base(`fb-${match.espnId}`, 'football', comp.key, comp.name, match.start, scored, comp.key),
   teams: [match.home, match.away],
   ...lineupFields(lineups),
   ...stakesField(stakes),
+  ...(scored.limited ? { limited: true } : {}),
 });
 
 // Players are sorted by name: ESPN tends to list the winner second.
@@ -130,12 +135,13 @@ export const upcomingWinter = (race, compName) => ({
   ...winterFields(race),
 });
 
-export const upcomingFootball = (comp, match, { lineups, stakes, forecast } = {}) => ({
+export const upcomingFootball = (comp, match, { lineups, stakes, forecast, outlook } = {}) => ({
   ...upcomingBase(`fb-${match.espnId}`, 'football', comp.key, comp.name, match.start, match.state === 'in', comp.key),
   teams: [match.home, match.away],
   ...lineupFields(lineups),
   ...stakesField(stakes),
   ...forecastField(forecast),
+  ...outlookField(outlook),
 });
 
 export const upcomingTennis = (match) => ({

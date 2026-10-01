@@ -5,6 +5,8 @@
 
 // "Worth watching live?" from the odds: chances { home, draw, away } (adding up to 1)
 // and the expected number of goals. Returns a code, or null when there's nothing to say.
+import { FOOTBALL, FOOTBALL_OUTLOOK as O } from './scoring/weights.mjs';
+
 export const FORECASTS = ['even', 'lively', 'one-sided'];
 export function forecastOf(odds) {
   if (!odds?.chances) return null;
@@ -13,6 +15,19 @@ export function forecastOf(odds) {
   if (gap < 0.4 && odds.goals >= 3.2) return 'lively'; // fairly open, and goals expected
   if (gap < 0.15) return 'even';
   return null;
+}
+
+// The outlook: a rough guess at how watchable an upcoming match will be, as a word, never a
+// number (a number would be off by about 2 points). Relative to an average match: more goals
+// expected adds, a mismatch takes off, and what's at stake adds the same as it does after the
+// match. Returns 'promising', 'quiet' or null (nothing to say, or no odds).
+export const OUTLOOKS = ['promising', 'quiet'];
+export function outlookOf(odds, stakes) {
+  if (!odds?.chances || !Number.isFinite(odds.goals)) return null;
+  const gap = Math.abs(odds.chances.home - odds.chances.away);
+  const bonus = stakes === 'title' ? FOOTBALL.titleRace : stakes === 'relegation' ? FOOTBALL.relegationBattle : stakes ? FOOTBALL.otherRace : 0;
+  const lean = O.expectedGoals * (odds.goals - 2.8) - O.mismatch * gap + bonus; // 0 = an average match (about 6.6)
+  return lean >= -0.1 ? 'promising' : lean < -1.1 ? 'quiet' : null;
 }
 
 // What's at stake: each competition's places that matter. A rule [code, k] means

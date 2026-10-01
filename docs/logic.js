@@ -265,8 +265,10 @@ export const STAKES_LABELS = {
   europe: 'European spots', playoff: 'Play-off spots', group: 'Top of the group', qualify: 'Qualifying race',
 };
 const FORECAST_TEXT = { even: 'looks even on paper', lively: 'could be lively', 'one-sided': 'looks one-sided' };
+const OUTLOOK_TEXT = { promising: 'promising', quiet: 'could be quiet' }; // replaces the forecast words when there is one
 export function prematchLine(event) {
-  const line = [STAKES_LABELS[event.stakes], FORECAST_TEXT[event.forecast]].filter(Boolean).join(' · ');
+  const guess = OUTLOOK_TEXT[event.outlook] ?? FORECAST_TEXT[event.forecast];
+  const line = [STAKES_LABELS[event.stakes], guess].filter(Boolean).join(' · ');
   return line && line[0].toUpperCase() + line.slice(1);
 }
 

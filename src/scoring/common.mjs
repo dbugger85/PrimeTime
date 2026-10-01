@@ -9,7 +9,8 @@ import * as WEIGHTS from './weights.mjs';
 // sport by itself: the version includes a fingerprint of its weights, like "10.3fa2c1d0".
 // Also bump it when the published fields change (football 11: line-ups), so older events get them.
 // Football 12: upsets on penalties. Winter 2: run-1 order counts skiers who went out in run 2.
-const FORMULA_VERSIONS = { football: 12, tennis: 9, f1: 10, winter: 2 };
+// Football 13: xG (optional, from FotMob), and points above 7 count less.
+const FORMULA_VERSIONS = { football: 13, tennis: 9, f1: 10, winter: 2 };
 const SPORT_WEIGHTS = {
   football: WEIGHTS.FOOTBALL,
   tennis: WEIGHTS.TENNIS,

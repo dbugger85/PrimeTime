@@ -302,6 +302,11 @@ function card(e) {
   li.querySelector('.tier').textContent = tier.label;
   li.querySelector('.sport').textContent = e.sport === 'winter' ? e.compName : SPORTS[e.sport];
   li.querySelector('.when').textContent = fmt.format(new Date(e.start));
+  if (e.limited) { // football scored from shot counts only: FotMob had no xG for it
+    const tag = Object.assign(document.createElement('span'), { className: 'limited', textContent: ' · limited info: no xG' });
+    tag.title = 'No chance-quality (xG) data for this match, so the score is based on shot counts only.';
+    li.querySelector('.meta').append(tag);
+  }
 
   fillTitle(li.querySelector('.title'), e);
   const stakes = prefs.preHints ? prematchLine(e) : ''; // replays only have the stakes, never the forecast

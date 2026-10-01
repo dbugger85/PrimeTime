@@ -177,6 +177,7 @@ body[data-view="upcoming"] .replay-only { display: none; }
 .tier { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; text-align: center; }
 .body { min-width: 0; display: grid; gap: 4px; }
 .meta { font-size: 12.5px; color: var(--muted); }
+.meta .limited { font-style: italic; }
 .title { font-size: 17px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
 .reveal {
   border: 1px dashed var(--line); background: var(--chip); border-radius: 8px;

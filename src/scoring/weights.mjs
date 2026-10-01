@@ -42,10 +42,12 @@ export const FOOTBALL = {
   evenMatch: 0.5, //          the teams were evenly matched on paper
 
   // Intensity and drama
-  shotsOnTarget7: 0.5, //     7–9 shots on target
-  shotsOnTarget10: 1.0, //    10 or more shots on target
-  manyShots: 0.5, //          30 or more shots in total
-  dullGoalless: 0.5, //       taken off: 0–0 with 4 or fewer shots on target
+  chances: 1.5, //            with xG: an open match full of good chances (nothing under 1.5 expected goals in total, the full amount at 4.0)
+  againstTheRun: 1.0, //      with xG: the winner created the worse chances (half at 1 expected goal less, the full amount at 2)
+  shotsOnTarget7: 0.5, //     without xG only: 7–9 shots on target
+  shotsOnTarget10: 1.0, //    without xG only: 10 or more shots on target
+  manyShots: 0.5, //          without xG only: 30 or more shots in total
+  dullGoalless: 0.5, //       taken off: 0–0 with chances worth under 1.5 expected goals (without xG: 4 or fewer shots on target)
   redCard: 0.6, //            each red card (up to 2)
   penalty: 0.3, //            each penalty (up to 2)
   varDisallowed: 0.6, //      each goal ruled out by VAR (up to 2)
@@ -61,6 +63,9 @@ export const FOOTBALL = {
   titleRace: 0.5, //          a title race
   relegationBattle: 0.4, //   a relegation battle
   otherRace: 0.2, //          top-4, top-8, European spots, play-off spots, top of the group, qualifying
+
+  // The top end
+  aboveSevenCounts: 0.4, //   each point above 7 counts this much (0.4 = 40%), so only a rare thriller reaches 10
 };
 
 export const TENNIS = {
@@ -177,4 +182,12 @@ export const CROSS_COUNTRY = {
   closePodium: 0.8, //        third place within 2 s (mass start) or 10 s (interval start)
   sprintFinal: 2.0, //        sprints: the final was close (top 3 within 1 s)
   sprintTight: 1.0, //        … within 2 s
+};
+
+// The "Promising" / "Could be quiet" outlook on upcoming football (src/prematch.mjs), from the
+// odds before kick-off. A rough guess on purpose: tested on 130 matches, excitement is hard to
+// predict. These don't change any score, so editing them doesn't re-score anything.
+export const FOOTBALL_OUTLOOK = {
+  expectedGoals: 0.4, //      per goal the bookmakers expect above 2.8 (or below: then taken off)
+  mismatch: 1.8, //           taken off: times how much likelier the favorite is to win (0–1)
 };

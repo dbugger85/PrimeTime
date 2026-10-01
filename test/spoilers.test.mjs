@@ -13,7 +13,7 @@ import { publishFootball, publishTennis, publishF1, publishWinter, upcomingFootb
 import { factsFromRace as biathlonFacts } from '../src/sources/ibu.mjs';
 import * as fis from '../src/sources/fis.mjs';
 import { scoreBiathlon, scoreAlpine, scoreCrossCountry } from '../src/scoring/winter.mjs';
-import { STAKES, FORECASTS } from '../src/prematch.mjs';
+import { STAKES, FORECASTS, OUTLOOKS } from '../src/prematch.mjs';
 import { icsForTeam } from '../src/calendar.mjs';
 import { readdirSync } from 'node:fs';
 
@@ -21,7 +21,7 @@ const fixture = (path) => JSON.parse(readFileSync(new URL(`./fixtures/${path}`, 
 
 const ALLOWED = {
   common: ['id', 'sport', 'comp', 'compName', 'start', 'score', 'segments', 'advice', 'services', 'v'],
-  football: ['teams', 'lineups', 'stakes'], // and 'forecast', but only on upcoming matches
+  football: ['teams', 'lineups', 'stakes', 'limited'], // and 'forecast', but only on upcoming matches
   tennis: ['players', 'draw', 'round'],
   f1: ['circuit', 'session'],
   winter: ['race', 'place', 'series', 'gender'],
@@ -55,6 +55,7 @@ function checkLineups(e) {
 function checkHints(e) {
   if ('stakes' in e) assert.ok(e.stakes in STAKES, `${e.id}: stakes ${e.stakes}`);
   if ('forecast' in e) assert.ok(FORECASTS.includes(e.forecast), `${e.id}: forecast ${e.forecast}`);
+  if ('outlook' in e) assert.ok(OUTLOOKS.includes(e.outlook), `${e.id}: outlook ${e.outlook}`);
   assert.doesNotMatch(JSON.stringify(e), /moneyline|overUnder|odds|%/i, `${e.id}: odds leaked`);
 }
 
@@ -62,7 +63,9 @@ export function checkEvent(e) {
   checkLineups(e);
   checkHints(e);
   assert.ok(!('forecast' in e), `${e.id}: a forecast on a replay could hint at an upset`);
+  assert.ok(!('outlook' in e), `${e.id}: an outlook on a replay could hint at an upset`);
   assert.ok(typeof e.score === 'number' && e.score >= 0 && e.score <= 10, `${e.id}: score ${e.score} is not 0–10`);
+  if ('limited' in e) assert.equal(e.limited, true, `${e.id}: limited is only ever true`);
   const allowed = [...ALLOWED.common, ...ALLOWED[e.sport]];
   for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}"`);
   assert.ok(ADVICE_CODES.includes(e.advice.code), `${e.id}: advice ${e.advice.code}`);
@@ -165,13 +168,14 @@ test('line-ups: only the starters, and only once both teams have 11', () => {
 test('pre-match hints: codes only; the forecast never reaches a replay', () => {
   const comp = { key: 'nor.1', name: 'Eliteserien' };
   const match = { espnId: '401843455', start: '2026-10-09T17:00Z', home: 'SK Brann', away: 'Viking FK', state: 'pre' };
-  const soon = upcomingFootball(comp, match, { stakes: 'title', forecast: 'lively' });
+  const soon = upcomingFootball(comp, match, { stakes: 'title', forecast: 'lively', outlook: 'promising' });
   checkUpcoming(soon);
+  assert.equal(soon.outlook, 'promising');
   assert.equal(soon.stakes, 'title');
   assert.equal(soon.forecast, 'lively');
   const odd = upcomingFootball(comp, match, { stakes: 'Title race 2-1', forecast: 0.42 });
   assert.ok(!('stakes' in odd) && !('forecast' in odd), 'unknown values are dropped');
-  const replay = publishFootball(comp, match, scoreFootball({ ...factsFromSummary(fixture('football/760516.json')), stakes: 'title' }), { stakes: 'title', forecast: 'lively' });
+  const replay = publishFootball(comp, match, scoreFootball({ ...factsFromSummary(fixture('football/760516.json')), stakes: 'title' }), { stakes: 'title', forecast: 'lively', outlook: 'promising' });
   checkEvent(replay);
   assert.equal(replay.stakes, 'title');
   assert.ok(!('forecast' in replay));
@@ -184,7 +188,7 @@ test('tennis players are listed alphabetically, not winner-last', () => {
 });
 
 export function checkUpcoming(e) {
-  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', ...ALLOWED[e.sport], ...(e.sport === 'football' ? ['forecast'] : [])];
+  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', ...ALLOWED[e.sport], ...(e.sport === 'football' ? ['forecast', 'outlook'] : [])];
   for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}" on an upcoming event`);
   assert.ok(['upcoming', 'live'].includes(e.status));
   checkLineups(e);
@@ -247,7 +251,7 @@ function checkIcs(text, name) {
   const fields = text.replace(/\r\n /g, '').split('\r\n').filter((l) => /^(SUMMARY|DESCRIPTION|LOCATION):/.test(l)).join('\n');
   assert.doesNotMatch(fields, /\d+\s*[-–:]\s*\d+/, `${name}: looks like a score`);
   assert.doesNotMatch(fields, BANNED_WORDS, `${name}: spoiler word`);
-  assert.doesNotMatch(fields, /forecast|one-sided|lively|even on paper|\b\d+\.\d\b/i, `${name}: a forecast or a rating`);
+  assert.doesNotMatch(fields, /forecast|one-sided|lively|even on paper|promising|quiet|\b\d+\.\d\b/i, `${name}: a forecast or a rating`);
   for (const line of text.split('\r\n')) assert.ok(Buffer.byteLength(line) <= 75, `${name}: line too long`);
 }
 
