@@ -259,12 +259,12 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-01T17:41:53.644Z",
+ "lastFull": "2026-10-01T20:20:06.916Z",
  "versions": {
-  "football": "11.986a017d",
+  "football": "12.49d3160a",
   "tennis": "9.c615cf94",
-  "f1": "10.3484af1b",
-  "winter": "1.85ac8050"
+  "f1": "10.d750efc5",
+  "winter": "2.1e4975a6"
  },
  "winterEventsDone": [
   "AL57999",
@@ -336,6 +336,10 @@
   "fb-401843453": {
    "code": "relegation",
    "start": "2026-10-12T17:00Z"
+  },
+  "fb-401861119": {
+   "code": "group",
+   "start": "2026-10-04T13:00Z"
   }
  },
  "calTeams": {
