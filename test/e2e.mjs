@@ -200,6 +200,13 @@ try {
     await page.waitForSelector('.why .result');
     assert.equal(await page.$$eval('.why .result', (els) => els.length), 1);
     await page.screenshot({ path: `${shots}/result-shown.png` });
+    if (await page.$('.why .subs-btn')) { // football: substitutions stay closed until tapped
+      assert.equal(await page.$$eval('.why .subs', (els) => els.length), 0, 'substitutions start closed');
+      await page.click('.why .subs-btn');
+      assert.ok(await page.$$eval('.why .subs li', (els) => els.length) > 0);
+      await page.$eval('.why .result', (e) => e.scrollIntoView());
+      await page.screenshot({ path: `${shots}/result-subs.png` });
+    }
 
     // Coming up: no scores, just times (or LIVE) and services, grouped by day.
     await page.click('#views [data-view="upcoming"]');

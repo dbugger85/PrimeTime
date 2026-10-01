@@ -31,6 +31,7 @@ const whyShown = new Set(); // "Why this score?" opened this visit only
 let reasonsFile = null; // loaded only after the spoiler warning is accepted
 const resultShown = new Set(); // results revealed this visit only (after a second warning)
 const lineupsOpen = new Set(); // football line-ups opened this visit only
+const subsOpen = new Set(); // substitution lists opened (inside a shown result) this visit only
 const benchOpen = new Set(); // benches opened this visit only, as "<event id>:<team index>"
 let resultsFile = null; // loaded only after the second warning is accepted
 let events = [];
@@ -316,15 +317,22 @@ function fillWhy(box, e) {
       }
       div.append(list);
     }
-    if (subs.length) {
-      div.append(Object.assign(document.createElement('p'), { className: 'subs-title', textContent: 'Substitutions' }));
-      const list = Object.assign(document.createElement('ul'), { className: 'goals subs' });
-      for (const s of subs) {
-        const li = document.createElement('li');
-        li.append(...s.split(' · ').map((part) => Object.assign(document.createElement('span'), { textContent: part })));
-        list.append(li);
+    if (subs.length) { // behind its own button, like the line-ups
+      const subsShown = subsOpen.has(e.id);
+      const b = Object.assign(document.createElement('button'), { type: 'button', className: 'subs-btn' });
+      b.textContent = subsShown ? '▾ Substitutions' : `▸ Substitutions (${subs.length})`;
+      b.setAttribute('aria-expanded', String(subsShown));
+      b.onclick = () => { subsShown ? subsOpen.delete(e.id) : subsOpen.add(e.id); render(); };
+      div.append(b);
+      if (subsShown) {
+        const list = Object.assign(document.createElement('ul'), { className: 'goals subs' });
+        for (const s of subs) {
+          const li = document.createElement('li');
+          li.append(...s.split(' · ').map((part) => Object.assign(document.createElement('span'), { textContent: part })));
+          list.append(li);
+        }
+        div.append(list);
       }
-      div.append(list);
     }
     box.append(div);
   } else {
