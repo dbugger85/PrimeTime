@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-import { factsFromSummary } from '../src/sources/espn-football.mjs';
+import { factsFromSummary, lineupsFromSummary } from '../src/sources/espn-football.mjs';
 import { matchesFromSlam } from '../src/sources/espn-tennis.mjs';
 import { factsFromRace, factsFromQuali } from '../src/sources/openf1.mjs';
 import { scoreFootball } from '../src/scoring/football.mjs';
@@ -18,14 +18,38 @@ const fixture = (path) => JSON.parse(readFileSync(new URL(`./fixtures/${path}`, 
 
 const ALLOWED = {
   common: ['id', 'sport', 'comp', 'compName', 'start', 'score', 'segments', 'advice', 'services', 'v'],
-  football: ['teams'],
+  football: ['teams', 'lineups'],
   tennis: ['players', 'draw', 'round'],
   f1: ['circuit', 'session'],
   winter: ['race', 'place', 'series', 'gender'],
 };
 const BANNED_WORDS = /\b(won|win|winner|beat|lost|loses?|comeback|equali[sz]|decider|deciding|upset|late|drama|red flag|safety car|penalt|shootout|extra time|retire|walkover|thriller|collapse|goals?)\b/i;
 
+// Line-ups: two teams, each a formation, exactly 11 [shirt, name, position] starters
+// and a bench of [shirt, name] sorted by shirt number, nothing else.
+function checkLineups(e) {
+  if (!('lineups' in e)) return;
+  assert.equal(e.sport, 'football');
+  assert.equal(e.lineups.length, 2, `${e.id}: two line-ups`);
+  for (const t of e.lineups) {
+    assert.deepEqual(Object.keys(t).sort(), ['bench', 'formation', 'players'], `${e.id}: line-up fields`);
+    assert.ok(t.bench.length <= 15);
+    for (const p of t.bench) assert.ok(p.length === 2 && p.every((x) => typeof x === 'string') && /^\d{0,3}$/.test(p[0]), `${e.id}: bench`);
+    const shirts = t.bench.map((p) => Number(p[0]) || 999);
+    assert.deepEqual(shirts, [...shirts].sort((a, b) => a - b), `${e.id}: bench sorted by shirt number, not ESPN's order`);
+    assert.match(t.formation, /^(\d(-\d){1,4})?$/, `${e.id}: formation`);
+    assert.equal(t.players.length, 11, `${e.id}: 11 starters`);
+    for (const p of t.players) {
+      assert.equal(p.length, 3);
+      assert.ok(p.every((x) => typeof x === 'string'));
+      assert.match(p[0], /^\d{0,3}$/, `${e.id}: shirt number`);
+      assert.match(p[2], /^[A-Z]{0,3}(-[LR])?$/, `${e.id}: position ${p[2]}`);
+    }
+  }
+}
+
 export function checkEvent(e) {
+  checkLineups(e);
   const allowed = [...ALLOWED.common, ...ALLOWED[e.sport]];
   for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}"`);
   assert.ok(ADVICE_CODES.includes(e.advice.code), `${e.id}: advice ${e.advice.code}`);
@@ -52,7 +76,7 @@ export function checkEvent(e) {
   if (e.sport === 'f1' && !quali) assert.equal(e.segments.length, 10, 'fixed length, so a shortened race is not revealed');
   if (quali) assert.equal(e.segments.length, 3, 'Q1, Q2, Q3');
   if ('session' in e) assert.ok(['qualifying', 'sprint', 'sprint-qualifying'].includes(e.session), `${e.id}: session ${e.session}`);
-  const text = JSON.stringify({ ...e, id: '', start: '' });
+  const text = JSON.stringify({ ...e, id: '', start: '', lineups: '' }); // line-ups are checked above
   assert.doesNotMatch(text, /\d+\s*[-–:]\s*\d+/, `${e.id}: looks like a score`);
   assert.doesNotMatch(text, BANNED_WORDS, `${e.id}: spoiler word`);
 }
@@ -86,6 +110,45 @@ test('published football, tennis and F1 events contain only safe fields', () => 
   }
 });
 
+test('line-ups: only the starters, and only once both teams have 11', () => {
+  const summary = fixture('football/lineups-401861093.json');
+  const lineups = lineupsFromSummary(summary);
+  const comp = { key: 'uefa.nations', name: 'Nations League' };
+  const match = { espnId: '401861093', start: '2026-10-01T16:00Z', home: 'Azerbaijan', away: 'Liechtenstein', state: 'pre' };
+  const soon = upcomingFootball(comp, match, lineups);
+  checkUpcoming(soon);
+  assert.deepEqual(soon.lineups.map((t) => t.formation), ['4-2-3-1', '5-3-2']);
+  assert.deepEqual(soon.lineups[0].players[0], ['1', 'Emil Balayev', 'G'], 'goalkeeper first');
+  assert.deepEqual(soon.lineups[1].players.slice(1, 6).map((p) => p[2]), ['LB', 'CD-L', 'CD', 'CD-R', 'RB'], 'defence left to right');
+  assert.equal(soon.lineups[0].players.at(-1)[2], 'F', 'attack last');
+  assert.ok(!JSON.stringify(soon).includes('SUB'), 'no position on the bench');
+  assert.equal(soon.lineups[0].bench.length, 12);
+  assert.deepEqual(soon.lineups[0].bench[0], ['2', 'Edqar Adilxanov'], 'bench sorted by shirt number');
+
+  // After the match, ESPN marks who came on; none of that gets out, and the bench order stays the same.
+  const after = structuredClone(summary);
+  for (const r of after.rosters) r.roster.forEach((p, i) => Object.assign(p, { subbedIn: !p.starter && i % 2 === 0, subbedOut: p.starter && i % 3 === 0 }));
+  after.rosters[0].roster.reverse();
+  assert.deepEqual(upcomingFootball(comp, match, lineupsFromSummary(after)).lineups.map((t) => t.bench), soon.lineups.map((t) => t.bench));
+
+  // A real finished match: the replay shows its line-ups, never who came on.
+  const finished = fixture('football/401861083.json');
+  const bulgaria = publishFootball(comp, { ...match, espnId: '401861083' }, scoreFootball(factsFromSummary(finished)), lineupsFromSummary(finished));
+  checkEvent(bulgaria);
+  assert.equal(bulgaria.lineups[0].bench.length, 12);
+  assert.doesNotMatch(JSON.stringify(bulgaria), /subbed|replaces| on for /i);
+
+  const replay = publishFootball(comp, match, scoreFootball(factsFromSummary(fixture('football/760516.json'))), lineups);
+  checkEvent(replay);
+  assert.deepEqual(replay.lineups, soon.lineups);
+
+  // Not announced yet (empty rosters), or only one team: no line-ups at all.
+  assert.equal(lineupsFromSummary({ rosters: summary.rosters.map((r) => ({ ...r, roster: [] })) }), null);
+  assert.equal(lineupsFromSummary({ rosters: [summary.rosters[0]] }), null);
+  assert.equal(lineupsFromSummary({}), null);
+  assert.ok(!('lineups' in upcomingFootball(comp, match, null)));
+});
+
 test('tennis players are listed alphabetically, not winner-last', () => {
   const matches = matchesFromSlam(fixture('tennis/usopen2026.json').events[0]);
   const published = matches.map((m) => publishTennis(m, scoreTennis(m)));
@@ -96,7 +159,8 @@ export function checkUpcoming(e) {
   const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', ...ALLOWED[e.sport]];
   for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}" on an upcoming event`);
   assert.ok(['upcoming', 'live'].includes(e.status));
-  const text = JSON.stringify({ ...e, id: '', start: '' });
+  checkLineups(e);
+  const text = JSON.stringify({ ...e, id: '', start: '', lineups: '' });
   assert.doesNotMatch(text, /\d+\s*[-–:]\s*\d+/, `${e.id}: looks like a score`);
 }
 

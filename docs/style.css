@@ -227,6 +227,27 @@ body[data-view="upcoming"] .replay-only { display: none; }
   justify-self: start; margin-top: 4px; border: 0; background: none; padding: 6px 0; min-height: 36px;
   color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline dotted;
 }
+.lineup-btn {
+  justify-self: start; margin-top: 4px; border: 0; background: none; padding: 6px 0; min-height: 36px;
+  color: var(--ink); font-size: 13.5px; font-weight: 600; cursor: pointer;
+}
+.lineups {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px 16px;
+  padding: 10px 12px; border-radius: 10px; background: var(--chip); font-size: 14px;
+}
+.lineups h4 { font-size: 14.5px; font-weight: 700; margin: 0 0 4px; }
+.lineups h4 small { font-size: 12.5px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+.lineups ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.lineups li { display: grid; grid-template-columns: 1.7em 1fr auto; gap: 6px; align-items: baseline; }
+.lineups li.new-line { margin-top: 6px; }
+.lineups .n { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+.lineups .name { min-width: 0; overflow-wrap: anywhere; }
+.lineups .pos { color: var(--muted); font-size: 12px; }
+.lineups .bench-btn {
+  margin-top: 4px; border: 0; background: none; padding: 6px 0; min-height: 36px;
+  color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.lineups .bench { font-size: 13px; color: var(--muted); line-height: 1.45; }
 .why { margin-top: 6px; padding: 10px 12px; border-radius: 10px; background: var(--chip); font-size: 14px; }
 .why ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .why li { display: grid; grid-template-columns: 3.4em 1fr; }
@@ -242,6 +263,10 @@ body[data-view="upcoming"] .replay-only { display: none; }
 .why .goals { margin-top: 6px; gap: 2px; font-size: 14px; font-variant-numeric: tabular-nums; }
 .why .goals li { grid-template-columns: 2.9em 2.6em 1fr; }
 .why .goals li span:nth-child(-n+2) { color: var(--muted); }
+.why .subs-title { margin-top: 10px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.why .subs { margin-top: 2px; }
+.why .subs li { grid-template-columns: 2.9em 1fr; }
+.why .subs li span:nth-child(2) { color: var(--ink); }
 dialog {
   border: 1px solid var(--line); border-radius: 16px; padding: 20px; max-width: min(92vw, 420px);
   background: var(--surface); color: var(--ink);

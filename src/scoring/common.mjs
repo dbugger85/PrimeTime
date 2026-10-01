@@ -7,7 +7,8 @@ import * as WEIGHTS from './weights.mjs';
 // others (F1 is slow to re-fetch). Bump a sport's number in FORMULA_VERSIONS
 // when its formula changes. Changing a number in weights.mjs re-scores that
 // sport by itself: the version includes a fingerprint of its weights, like "10.3fa2c1d0".
-const FORMULA_VERSIONS = { football: 10, tennis: 9, f1: 10, winter: 1 };
+// Also bump it when the published fields change (football 11: line-ups), so older events get them.
+const FORMULA_VERSIONS = { football: 11, tennis: 9, f1: 10, winter: 1 };
 const SPORT_WEIGHTS = {
   football: WEIGHTS.FOOTBALL,
   tennis: WEIGHTS.TENNIS,

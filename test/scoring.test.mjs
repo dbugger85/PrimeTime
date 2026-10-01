@@ -187,6 +187,11 @@ test('result lines (only ever shown behind the second spoiler warning)', () => {
   ]);
   assert.deepEqual(fb(760512).result.goals.map((g) => g.split(' · ').slice(0, 2).join(' ')), ["36' 1–0", "45+2' 1–1", "93' 1–2"]);
   assert.equal(fb(760489).result.goals.length, 2);
+  // And every substitution: half-time changes show "HT", injuries are noted.
+  const subs = fb(401861083).result.subs; // Bulgaria 0–0 Estonia, Nations League 2026
+  assert.equal(subs.length, 9);
+  assert.equal(subs[0], 'HT · Mattias Männilaan on for Karel Mustmaa (Estonia)');
+  assert.equal(subs.at(-1), "74' · Frank Liivak on for Robi Saarma (Estonia, injury)");
   const matches = matchesFromSlam(fixture('tennis/usopen2026.json').events[0]);
   const final = matches.find((m) => m.round === 'Final' && m.draw.startsWith('Men'));
   assert.equal(scoreTennis(final).result, 'Alexander Zverev beat Ben Shelton 6-3 7-6(2) 5-7 6-2');

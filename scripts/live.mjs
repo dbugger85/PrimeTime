@@ -1,5 +1,6 @@
 // The light, frequent check (every 15 minutes). It only looks at events that are
 // live or about to start, according to the upcoming list the full build made:
+//   - adds football line-ups once ESPN has them (about 75 minutes before kick-off),
 //   - marks them LIVE when they start,
 //   - scores them as soon as they have finished, and moves them to the replays.
 // When nothing is on it makes no requests at all and changes nothing.
@@ -13,7 +14,7 @@ import * as football from '../src/sources/espn-football.mjs';
 import * as tennis from '../src/sources/espn-tennis.mjs';
 import * as f1 from '../src/sources/openf1.mjs';
 import { getJson } from '../src/http.mjs';
-import { publishFootball, publishTennis, publishF1, upcomingFootball, upcomingTennis } from '../src/publish.mjs';
+import { publishFootball, publishTennis, publishF1, upcomingFootball, upcomingTennis, lineupFields } from '../src/publish.mjs';
 import { loadData, saveData } from '../src/store.mjs';
 
 const now = process.env.NOW ? new Date(process.env.NOW) : new Date(); // NOW=... pretends it's another time (for testing)
@@ -28,14 +29,33 @@ const save = (event, scored) => {
   results.set(event.id, scored.result);
 };
 
-// "In play" window: from 10 minutes before the start until `hours` after it.
-const inWindow = (e, hours) => {
+// "In play" window: from `minutesBefore` the start until `hours` after it.
+const inWindow = (e, hours, minutesBefore = 10) => {
   const t = new Date(e.start).getTime();
-  return t - 10 * 60e3 <= now.getTime() && now.getTime() <= t + hours * 3600e3;
+  return t - minutesBefore * 60e3 <= now.getTime() && now.getTime() <= t + hours * 3600e3;
 };
 const ymd = (iso) => iso.slice(0, 10).replaceAll('-', '');
 
+// Line-ups come out about 75 minutes before kick-off. From 90 minutes before,
+// ask for each match that doesn't have them yet: one request per match and run,
+// and none once both teams are in.
+const LINEUP_MINUTES = 90;
+
+async function lineupsFootball() {
+  for (const e of upcoming.filter((x) => x.sport === 'football' && !x.lineups && inWindow(x, 4, LINEUP_MINUTES))) {
+    try {
+      const lineups = football.lineupsFromSummary(await football.fetchSummary(e.comp, e.id.slice(3)));
+      if (!lineups) continue; // not announced yet
+      Object.assign(e, lineupFields(lineups));
+      console.log(`line-ups for ${e.teams.join(' – ')}`);
+    } catch (err) {
+      warn(`line-ups ${e.comp} ${e.id}: ${err.message}`); // try again next time
+    }
+  }
+}
+
 async function liveFootball() {
+  await lineupsFootball();
   const active = upcoming.filter((e) => e.sport === 'football' && inWindow(e, 4));
   // One scoreboard request per competition and day covers all its matches.
   const days = new Map(active.map((e) => [`${e.comp}|${ymd(e.start)}`, e]));
@@ -44,18 +64,20 @@ async function liveFootball() {
     const comp = FOOTBALL.find((c) => c.key === compKey);
     for (const m of await football.fetchDay(compKey, day)) {
       const id = `fb-${m.espnId}`;
-      if (!upcoming.some((e) => e.id === id)) continue;
+      const old = upcoming.find((e) => e.id === id);
+      if (!old) continue;
       if (m.finished) {
         try {
-          const scored = scoreFootball(football.factsFromSummary(await football.fetchSummary(compKey, m.espnId)));
-          save(publishFootball(comp, m, scored), scored);
+          const summary = await football.fetchSummary(compKey, m.espnId);
+          const scored = scoreFootball(football.factsFromSummary(summary));
+          save(publishFootball(comp, m, scored, football.lineupsFromSummary(summary) ?? old.lineups), scored);
           upcoming = upcoming.filter((e) => e.id !== id);
           console.log(`scored ${m.home} – ${m.away}`);
         } catch (err) {
           warn(`football ${compKey} ${m.espnId}: ${err.message}`); // try again next time
         }
       } else if (m.state === 'pre' || m.state === 'in') {
-        upcoming = upcoming.map((e) => (e.id === id ? upcomingFootball(comp, m) : e)); // live flag, new kick-off time
+        upcoming = upcoming.map((e) => (e.id === id ? upcomingFootball(comp, m, old.lineups) : e)); // live flag, new kick-off time
       } else {
         upcoming = upcoming.filter((e) => e.id !== id); // postponed or cancelled
       }

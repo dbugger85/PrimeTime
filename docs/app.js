@@ -30,6 +30,8 @@ const revealed = new Set(); // names revealed this visit only
 const whyShown = new Set(); // "Why this score?" opened this visit only
 let reasonsFile = null; // loaded only after the spoiler warning is accepted
 const resultShown = new Set(); // results revealed this visit only (after a second warning)
+const lineupsOpen = new Set(); // football line-ups opened this visit only
+const benchOpen = new Set(); // benches opened this visit only, as "<event id>:<team index>"
 let resultsFile = null; // loaded only after the second warning is accepted
 let events = [];
 let upcoming = [];
@@ -258,6 +260,8 @@ function card(e) {
     return a;
   }));
 
+  fillLineups(li, e);
+
   const why = li.querySelector('.why');
   const whyBtn = li.querySelector('.why-btn');
   if (whyShown.has(e.id)) {
@@ -297,9 +301,10 @@ function fillWhy(box, e) {
 
   // Second level: the actual result, behind another warning.
   if (resultShown.has(e.id)) {
-    // Tennis and F1 results are one line of text; football is {text, goals: ["36' · 0–1 · Name (Team)", …]}.
+    // Tennis and F1 results are one line of text; football is
+    // {text, goals: ["36' · 0–1 · Name (Team)", …], subs: ["58' · Name on for Name (Team)", …]}.
     const saved = resultsFile?.[e.id] ?? 'No result saved for this event yet.';
-    const { text, goals = [] } = typeof saved === 'string' ? { text: saved } : saved;
+    const { text, goals = [], subs = [] } = typeof saved === 'string' ? { text: saved } : saved;
     const div = Object.assign(document.createElement('div'), { className: 'result' });
     div.append(Object.assign(document.createElement('p'), { className: 'result-text', textContent: text }));
     if (goals.length) {
@@ -307,6 +312,16 @@ function fillWhy(box, e) {
       for (const g of goals) {
         const li = document.createElement('li');
         li.append(...g.split(' · ').map((part) => Object.assign(document.createElement('span'), { textContent: part })));
+        list.append(li);
+      }
+      div.append(list);
+    }
+    if (subs.length) {
+      div.append(Object.assign(document.createElement('p'), { className: 'subs-title', textContent: 'Substitutions' }));
+      const list = Object.assign(document.createElement('ul'), { className: 'goals subs' });
+      for (const s of subs) {
+        const li = document.createElement('li');
+        li.append(...s.split(' · ').map((part) => Object.assign(document.createElement('span'), { textContent: part })));
         list.append(li);
       }
       div.append(list);
@@ -373,7 +388,55 @@ function soonCard(e) {
     if (prefs.services.includes(id)) a.classList.add('mine');
     return a;
   }));
+  fillLineups(li, e);
   return li;
+}
+
+// Football starting line-ups, behind a button. ESPN publishes them about 75 minutes
+// before kick-off; until then the button stays hidden. Each team is
+// { formation: '4-2-3-1', players: [[shirt, name, position], …], bench: [[shirt, name], …] },
+// goalkeeper first, then defence to attack, so the formation tells where each line starts.
+function fillLineups(li, e) {
+  if (!e.lineups) return;
+  const btn = li.querySelector('.lineup-btn');
+  const box = li.querySelector('.lineups');
+  const open = lineupsOpen.has(e.id);
+  btn.hidden = false;
+  btn.textContent = open ? '▾ Hide line-ups' : '▸ Line-ups';
+  btn.setAttribute('aria-expanded', String(open));
+  btn.onclick = () => { open ? lineupsOpen.delete(e.id) : lineupsOpen.add(e.id); render(); };
+  if (!open) return;
+  box.hidden = false;
+  box.replaceChildren(...e.lineups.map((t, i) => {
+    const col = document.createElement('div');
+    const h = Object.assign(document.createElement('h4'), { textContent: e.teams[i] });
+    if (t.formation) h.append(' ', Object.assign(document.createElement('small'), { textContent: t.formation }));
+    const sizes = [1, ...t.formation.split('-').map(Number)];
+    const starts = new Set(sizes.reduce((sum, n) => sum + n, 0) === 11 ? sizes.map((_, k) => sizes.slice(0, k).reduce((a, b) => a + b, 0)) : [0]);
+    const ol = document.createElement('ol');
+    t.players.forEach(([n, name, pos], k) => {
+      const row = document.createElement('li');
+      row.classList.toggle('new-line', k > 0 && starts.has(k));
+      row.append(...[['n', n], ['name', name], ['pos', pos]].map(([className, textContent]) => Object.assign(document.createElement('span'), { className, textContent })));
+      ol.append(row);
+    });
+    col.append(h, ol);
+    if (t.bench?.length) { // the bench has its own button, to keep the card short
+      const key = `${e.id}:${i}`;
+      const benchShown = benchOpen.has(key);
+      const b = Object.assign(document.createElement('button'), { type: 'button', className: 'bench-btn' });
+      b.textContent = benchShown ? '▾ Bench' : `▸ Bench (${t.bench.length})`;
+      b.setAttribute('aria-expanded', String(benchShown));
+      b.onclick = () => { benchShown ? benchOpen.delete(key) : benchOpen.add(key); render(); };
+      col.append(b);
+      if (benchShown) {
+        col.append(Object.assign(document.createElement('p'), {
+          className: 'bench', textContent: t.bench.map(([n, name]) => (n ? `${n}\u00a0${name}` : name)).join(' · '),
+        }));
+      }
+    }
+    return col;
+  }));
 }
 
 function renderUpcoming() {

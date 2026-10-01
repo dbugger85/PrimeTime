@@ -26,6 +26,29 @@ if (!base) {
   }
 }
 
+// Line-ups stay closed until the button is tapped, then show 11 players per team.
+async function checkLineups(page, name) {
+  const card = await page.$('.card:has(.lineup-btn:not([hidden]))');
+  if (!card) return console.log(`no ${name} card with line-ups to test`);
+  assert.ok(await card.$eval('.lineups', (e) => e.hidden), 'line-ups start closed');
+  await card.$eval('.lineup-btn', (e) => e.scrollIntoView({ block: 'start' }));
+  await (await card.$('.lineup-btn')).click();
+  const open = await page.$(`.card[data-id="${await card.getAttribute('data-id')}"]`);
+  assert.equal(await open.$eval('.lineup-btn', (e) => e.getAttribute('aria-expanded')), 'true');
+  assert.equal(await open.$$eval('.lineups li', (els) => els.length), 22, '11 players per team');
+  assert.equal(await open.$$eval('.lineups .bench', (els) => els.length), 0, 'benches start closed');
+  await open.screenshot({ path: `${shots}/lineups-${name}.png` });
+  const benchBtn = await open.$('.bench-btn');
+  if (benchBtn) {
+    await benchBtn.click();
+    const opened = await page.$(`.card[data-id="${await open.getAttribute('data-id')}"]`);
+    assert.equal(await opened.$$eval('.lineups .bench', (els) => els.length), 1, 'only that team\'s bench opens');
+    await opened.screenshot({ path: `${shots}/lineups-${name}-bench.png` });
+  }
+  await (await page.$(`.card[data-id="${await open.getAttribute('data-id')}"] .lineup-btn`)).click();
+  assert.ok(await page.$eval(`.card[data-id="${await open.getAttribute('data-id')}"] .lineups`, (e) => e.hidden), 'tapping again closes them');
+}
+
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/usr/bin/chromium' });
 try {
   for (const scheme of ['light', 'dark']) {
@@ -186,8 +209,10 @@ try {
       assert.ok(await page.$('.day'));
       await page.screenshot({ path: `${shots}/upcoming.png` });
     }
+    await checkLineups(page, 'upcoming');
     await page.click('#views [data-view="replays"]');
     await page.waitForSelector('.card .num');
+    await checkLineups(page, 'replay');
 
     // Favorites: star a team on a card, filter to favorites only, search, remove.
     await page.click('#sports [data-sport="football"]');

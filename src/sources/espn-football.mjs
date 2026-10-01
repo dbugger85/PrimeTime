@@ -77,6 +77,7 @@ export function factsFromSummary(summary) {
       (sum, t) => sum + Number(t.statistics?.find((s) => s.name === name)?.displayValue ?? 0), 0);
 
   const team = (side) => comp.competitors.find((t) => t.homeAway === side);
+  const teamOf = (e) => team(sides[e.team?.id])?.team.displayName;
   const [home, away] = [team('home'), team('away')];
   let result = `${home.team.displayName} ${home.score}–${away.score} ${away.team.displayName}`;
   if (home.shootoutScore != null) result += ` (${home.shootoutScore}–${away.shootoutScore} on penalties)`;
@@ -91,8 +92,19 @@ export function factsFromSummary(summary) {
     return `${g.clock || `${Math.ceil(g.min)}'`} · ${tally.home}–${tally.away} · ${who} (${note})`;
   });
 
+  // One line per substitution, also for the result spoiler: "58' · Martin Miller on for
+  // Mattias Käit (Estonia)". Changes at half-time (45' in period 2) or before extra time show "HT" / "ET".
+  const subLines = events.filter((e) => /^substitution/i.test(e.type.text)).map((e) => {
+    const [on, off] = (e.participants ?? []).map((p) => p.athlete?.displayName);
+    const p = e.period?.number;
+    const when = p === 2 && e.clock?.value === 2700 ? 'HT' : p === 3 && e.clock?.value === 5400 ? 'ET'
+      : (e.clock?.displayValue ?? '').replace("'+", '+') || `${Math.ceil(minuteOf(e))}'`;
+    const note = [teamOf(e), /injur/i.test(e.text ?? '') && 'injury'].filter(Boolean).join(', ');
+    return `${when} · ${on ?? 'Unknown player'} on for ${off ?? 'unknown player'}${note ? ` (${note})` : ''}`;
+  });
+
   return {
-    result: { text: result, goals: goalLines },
+    result: { text: result, goals: goalLines, subs: subLines },
     goals,
     odds: winChances(summary),
     reds: events.filter((e) => /red card/i.test(e.type.text)).map((e) => minuteOf(e)),
@@ -109,4 +121,32 @@ export function factsFromSummary(summary) {
     extraTime: status === 'STATUS_FINAL_AET' || status === 'STATUS_FINAL_PEN' || events.some((e) => e.period?.number >= 3),
     shootout: status === 'STATUS_FINAL_PEN' || comp.competitors.some((t) => t.shootoutScore != null),
   };
+}
+
+// Starting line-ups, published about 75 minutes before kick-off. Returns
+// [home, away], each { formation: '4-2-3-1', players: [[shirt, name, position], …],
+// bench: [[shirt, name], …] }, or null until both teams have 11 starters.
+// Players are ordered goalkeeper, defence, midfield, attack (left to right within each).
+// The bench is sorted by shirt number: after the match ESPN marks who came on
+// (subbedIn), and that's left out, as is ESPN's order, which could hint at it.
+// ESPN positions look like G, LB, CD-L, CD, DM, CM-R, RM, AM-L, F, CF-R.
+const lineOf = (pos) => (/^G/.test(pos) ? 0 : /^(CD|SW)|B$/.test(pos) ? 1 : /^(DM|CM|LM|RM|M)/.test(pos) ? 2 : /^AM/.test(pos) ? 3 : 4);
+const sideOf = (pos) => (/^L/.test(pos) ? 0 : /-L$/.test(pos) ? 1 : /-R$/.test(pos) ? 3 : /^R/.test(pos) ? 4 : 2);
+
+export function lineupsFromSummary(summary) {
+  const team = (side) => {
+    const r = (summary.rosters ?? []).find((t) => t.homeAway === side);
+    const starters = (r?.roster ?? []).filter((p) => p.starter && p.athlete?.displayName);
+    if (starters.length !== 11) return null;
+    const players = starters
+      .map((p) => [p.jersey ?? '', p.athlete.displayName, p.position?.abbreviation ?? ''])
+      .sort((a, b) => lineOf(a[2]) - lineOf(b[2]) || sideOf(a[2]) - sideOf(b[2]));
+    const bench = (r.roster ?? [])
+      .filter((p) => !p.starter && p.athlete?.displayName)
+      .map((p) => [p.jersey ?? '', p.athlete.displayName])
+      .sort((a, b) => (Number(a[0]) || 999) - (Number(b[0]) || 999) || a[1].localeCompare(b[1]));
+    return { formation: r.formation ?? '', players, bench };
+  };
+  const both = [team('home'), team('away')];
+  return both.every(Boolean) ? both : null;
 }

@@ -78,8 +78,9 @@ async function buildFootball() {
         if (isCurrent(id)) continue;
         if (outOfTime()) { complete = false; continue; }
         try {
-          const scored = scoreFootball(football.factsFromSummary(await football.fetchSummary(comp.key, m.espnId)));
-          save(publishFootball(comp, m, scored), scored);
+          const summary = await football.fetchSummary(comp.key, m.espnId);
+          const scored = scoreFootball(football.factsFromSummary(summary));
+          save(publishFootball(comp, m, scored, football.lineupsFromSummary(summary)), scored);
         } catch (err) {
           complete = false;
           warn(`football ${comp.key} ${m.espnId}: ${err.message}`);
@@ -92,18 +93,32 @@ async function buildFootball() {
   }
 }
 
+// Keeps the line-ups the live check found, and looks for them itself for
+// matches starting within LINEUP_MINUTES (the live check doesn't run when this does).
+const LINEUP_MINUTES = 90;
+const oldLineups = new Map(data.upcoming.filter((e) => e.lineups).map((e) => [e.id, e.lineups]));
+async function lineupsFor(comp, m) {
+  const known = oldLineups.get(`fb-${m.espnId}`);
+  if (known || new Date(m.start) - now > LINEUP_MINUTES * 60e3) return known;
+  try {
+    return football.lineupsFromSummary(await football.fetchSummary(comp.key, m.espnId));
+  } catch (err) {
+    warn(`line-ups ${comp.key} ${m.espnId}: ${err.message}`);
+  }
+}
+
 async function buildUpcomingFootball() {
   for (const comp of FOOTBALL) {
     for (let ahead = 0; ahead <= UPCOMING_DAYS.football; ahead++) {
       for (const m of await football.fetchDay(comp.key, ymd(daysAgo(-ahead)))) {
-        if (m.state === 'pre' || m.state === 'in') upcoming.push(upcomingFootball(comp, m));
+        if (m.state === 'pre' || m.state === 'in') upcoming.push(upcomingFootball(comp, m, await lineupsFor(comp, m)));
       }
     }
   }
   // Matches still being played from yesterday evening (or with the day boundary in UTC).
   for (const comp of FOOTBALL) {
     for (const m of await football.fetchDay(comp.key, ymd(daysAgo(1)))) {
-      if (m.state === 'in') upcoming.push(upcomingFootball(comp, m));
+      if (m.state === 'in') upcoming.push(upcomingFootball(comp, m, await lineupsFor(comp, m)));
     }
   }
 }

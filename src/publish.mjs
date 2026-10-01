@@ -45,9 +45,26 @@ function base(id, sport, comp, compName, start, scored, rightsKey, ctx) {
   };
 }
 
-export const publishFootball = (comp, match, scored) => ({
+// Starting line-ups and benches (from lineupsFromSummary). Not a spoiler: they're
+// announced before kick-off. Only the formation, each starter's shirt number, name
+// and position, and the bench's numbers and names are copied: no substitutions, cards or goals.
+export function lineupFields(lineups) {
+  if (!lineups) return {};
+  return {
+    lineups: lineups.slice(0, 2).map((t) => ({
+      formation: /^\d(-\d){1,4}$/.test(t.formation) ? t.formation : '',
+      players: t.players.slice(0, 11).map(([n, name, pos]) => [
+        /^\d{1,3}$/.test(n) ? n : '', String(name), /^[A-Z]{1,3}(-[LR])?$/.test(pos) ? pos : ''],
+      ),
+      bench: (t.bench ?? []).slice(0, 15).map(([n, name]) => [/^\d{1,3}$/.test(n) ? n : '', String(name)]),
+    })),
+  };
+}
+
+export const publishFootball = (comp, match, scored, lineups) => ({
   ...base(`fb-${match.espnId}`, 'football', comp.key, comp.name, match.start, scored, comp.key),
   teams: [match.home, match.away],
+  ...lineupFields(lineups),
 });
 
 // Players are sorted by name: ESPN tends to list the winner second.
@@ -103,9 +120,10 @@ export const upcomingWinter = (race, compName) => ({
   ...winterFields(race),
 });
 
-export const upcomingFootball = (comp, match) => ({
+export const upcomingFootball = (comp, match, lineups) => ({
   ...upcomingBase(`fb-${match.espnId}`, 'football', comp.key, comp.name, match.start, match.state === 'in', comp.key),
   teams: [match.home, match.away],
+  ...lineupFields(lineups),
 });
 
 export const upcomingTennis = (match) => ({
