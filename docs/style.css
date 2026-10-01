@@ -125,12 +125,13 @@ body[data-view="upcoming"] .replay-only { display: none; }
 }
 #fav-hits { margin-top: 8px; }
 #fav-hits .chip { min-height: 36px; font-size: 14px; border-style: dashed; }
-.star { /* at least 32 × 32 px, so it's easy to hit next to a name */
-  border: 0; background: none; padding: 0; margin: -4px 0; min-width: 32px; min-height: 32px;
-  font-size: 17px; line-height: 1; color: var(--muted); cursor: pointer; vertical-align: -1px;
+.star { /* sits right after the name; the invisible ::after makes it easy to hit */
+  position: relative; border: 0; background: none; padding: 0; margin-left: 0.2em;
+  font-size: 0.85em; line-height: 1; color: var(--accent); cursor: pointer; vertical-align: 0.05em;
 }
-.star[aria-pressed="true"] { color: var(--accent); }
+.star::after { content: ''; position: absolute; inset: -10px -8px; }
 .title .name { display: inline; }
+.title .keep { white-space: nowrap; } /* a followed name's last word and its star */
 
 .filters { margin: 16px 0 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .filters summary { padding: 12px 14px; cursor: pointer; font-weight: 600; min-height: 44px; }

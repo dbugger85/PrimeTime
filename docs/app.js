@@ -219,7 +219,7 @@ function renderFavs() {
   );
   renderCalendar(favs.teams);
   $('#favs-hint').textContent = !n
-    ? 'Tap ☆ after a name on a card, or search below.'
+    ? 'Search below for a team, player, F1 or a winter sport. Its cards then get a ★.'
     : prefs.favsOnly && favs.players.length && prefs.view === 'replays' && ['all', 'tennis'].includes(prefs.sport)
       ? 'Tennis players only count under Coming up, so replays don\'t spoil who went through.'
       : 'Tap one to remove it.';
@@ -245,18 +245,20 @@ function renderFavHits() {
   }
 }
 
-// A small ☆ after a name; filled ★ when it's a favorite.
+// A ★ after a name you follow (tap to unfollow). Names you don't follow get nothing,
+// to keep the cards clean: you follow something with the search box in "My favorites".
 function star(kind, name, label) {
   const on = kind === 'f1' ? prefs.favs.f1 : (prefs.favs[kind] ?? []).includes(name);
-  const b = Object.assign(document.createElement('button'), { type: 'button', className: 'star', textContent: on ? '★' : '☆' });
-  b.setAttribute('aria-pressed', String(on));
-  b.setAttribute('aria-label', `${on ? 'Unfollow' : 'Follow'} ${label}`);
+  if (!on) return '';
+  const b = Object.assign(document.createElement('button'), { type: 'button', className: 'star', textContent: '★' });
+  b.setAttribute('aria-pressed', 'true');
+  b.setAttribute('aria-label', `Unfollow ${label}`);
   b.title = b.getAttribute('aria-label');
   b.onclick = () => setFav(kind, name);
   return b;
 }
 
-// The card title, with a star after each team or player (or after the race, to follow F1).
+// The card title, with a star after each team or player you follow (or after the race, for F1).
 function fillTitle(title, e) {
   if (namesHidden(e, prefs) && !revealed.has(e.id)) {
     const b = Object.assign(document.createElement('button'), { type: 'button', className: 'reveal' });
@@ -277,7 +279,15 @@ function fillTitle(title, e) {
   names.forEach((name, i) => {
     if (i) title.append(sep);
     const span = Object.assign(document.createElement('span'), { className: 'name' });
-    span.append(name, star(kind, name, name));
+    span.dataset.name = name;
+    const s = star(kind, name, name);
+    if (s) { // keep the last word and the star together, so the star never ends up alone on a line
+      const cut = name.lastIndexOf(' ') + 1;
+      span.append(name.slice(0, cut), Object.assign(document.createElement('span'), { className: 'keep' }));
+      span.lastChild.append(name.slice(cut), s);
+    } else {
+      span.append(name);
+    }
     title.append(span);
   });
 }

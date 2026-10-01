@@ -26,6 +26,15 @@ if (!base) {
   }
 }
 
+// Follows a team, player or sport with the search box in "My favorites" (cards only
+// show a ★ for things you follow). `label` is the suggestion's text if it's not `query`.
+async function follow(page, query, label = query) {
+  if (await page.$eval('#favs-body', (e) => e.hidden)) await page.click('#favs-toggle');
+  await page.fill('#fav-q', query);
+  await page.click(`#fav-hits .chip:has-text("${label}")`);
+  await page.fill('#fav-q', '');
+}
+
 // Line-ups stay closed until the button is tapped, then show 11 players per team.
 async function checkLineups(page, name) {
   const card = await page.$('.card:has(.lineup-btn:not([hidden]))');
@@ -124,8 +133,9 @@ try {
       assert.ok((await page.$$eval('.card .title', (els) => els.map((e) => e.textContent))).every((t) => /^Women/.test(t)));
       await page.$eval('.card', (e) => e.scrollIntoView());
       await page.screenshot({ path: `${shots}/winter.png` });
-      await page.click('.card .title .star');
-      assert.ok(await page.$('#favs .fav:has-text("Biathlon (women)")'), 'following a winter sport from a card');
+      await follow(page, 'biathlon', 'Biathlon (women)');
+      assert.ok(await page.$('#favs .fav:has-text("Biathlon (women)")'), 'following a winter sport');
+      assert.ok(await page.$('.card .title .star'), 'its cards get a ★');
       await page.click('#favs .fav:has-text("Biathlon (women)")');
       await page.selectOption('#f-gender', '');
       await page.click('#comps .chip:has-text("All")');
@@ -242,20 +252,22 @@ try {
     if (await page.$('.more')) {
       await page.click('.more');
       const shownBefore = await page.$$eval('#cards > .card', (els) => els.length);
-      const far = (await page.$$('#cards > .card .star')).at(-1); // a star on the last card shown
-      await far.click();
-      assert.equal(await page.$$eval('#cards > .card', (els) => els.length), shownBefore, 'still the same cards after starring');
-      await (await page.$$('#cards > .card .star[aria-pressed="true"]'))[0].click(); // un-star again
+      const lastTeam = await page.$eval('#cards > .card:last-child .title .name', (e) => e.dataset.name);
+      await follow(page, lastTeam);
+      assert.equal(await page.$$eval('#cards > .card', (els) => els.length), shownBefore, 'still the same cards after following');
+      await page.click(`#favs .fav:has-text("${lastTeam}")`); // unfollow again
       await page.click('#sports [data-sport="all"]');
       await page.click('#sports [data-sport="football"]');
     }
 
-    // Favorites: star a team on a card, filter to favorites only, search, remove.
+    // Favorites: no stars until you follow something; follow a team, filter to favorites only, search, remove.
     assert.ok(await page.$eval('#fav-only', (e) => e.disabled), '"Only favorites" is off until you have one');
-    const team = await page.$eval('.card .title .name', (e) => e.firstChild.textContent);
-    const other = await page.$eval('.card .title .name:nth-child(2)', (e) => e.firstChild.textContent);
-    await page.click('.card .title .name .star');
+    assert.equal(await page.$$eval('.card .star', (els) => els.length), 0, 'no stars on names you don\'t follow');
+    const team = await page.$eval('.card .title .name', (e) => e.dataset.name);
+    const other = await page.$eval('.card .title .name:nth-child(2)', (e) => e.dataset.name);
+    await follow(page, team);
     assert.equal(await page.$eval('.card .title .name .star', (e) => e.textContent), '★');
+    assert.equal(await page.$eval('.card .title .name', (e) => e.textContent), `${team}★`, 'the star sits right after the name');
     await page.click('#fav-only');
     const titles = await page.$$eval('.card .title', (els) => els.map((e) => e.textContent));
     assert.ok(titles.length > 0 && titles.every((t) => t.includes(team)), `only ${team} matches show`);
@@ -292,7 +304,7 @@ try {
     assert.ok(await page.$eval('#fav-only', (e) => e.disabled && e.getAttribute('aria-pressed') === 'false'), 'removing the last favorite turns the filter off');
     // The section folds up, but "Only favorites" stays reachable, and it remembers.
     await page.click('#sports [data-sport="football"]');
-    await page.click('.card .title .name .star');
+    await follow(page, team);
     await page.click('#favs-toggle');
     assert.ok(await page.$eval('#favs-body', (e) => e.hidden));
     assert.ok(await page.$eval('#fav-only', (e) => !e.disabled && e.offsetParent !== null));
@@ -336,8 +348,8 @@ try {
     await one.goto(base);
     await one.waitForSelector('.card');
     await one.click('#sports [data-sport="football"]');
-    const team = await one.$eval('.card .title .name', (e) => e.firstChild.textContent);
-    await one.click('.card .title .name .star');
+    const team = await one.$eval('.card .title .name', (e) => e.dataset.name);
+    await follow(one, team);
     await one.click('.card .watched');
     await one.click('#share-btn');
     await one.waitForSelector('#share-note:has-text("copied")');

@@ -187,7 +187,7 @@ Biathlon, alpine and cross-country are all `sport: 'winter'`. `comp` is `biathlo
 
 Settings, "watched" marks and chosen services live in the browser's localStorage (`pt-prefs`, `pt-watched`). `migratePrefs` turns older saved settings into the current shape.
 
-**Favorites** (`prefs.favs = {teams, players, f1}` plus the `prefs.favsOnly` switch, saved in `pt-prefs`; "Reset filters" leaves them alone). You add one with the ☆ after a name on any card (the F1 star follows F1 as a whole) or with the search box under "My favorites", which suggests names from the data (`favNames`/`searchNames`; case, accents and ø/æ are ignored). `isFavorite()` in `logic.js` holds the rules the owner chose:
+**Favorites** (`prefs.favs = {teams, players, f1}` plus the `prefs.favsOnly` switch, saved in `pt-prefs`; "Reset filters" leaves them alone). You add one with the search box under "My favorites". Cards only show a ★ right after a name you follow (tap it to unfollow); names you don't follow get no star, which the owner preferred for cleaner cards. The star and the name's last word are kept on one line (`.keep`), and `.name` has `data-name` with the full name. The F1 star follows F1 as a whole. The search box suggests names from the data (`favNames`/`searchNames`; case, accents and ø/æ are ignored). `isFavorite()` in `logic.js` holds the rules the owner chose:
 - Football: either team.
 - Tennis players **only count under "Coming up"**. In replays, seeing a player's later-round match would tell you they won the earlier ones.
 - F1: every driver is in every race, so there are no driver favorites. Instead you follow F1 as a whole, and when you don't, races are hidden in favorites mode.
