@@ -238,3 +238,8 @@ test('sorting reads the times, whatever their format', () => {
   const prefs = { sport: 'all', services: [], comp: 'all', favsOnly: false, favs: { teams: [], players: [], f1: false, winter: [] } };
   assert.deepEqual(filterUpcoming([b, a].map((e) => ({ ...e, sport: 'f1', services: [], status: 'upcoming' })), prefs).map((e) => e.id), ['a', 'b']);
 });
+
+test('"Points above 7 count less" is always the last line of "Why this score?"', () => {
+  const { lines } = reasonLines([[2.4, '2 goals'], [-3.1, 'Points above 7 count less'], [0.5, 'Hit the woodwork'], [-0.4, 'The favorite scoring']]);
+  assert.deepEqual(lines.map((l) => l.label), ['2 goals', 'Hit the woodwork', 'The favorite scoring', 'Points above 7 count less']);
+});

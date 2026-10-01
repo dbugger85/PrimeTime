@@ -284,9 +284,11 @@ export function hiddenTitleOf(event) {
   return event.sport === 'tennis' ? 'Players hidden' : 'Teams hidden';
 }
 
-// The lines shown by "Why this score?": [points, label] pairs, biggest first.
+// The lines shown by "Why this score?": [points, label] pairs, biggest first, except that
+// "Points above 7 count less" always comes last: it's worked out from all the others.
+const LAST = (label) => /^Points above \d+ count less/.test(label);
 export function reasonLines(reasons) {
-  const lines = [...reasons].sort((a, b) => Math.abs(b[0]) - Math.abs(a[0]))
+  const lines = [...reasons].sort((a, b) => LAST(a[1]) - LAST(b[1]) || Math.abs(b[0]) - Math.abs(a[0]))
     .map(([pts, label]) => ({ pts: `${pts > 0 ? '+' : ''}${pts.toFixed(1)}`, label, negative: pts < 0 }));
   const sum = Math.round(reasons.reduce((a, [p]) => a + p, 0) * 10) / 10;
   const note = sum > 10 ? `Adds up to ${sum.toFixed(1)}, capped at 10` : sum < 0 ? 'Adds up to below 0, so it counts as 0' : '';

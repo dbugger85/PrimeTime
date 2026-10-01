@@ -479,7 +479,7 @@ test('football with and without xG; points above 7 count less', () => {
   assert.ok(noXg.reasons.some(([, l]) => /shots on target/.test(l)), 'falls back to shot counts');
   const withXg = scoreFootball({ ...facts, xg: { home: 2.1, away: 2.4, shots: [] } });
   assert.equal(withXg.limited, false);
-  assert.ok(withXg.reasons.some(([, l]) => /expected goals/.test(l)) && !withXg.reasons.some(([, l]) => /shots on target/.test(l)));
+  assert.ok(withXg.reasons.some(([, l]) => / xG$/.test(l)) && !withXg.reasons.some(([, l]) => /shots on target/.test(l)));
   // The same 1–0: real chances beat potshots.
   const oneNil = factsFromSummary(fixture('football/401879276.json')); // Bournemouth 0–1 Liverpool
   const open = scoreFootball({ ...oneNil, xg: { home: 2.5, away: 1.5, shots: [] } }).score;

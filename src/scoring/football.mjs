@@ -89,7 +89,7 @@ export function scoreFootball(f) {
   const xg = f.xg && Number.isFinite(f.xg.home) && Number.isFinite(f.xg.away) ? f.xg : null;
   const xgTotal = xg ? xg.home + xg.away : 0;
   if (xg) {
-    t.add(W.chances * clamp((xgTotal - 1.5) / 2.5, 0, 1), `Chances worth ${xgTotal.toFixed(1)} expected goals`);
+    t.add(W.chances * clamp((xgTotal - 1.5) / 2.5, 0, 1), `Chances worth ${xgTotal.toFixed(1)} xG`);
   } else {
     t.add(f.shotsOnTarget >= 10 ? W.shotsOnTarget10 : f.shotsOnTarget >= 7 ? W.shotsOnTarget7 : 0, `${f.shotsOnTarget} shots on target`);
     if (f.totalShots >= 30) t.add(W.manyShots, `${f.totalShots} shots in total`);
@@ -99,11 +99,11 @@ export function scoreFootball(f) {
     const winner = diff > 0 ? 'home' : 'away';
     const xgGap = Math.abs(xg.home - xg.away);
     if (xgGap >= 1 && (xg.home >= xg.away ? 'home' : 'away') !== winner) {
-      t.add(W.againstTheRun * Math.min(1, 0.5 + 0.5 * (xgGap - 1)), `The ${winner === fav ? 'favorite' : 'winner'} won despite ${xgGap.toFixed(1)} fewer expected goals`);
+      t.add(W.againstTheRun * Math.min(1, 0.5 + 0.5 * (xgGap - 1)), `The ${winner === fav ? 'favorite' : 'winner'} won despite ${xgGap.toFixed(1)} less xG`);
     }
   }
   if (n === 0 && (xg ? xgTotal < 1.5 : f.shotsOnTarget <= 4)) {
-    t.add(-W.dullGoalless, xg ? `Goalless with chances worth only ${xgTotal.toFixed(1)} expected goals` : `Goalless with only ${plural(f.shotsOnTarget, 'shot')} on target`);
+    t.add(-W.dullGoalless, xg ? `Goalless with chances worth only ${xgTotal.toFixed(1)} xG` : `Goalless with only ${plural(f.shotsOnTarget, 'shot')} on target`);
   }
   t.add(W.redCard * Math.min(f.reds.length, 2), plural(f.reds.length, 'red card'));
   t.add(W.penalty * Math.min(f.pens.length, 2), plural(f.pens.length, 'penalty', 'penalties'));
