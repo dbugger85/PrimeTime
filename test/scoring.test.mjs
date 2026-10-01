@@ -418,7 +418,9 @@ test('a score that is not a number is refused; a missing fact is left out', () =
   assert.throws(() => finalScore(NaN));
   const t = tally();
   t.add(2, 'two');
-  t.add(NaN, 'missing');
+  const log = console.log;
+  console.log = () => {}; // the warning is expected here; don't show it in every GitHub run
+  try { t.add(NaN, 'missing'); } finally { console.log = log; }
   assert.equal(t.total, 2);
   assert.deepEqual(t.reasons, [[2, 'two']]);
 });
