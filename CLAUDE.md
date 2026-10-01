@@ -20,7 +20,7 @@ Run `npm test` and `npm run e2e` after changes, and look at the screenshots afte
 
 ## How it runs
 
-The GitHub Actions workflow `.github/workflows/update.yml` is triggered every 15 minutes, on every push to `main`, and by hand. It runs `scripts/auto.mjs`, which picks one of two scripts:
+The GitHub Actions workflow `.github/workflows/update.yml` is triggered every 5 minutes (by cron-job.org, see "Outside trigger"), on every push to `main`, and by hand. It runs `scripts/auto.mjs`, which picks one of two scripts:
 - **Full build** (`scripts/build.mjs`, `npm run build`): runs when `state.lastFull` is about 3 hours old, and on every push or manual run (`FULL=1`). It fetches everything and rebuilds the upcoming list.
 - **Live check** (`scripts/live.mjs`, `npm run live`): runs otherwise. It only looks at upcoming events in their "in play" window, meaning from 10 minutes before the start until 4 h after (football) or 6 h after (F1 and tennis). It marks them live, scores them once finished, and moves them to replays. From 90 minutes before kick-off (`LINEUP_MINUTES`) it also asks ESPN for football line-ups, once per match and run, until both teams have them (see "Line-ups" below). With nothing on, it makes zero requests and changes nothing. To test it, `NOW=2026-09-25T21:00Z npm run live` pretends it's another time.
 - Both scripts read and write the data files through `src/store.mjs`. Because it's all one workflow in one concurrency group, two runs never write at once. Publishing (the `deploy` job) only happens when the data or the code changed.
@@ -41,12 +41,14 @@ There's no server and there are no API keys. **Don't commit `docs/data/*.json`, 
 
 ## Outside trigger (cron-job.org)
 
-GitHub's built-in `schedule` never fired for this repo, even after disabling and re-enabling the workflow. So a free cron-job.org job starts the workflow every 15 minutes:
+GitHub's built-in `schedule` never fired for this repo, even after disabling and re-enabling the workflow. So a free cron-job.org job starts the workflow **every 5 minutes** (since 1 October 2026; it was every 15 before):
 - **Request:** `POST https://api.github.com/repos/dbugger85/PrimeTime/actions/workflows/update.yml/dispatches`
 - **Body:** `{"ref":"main","inputs":{"mode":"auto"}}`
 - **Headers:** `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`
 - **Token:** a fine-grained GitHub token limited to this repo, with only **Actions: Read and write**. It expires after at most a year, so renew it in GitHub settings and paste the new one into cron-job.org.
 - A successful call returns HTTP 204.
+
+- While a long full build runs (up to about 20 minutes), the 5-minute triggers queue up. GitHub keeps only the newest waiting run in the `update` concurrency group and marks the older ones **cancelled**. That's expected and harmless: nothing was skipped that the next run doesn't do.
 
 The `schedule:` block stays as a backup. A manual "Run workflow" defaults to mode `full`.
 
@@ -81,7 +83,7 @@ Clubs announce their starting 11 about 75 minutes before kick-off, and ESPN's `s
 - `lineupFields()` in `publish.mjs` copies only the formation, the starters' shirt numbers, names and positions, and the bench's numbers and names (anything odd becomes `''`). No substitutions, cards or goals. `checkLineups` in the spoiler test checks the shape, and the text scans skip `lineups` (a formation looks like a score).
 - **Where they're found:** the live check (from 90 minutes before), the full build for matches starting within 90 minutes (it keeps the ones the live check already found, because it rebuilds `upcoming` from scratch), and the summary that's fetched anyway when a match is scored. So replays have them too (the owner wanted that). Football version 11 re-fetched the older replays to fill them in.
 - **On the page:** a "▸ Line-ups" button on upcoming, live and replay football cards, hidden until there are line-ups, closed by default, and remembered for this visit only (`lineupsOpen`, `fillLineups()` in `app.js`). Inside, each team's bench has its own "▸ Bench (12)" button (`benchOpen`, keyed `<id>:<team index>`), to keep the card short.
-- The owner's cron-job.org job runs every 15 minutes, so line-ups appear up to about 15 minutes after ESPN has them. Every 5 minutes would also be fine and free.
+- The owner's cron-job.org job runs every 5 minutes, so line-ups appear up to about 5 minutes after ESPN has them (plus a minute or two to publish).
 
 ## Pre-match hints (football): forecast and what's at stake
 

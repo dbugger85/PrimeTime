@@ -1,4 +1,4 @@
-// The light, frequent check (every 15 minutes). It only looks at events that are
+// The light, frequent check (every 5 minutes). It only looks at events that are
 // live or about to start, according to the upcoming list the full build made:
 //   - adds football line-ups once ESPN has them (about 75 minutes before kick-off),
 //   - marks them LIVE when they start,

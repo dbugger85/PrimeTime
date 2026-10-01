@@ -1,9 +1,9 @@
-# Every 15 minutes: scripts/auto.mjs runs the full build when one is due (every
+# Every 5 minutes: scripts/auto.mjs runs the full build when one is due (every
 # 3 hours) and otherwise the light live check, which does nothing when no event
 # is on. Pushes to main and manual runs (mode "full") always do the full build.
 #
 # GitHub's own schedule proved unreliable (it never started for this repo), so an
-# outside cron service (cron-job.org) also starts this workflow every 15 minutes
+# outside cron service (cron-job.org) starts this workflow every 5 minutes
 # through the API with mode "auto". See "Outside trigger" in CLAUDE.md.
 # Everything runs in this one workflow, so two runs never write the data at once.
 name: Update and publish
