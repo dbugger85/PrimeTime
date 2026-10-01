@@ -1,0 +1,76 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Viking FK (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401873920@primetime
+DTSTAMP:20260904T190000Z
+DTSTART:20260904T190000Z
+DTEND:20260904T210000Z
+SUMMARY:Sandefjord – Viking FK
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915448@primetime
+DTSTAMP:20260909T164500Z
+DTSTART:20260909T164500Z
+DTEND:20260909T184500Z
+SUMMARY:VfB Stuttgart – Viking FK
+LOCATION:TV 2 Play
+DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
+ io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843437@primetime
+DTSTAMP:20260913T123000Z
+DTSTART:20260913T123000Z
+DTEND:20260913T143000Z
+SUMMARY:Viking FK – Kristiansund BK
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843444@primetime
+DTSTAMP:20260920T150000Z
+DTSTART:20260920T150000Z
+DTEND:20260920T170000Z
+SUMMARY:Viking FK – Lillestrom
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843455@primetime
+DTSTAMP:20261009T170000Z
+DTSTART:20261009T170000Z
+DTEND:20261009T190000Z
+SUMMARY:SK Brann – Viking FK
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien · Title race\nWatch on TV 2 Play\nhttps://dbugger8
+ 5.github.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915411@primetime
+DTSTAMP:20261013T190000Z
+DTSTART:20261013T190000Z
+DTEND:20261013T210000Z
+SUMMARY:Viking FK – Bayern Munich
+LOCATION:TV 2 Play
+DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
+ io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

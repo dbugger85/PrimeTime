@@ -1,0 +1,54 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Slovenia (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401861057@primetime
+DTSTAMP:20260926T130000Z
+DTSTART:20260926T130000Z
+DTEND:20260926T150000Z
+SUMMARY:Slovenia – Scotland
+LOCATION:TV 2 Play
+DESCRIPTION:Nations League\nWatch on TV 2 Play\nhttps://dbugger85.github.io
+ /PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401861087@primetime
+DTSTAMP:20260929T184500Z
+DTSTART:20260929T184500Z
+DTEND:20260929T204500Z
+SUMMARY:Slovenia – North Macedonia
+LOCATION:TV 2 Play
+DESCRIPTION:Nations League\nWatch on TV 2 Play\nhttps://dbugger85.github.io
+ /PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401861117@primetime
+DTSTAMP:20261003T184500Z
+DTSTART:20261003T184500Z
+DTEND:20261003T204500Z
+SUMMARY:Switzerland – Slovenia
+LOCATION:TV 2 Play
+DESCRIPTION:Nations League\nWatch on TV 2 Play\nhttps://dbugger85.github.io
+ /PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401861143@primetime
+DTSTAMP:20261006T184500Z
+DTSTART:20261006T184500Z
+DTEND:20261006T204500Z
+SUMMARY:Scotland – Slovenia
+LOCATION:TV 2 Play
+DESCRIPTION:Nations League\nWatch on TV 2 Play\nhttps://dbugger85.github.io
+ /PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

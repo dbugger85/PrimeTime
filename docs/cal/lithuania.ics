@@ -1,0 +1,43 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Lithuania (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401861043@primetime
+DTSTAMP:20260924T184500Z
+DTSTART:20260924T184500Z
+DTEND:20260924T204500Z
+SUMMARY:Liechtenstein – Lithuania
+LOCATION:TV 2 Play
+DESCRIPTION:Nations League\nWatch on TV 2 Play\nhttps://dbugger85.github.io
+ /PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401861067@primetime
+DTSTAMP:20260927T130000Z
+DTSTART:20260927T130000Z
+DTEND:20260927T150000Z
+SUMMARY:Lithuania – Azerbaijan
+LOCATION:TV 2 Play
+DESCRIPTION:Nations League\nWatch on TV 2 Play\nhttps://dbugger85.github.io
+ /PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401861119@primetime
+DTSTAMP:20261004T130000Z
+DTSTART:20261004T130000Z
+DTEND:20261004T150000Z
+SUMMARY:Azerbaijan – Lithuania
+LOCATION:TV 2 Play
+DESCRIPTION:Nations League\nWatch on TV 2 Play\nhttps://dbugger85.github.io
+ /PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

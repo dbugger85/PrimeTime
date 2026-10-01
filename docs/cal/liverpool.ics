@@ -1,0 +1,76 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Liverpool (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401879288@primetime
+DTSTAMP:20260904T190000Z
+DTSTART:20260904T190000Z
+DTEND:20260904T210000Z
+SUMMARY:Ipswich Town – Liverpool
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915446@primetime
+DTSTAMP:20260909T190000Z
+DTSTART:20260909T190000Z
+DTEND:20260909T210000Z
+SUMMARY:Liverpool – Atlético Madrid
+LOCATION:TV 2 Play
+DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
+ io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401879279@primetime
+DTSTAMP:20260912T140000Z
+DTSTART:20260912T140000Z
+DTEND:20260912T160000Z
+SUMMARY:Liverpool – Fulham
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401879276@primetime
+DTSTAMP:20260920T130000Z
+DTSTART:20260920T130000Z
+DTEND:20260920T150000Z
+SUMMARY:AFC Bournemouth – Liverpool
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401879264@primetime
+DTSTAMP:20261011T153000Z
+DTSTART:20261011T153000Z
+DTEND:20261011T173000Z
+SUMMARY:Liverpool – Manchester City
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915415@primetime
+DTSTAMP:20261014T164500Z
+DTSTART:20261014T164500Z
+DTEND:20261014T184500Z
+SUMMARY:LASK Linz – Liverpool
+LOCATION:TV 2 Play
+DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
+ io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

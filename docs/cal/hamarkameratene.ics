@@ -1,0 +1,54 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Hamarkameratene (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401873923@primetime
+DTSTAMP:20260905T140000Z
+DTSTART:20260905T140000Z
+DTEND:20260905T160000Z
+SUMMARY:Rosenborg – Hamarkameratene
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843442@primetime
+DTSTAMP:20260913T150000Z
+DTSTART:20260913T150000Z
+DTEND:20260913T170000Z
+SUMMARY:Hamarkameratene – Molde
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843445@primetime
+DTSTAMP:20260920T150000Z
+DTSTART:20260920T150000Z
+DTEND:20260920T170000Z
+SUMMARY:Tromso – Hamarkameratene
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843458@primetime
+DTSTAMP:20261011T150000Z
+DTSTART:20261011T150000Z
+DTEND:20261011T170000Z
+SUMMARY:IK Start – Hamarkameratene
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien · Relegation battle\nWatch on TV 2 Play\nhttps://d
+ bugger85.github.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

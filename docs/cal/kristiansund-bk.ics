@@ -1,0 +1,54 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Kristiansund BK (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401843430@primetime
+DTSTAMP:20260906T171500Z
+DTSTART:20260906T171500Z
+DTEND:20260906T191500Z
+SUMMARY:Kristiansund BK – Tromso
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843437@primetime
+DTSTAMP:20260913T123000Z
+DTSTART:20260913T123000Z
+DTEND:20260913T143000Z
+SUMMARY:Viking FK – Kristiansund BK
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401873922@primetime
+DTSTAMP:20260919T140000Z
+DTSTART:20260919T140000Z
+DTEND:20260919T160000Z
+SUMMARY:Kristiansund BK – Rosenborg
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843456@primetime
+DTSTAMP:20261010T140000Z
+DTSTART:20261010T140000Z
+DTEND:20261010T160000Z
+SUMMARY:Bodo/Glimt – Kristiansund BK
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien · Title race\nWatch on TV 2 Play\nhttps://dbugger8
+ 5.github.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

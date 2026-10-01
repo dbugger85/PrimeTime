@@ -1,0 +1,54 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Tromso (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401843430@primetime
+DTSTAMP:20260906T171500Z
+DTSTART:20260906T171500Z
+DTEND:20260906T191500Z
+SUMMARY:Kristiansund BK – Tromso
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401873926@primetime
+DTSTAMP:20260912T160000Z
+DTSTART:20260912T160000Z
+DTEND:20260912T180000Z
+SUMMARY:Rosenborg – Tromso
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843445@primetime
+DTSTAMP:20260920T150000Z
+DTSTART:20260920T150000Z
+DTEND:20260920T170000Z
+SUMMARY:Tromso – Hamarkameratene
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843454@primetime
+DTSTAMP:20261011T123000Z
+DTSTART:20261011T123000Z
+DTEND:20261011T143000Z
+SUMMARY:Fredrikstad – Tromso
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

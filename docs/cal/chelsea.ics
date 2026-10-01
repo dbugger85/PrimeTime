@@ -1,0 +1,54 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Chelsea (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401879292@primetime
+DTSTAMP:20260906T153000Z
+DTSTART:20260906T153000Z
+DTEND:20260906T173000Z
+SUMMARY:Arsenal – Chelsea
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401879283@primetime
+DTSTAMP:20260912T140000Z
+DTSTART:20260912T140000Z
+DTEND:20260912T160000Z
+SUMMARY:Chelsea – Hull City
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401879275@primetime
+DTSTAMP:20260918T190000Z
+DTSTART:20260918T190000Z
+DTEND:20260918T210000Z
+SUMMARY:Brentford – Chelsea
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401878775@primetime
+DTSTAMP:20261010T140000Z
+DTSTART:20261010T140000Z
+DTEND:20261010T160000Z
+SUMMARY:Chelsea – AFC Bournemouth
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

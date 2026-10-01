@@ -1,0 +1,54 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Tottenham Hotspur (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401878780@primetime
+DTSTAMP:20260905T140000Z
+DTSTART:20260905T140000Z
+DTEND:20260905T160000Z
+SUMMARY:Nottingham Forest – Tottenham Hotspur
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401879277@primetime
+DTSTAMP:20260912T163000Z
+DTSTART:20260912T163000Z
+DTEND:20260912T183000Z
+SUMMARY:Tottenham Hotspur – Everton
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401879269@primetime
+DTSTAMP:20260919T113000Z
+DTSTART:20260919T113000Z
+DTEND:20260919T133000Z
+SUMMARY:Tottenham Hotspur – Aston Villa
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401878773@primetime
+DTSTAMP:20261010T163000Z
+DTSTART:20261010T163000Z
+DTEND:20261010T183000Z
+SUMMARY:Manchester United – Tottenham Hotspur
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

@@ -1,0 +1,54 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Everton (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401879291@primetime
+DTSTAMP:20260906T130000Z
+DTSTART:20260906T130000Z
+DTEND:20260906T150000Z
+SUMMARY:Everton – Manchester United
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401879277@primetime
+DTSTAMP:20260912T163000Z
+DTSTART:20260912T163000Z
+DTEND:20260912T183000Z
+SUMMARY:Tottenham Hotspur – Everton
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401878778@primetime
+DTSTAMP:20260919T140000Z
+DTSTART:20260919T140000Z
+DTEND:20260919T160000Z
+SUMMARY:Everton – Ipswich Town
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401878774@primetime
+DTSTAMP:20261011T130000Z
+DTSTART:20261011T130000Z
+DTEND:20261011T150000Z
+SUMMARY:Hull City – Everton
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

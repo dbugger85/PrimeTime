@@ -1,0 +1,54 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Aalesund (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401843427@primetime
+DTSTAMP:20260904T170000Z
+DTSTART:20260904T170000Z
+DTEND:20260904T190000Z
+SUMMARY:Aalesund – IK Start
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843441@primetime
+DTSTAMP:20260913T150000Z
+DTSTART:20260913T150000Z
+DTEND:20260913T170000Z
+SUMMARY:KFUM Oslo – Aalesund
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401873903@primetime
+DTSTAMP:20260919T160000Z
+DTSTART:20260919T160000Z
+DTEND:20260919T180000Z
+SUMMARY:Molde – Aalesund
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843457@primetime
+DTSTAMP:20261011T150000Z
+DTSTART:20261011T150000Z
+DTEND:20261011T170000Z
+SUMMARY:Aalesund – Sarpsborg FK
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien · Relegation battle\nWatch on TV 2 Play\nhttps://d
+ bugger85.github.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR
