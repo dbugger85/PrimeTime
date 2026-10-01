@@ -490,3 +490,30 @@ test('football with and without xG; points above 7 count less', () => {
   const raw = noXg.reasons.filter(([, l]) => l !== 'Points above 7 count less').reduce((a, [p]) => a + p, 0);
   assert.equal(noXg.score, Math.min(10, Math.round((7 + (raw - 7) * 0.4) * 10) / 10));
 });
+
+test('direct links: TV 2 dates, NRK races, and only safe links get out', async () => {
+  const { tv2Day, nrkMatch } = await import('../src/sources/links.mjs');
+  const { linkFields } = await import('../src/publish.mjs');
+  const now = Date.parse('2026-10-02T10:00:00Z'); // a Friday
+  assert.equal(tv2Day('I dag 18:45', now, true), '2026-10-02');
+  assert.equal(tv2Day('I går 20:30', now, false), '2026-10-01');
+  assert.equal(tv2Day('Man. 20:30', now, true), '2026-10-05');
+  assert.equal(tv2Day('26. sep. 14:45', now, false), '2026-09-26');
+  assert.equal(tv2Day('3. jan. 14:45', now, true), '2027-01-03', 'the nearest year');
+
+  const nrk = fixture('winter/nrk-episodes.json');
+  const race = (comp, name, gender, start) => ({ comp, race: name, gender, start });
+  assert.equal(nrkMatch(race('biathlon', "Men's 15 km mass start", 'men', '2026-03-22T13:00:00Z'), nrk.biathlon)?.titles.title, 'Fellesstart menn - 22.03.2026');
+  assert.equal(nrkMatch(race('biathlon', "Women's 12.5 km mass start", 'women', '2026-03-22T10:00:00Z'), nrk.biathlon)?.titles.title, 'Fellesstart kvinner - 22.03.2026');
+  assert.match(nrkMatch(race('alpine', "Men's slalom", 'men', '2026-03-25T09:00:00Z'), nrk.alpine)?.titles.title ?? '', /^Slalåm 1\. omgang, menn/, 'run 1 of a two-run race');
+  assert.match(nrkMatch(race('alpine', "Women's giant slalom", 'women', '2026-03-25T09:00:00Z'), nrk.alpine)?.titles.title ?? '', /^Storslalåm 1\. omgang, kvinner/);
+  assert.equal(nrkMatch(race('cross-country', "Men's 10 km individual free", 'men', '2025-12-07T12:00:00Z'), nrk['cross-country'])?.titles.title, '10 km fri teknikk, menn - 07.12.2025');
+  assert.equal(nrkMatch(race('biathlon', "Men's 10 km sprint", 'men', '2026-03-22T13:00:00Z'), nrk.biathlon), null, 'no sprint that day');
+
+  const tv2 = 'https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/brann-viking-r6tkf8xy';
+  assert.deepEqual(linkFields({ tv2play: { url: tv2 } }, { replay: true }).links.tv2play, `${tv2}?partner=primetime&play=true`, 'replays start playing');
+  assert.deepEqual(linkFields({ tv2play: { url: tv2 } }, { replay: false }).links.tv2play, `${tv2}?partner=primetime`);
+  assert.equal(linkFields({ nrk: { url: 'https://tv.nrk.no/se?v=ISPO30211226' } }, { replay: true }).links.nrk, 'https://tv.nrk.no/se?v=ISPO30211226&autoplay=true');
+  assert.deepEqual(linkFields({ viaplay: { url: 'https://viaplay.no/sport/fotball/premier-league/arsenal-leeds/s1', until: '2026-10-01T00:00:00Z' } }, { now }), {}, 'Viaplay links stop after about 2 days');
+  assert.deepEqual(linkFields({ tv2play: { url: 'https://evil.example/x' }, nrk: { url: 'https://tv.nrk.no/se?v=x-hoydepunkter' }, hbomax: { url: 'https://play.hbomax.com/x' } }), {}, 'unknown hosts, clips and other services are dropped');
+});

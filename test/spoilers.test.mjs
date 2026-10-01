@@ -20,7 +20,7 @@ import { readdirSync } from 'node:fs';
 const fixture = (path) => JSON.parse(readFileSync(new URL(`./fixtures/${path}`, import.meta.url)));
 
 const ALLOWED = {
-  common: ['id', 'sport', 'comp', 'compName', 'start', 'score', 'segments', 'advice', 'services', 'v'],
+  common: ['id', 'sport', 'comp', 'compName', 'start', 'score', 'segments', 'advice', 'services', 'v', 'links'],
   football: ['teams', 'lineups', 'stakes', 'limited'], // and 'forecast', but only on upcoming matches
   tennis: ['players', 'draw', 'round'],
   f1: ['circuit', 'session'],
@@ -51,6 +51,17 @@ function checkLineups(e) {
   }
 }
 
+// Direct links: only to a known service's own site, never a highlights or clips page.
+const LINK_OK = { tv2play: /^https:\/\/play\.tv2\.no\/sport\//, viaplay: /^https:\/\/viaplay\.no\/sport\//, nrk: /^https:\/\/tv\.nrk\.no\/se\?v=/ };
+function checkLinks(e) {
+  if (!('links' in e)) return;
+  for (const [service, url] of Object.entries(e.links)) {
+    assert.ok(LINK_OK[service]?.test(url), `${e.id}: ${service} link ${url}`);
+    assert.ok(e.services.includes(service), `${e.id}: a link for a service that doesn't show it`);
+    assert.doesNotMatch(url, /klipp|h(o|oe|ø)ydepunkt|highlight|sammendrag|goals|maal|mål/i, `${e.id}: links to clips, not the match`);
+  }
+}
+
 // Pre-match hints: only known codes, never odds or numbers.
 function checkHints(e) {
   if ('stakes' in e) assert.ok(e.stakes in STAKES, `${e.id}: stakes ${e.stakes}`);
@@ -61,6 +72,7 @@ function checkHints(e) {
 
 export function checkEvent(e) {
   checkLineups(e);
+  checkLinks(e);
   checkHints(e);
   assert.ok(!('forecast' in e), `${e.id}: a forecast on a replay could hint at an upset`);
   assert.ok(!('outlook' in e), `${e.id}: an outlook on a replay could hint at an upset`);
@@ -92,7 +104,7 @@ export function checkEvent(e) {
   if (e.sport === 'f1' && !quali) assert.equal(e.segments.length, 10, 'fixed length, so a shortened race is not revealed');
   if (quali) assert.equal(e.segments.length, 3, 'Q1, Q2, Q3');
   if ('session' in e) assert.ok(['qualifying', 'sprint', 'sprint-qualifying'].includes(e.session), `${e.id}: session ${e.session}`);
-  const text = JSON.stringify({ ...e, id: '', start: '', lineups: '' }); // line-ups are checked above
+  const text = JSON.stringify({ ...e, id: '', start: '', lineups: '', links: '' }); // line-ups and links are checked above
   assert.doesNotMatch(text, /\d+\s*[-–:]\s*\d+/, `${e.id}: looks like a score`);
   assert.doesNotMatch(text, BANNED_WORDS, `${e.id}: spoiler word`);
 }
@@ -188,12 +200,13 @@ test('tennis players are listed alphabetically, not winner-last', () => {
 });
 
 export function checkUpcoming(e) {
-  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', ...ALLOWED[e.sport], ...(e.sport === 'football' ? ['forecast', 'outlook'] : [])];
+  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', 'links', ...ALLOWED[e.sport], ...(e.sport === 'football' ? ['forecast', 'outlook'] : [])];
   for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}" on an upcoming event`);
   assert.ok(['upcoming', 'live'].includes(e.status));
   checkLineups(e);
+  checkLinks(e);
   checkHints(e);
-  const text = JSON.stringify({ ...e, id: '', start: '', lineups: '' });
+  const text = JSON.stringify({ ...e, id: '', start: '', lineups: '', links: '' });
   assert.doesNotMatch(text, /\d+\s*[-–:]\s*\d+/, `${e.id}: looks like a score`);
 }
 

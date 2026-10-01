@@ -46,10 +46,17 @@ const fmt = new Intl.DateTimeFormat('en-GB', {
 });
 
 // A new filter starts from the top; starring a favorite keeps your place ("Show more" stays).
-// Streaming-service buttons for a card; the ones you have are highlighted.
+// Streaming-service buttons for a card; the ones you have are highlighted. With a direct
+// link (e.links, from TV 2 Play, Viaplay or NRK) the button goes straight to the match and
+// gets a ▶; otherwise it opens the service's front page.
 const servicePills = (e) => e.services.map((id) => {
-  const a = Object.assign(document.createElement('a'), { href: SERVICES[id].url, target: '_blank', rel: 'noopener', textContent: SERVICES[id].name });
+  const direct = e.links?.[id];
+  const a = Object.assign(document.createElement('a'), { href: direct ?? SERVICES[id].url, target: '_blank', rel: 'noopener', textContent: SERVICES[id].name });
   a.className = 'pill';
+  if (direct) {
+    a.append(Object.assign(document.createElement('span'), { className: 'go', textContent: '▶', ariaHidden: 'true' }));
+    a.title = e.score != null ? 'Plays this match' : 'Opens this match';
+  }
   if (prefs.services.includes(id)) a.classList.add('mine');
   return a;
 });

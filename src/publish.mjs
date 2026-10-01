@@ -118,6 +118,29 @@ export const publishWinter = (race, compName, scored) => ({
   ...winterFields(race),
 });
 
+// Direct links to the match on a service (found by src/sources/links.mjs, kept in state.links).
+// Only known services, only their own web addresses, and never a highlights or clips page.
+// Replays start playing straight away (nothing to browse, nothing to spoil); upcoming and live
+// matches open the match page. `partner=primetime` makes iPhones open the TV 2 app.
+export const LINK_HOSTS = { tv2play: 'https://play.tv2.no/sport/', viaplay: 'https://viaplay.no/sport/', nrk: 'https://tv.nrk.no/se?v=' };
+const NOT_THE_MATCH = /klipp|h(o|oe|ø)ydepunkt|highlight|sammendrag|goals|maal|mål/i;
+export function linkFields(stored, { replay, now = Date.now() } = {}) {
+  const links = {};
+  for (const [service, link] of Object.entries(stored ?? {})) {
+    const url = link?.url;
+    if (!LINK_HOSTS[service] || typeof url !== 'string' || !url.startsWith(LINK_HOSTS[service]) || NOT_THE_MATCH.test(url)) continue;
+    if (link.until && Date.parse(link.until) < now) continue; // Viaplay keeps a match for about 2 days
+    const u = new URL(url);
+    if (service === 'tv2play') {
+      u.searchParams.set('partner', 'primetime');
+      if (replay) u.searchParams.set('play', 'true');
+    }
+    if (service === 'nrk' && replay) u.searchParams.set('autoplay', 'true');
+    links[service] = u.href;
+  }
+  return Object.keys(links).length ? { links } : {};
+}
+
 // Rights entries that run out within `days` days (or already have).
 export function expiringRights(now = new Date(), days = 60) {
   return Object.entries(rights.competitions)

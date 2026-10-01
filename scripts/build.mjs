@@ -19,6 +19,7 @@ import * as f1 from '../src/sources/openf1.mjs';
 import * as winter from '../src/sources/winter.mjs';
 import * as standings from '../src/sources/espn-standings.mjs';
 import * as fotmob from '../src/sources/fotmob.mjs';
+import { updateLinks } from '../src/sources/links.mjs';
 import { forecastOf, outlookOf, stakesFor, STAKES_COMPS } from '../src/prematch.mjs';
 import { publishFootball, publishTennis, publishF1, publishWinter, upcomingFootball, upcomingTennis, upcomingF1, upcomingWinter, expiringRights } from '../src/publish.mjs';
 import { loadData, saveData, warn, saver } from '../src/store.mjs';
@@ -256,6 +257,13 @@ for (const [id, e] of events) {
   if (now - new Date(e.start) > KEEP_DAYS[e.sport] * 864e5) events.delete(id);
 }
 for (const r of expiringRights(now)) warn(`Streaming rights need checking: ${r} (src/rights/norway.json)`);
+
+// Direct links to the match on TV 2 Play, Viaplay and NRK (optional: failures just keep the front-page link).
+try {
+  console.log(await updateLinks(state, [...events.values()], upcoming, now.getTime()));
+} catch (err) {
+  warn(`direct links: ${err.message}`);
+}
 
 if (!only) state.lastFull = now.toISOString(); // the live check uses this to know when a full build is due
 state.versions = { ...SCORING_VERSIONS };

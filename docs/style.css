@@ -204,6 +204,7 @@ body[data-view="upcoming"] .replay-only { display: none; }
   background: var(--chip); color: var(--ink); text-decoration: none;
 }
 .pill.mine { background: var(--accent); color: var(--accent-ink); }
+.pill .go { font-size: 0.75em; margin-left: 0.4em; }
 .watched {
   border: 1px solid var(--line); background: transparent; border-radius: 8px;
   min-height: 36px; padding: 0 10px; font-size: 13px; cursor: pointer; color: var(--muted);

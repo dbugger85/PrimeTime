@@ -7,6 +7,7 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { writeCalendars } from './calendar.mjs';
+import { linkFields } from './publish.mjs';
 
 const root = new URL('..', import.meta.url);
 const EVENTS = new URL('docs/data/events.json', root);
@@ -39,9 +40,15 @@ export function loadData() {
 
 // Writes all the files. Returns a one-line summary.
 export function saveData({ events, upcoming, reasons, results, state }, now = new Date()) {
-  const list = [...events.values()].sort((a, b) => b.start.localeCompare(a.start));
+  // Direct links to the match (state.links, see src/sources/links.mjs) go onto every event here,
+  // so both the full build and the live check publish them.
+  const withLinks = (e, replay) => {
+    const { links, ...rest } = e;
+    return { ...rest, ...linkFields(state.links?.[e.id], { replay, now: now.getTime() }) };
+  };
+  const list = [...events.values()].map((e) => withLinks(e, true)).sort((a, b) => b.start.localeCompare(a.start));
   // An event that finished and got scored shouldn't also be listed as upcoming.
-  const soon = [...new Map(upcoming.filter((e) => !events.has(e.id)).map((e) => [e.id, e])).values()]
+  const soon = [...new Map(upcoming.filter((e) => !events.has(e.id)).map((e) => [e.id, withLinks(e, false)])).values()]
     .sort((a, b) => a.start.localeCompare(b.start));
   mkdirSync(new URL('docs/data/', root), { recursive: true });
   mkdirSync(new URL('data/', root), { recursive: true });

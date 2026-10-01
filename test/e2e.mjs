@@ -246,6 +246,9 @@ try {
     await page.click('#views [data-view="replays"]');
     await page.waitForSelector('.card .num');
     await checkLineups(page, 'replay');
+    // Direct links: a ▶ on the button, straight to the match on the service's own site.
+    const direct = await page.$$eval('.card .svc a.pill:has(.go)', (els) => els.map((a) => a.href));
+    if (direct.length) assert.ok(direct.every((u) => /^https:\/\/(play\.tv2\.no|viaplay\.no|tv\.nrk\.no)\//.test(u)), `odd direct link: ${direct[0]}`);
 
     // Starring a team after "Show more" keeps your place (it used to jump back to 40 cards).
     await page.click('#sports [data-sport="football"]');
