@@ -77,18 +77,25 @@ export const fetchResultPage = (sector, raceId) => get(`results.html?sectorcode=
 const TIME = /^(\d+:){0,2}\d{1,2}\.\d{1,2}$/; // 59.87, 1:07.80, 2:05:32.1
 export const secondsOf = (s) => (s ? s.replace('+', '').split(':').map(Number).reduce((a, p) => a * 60 + p, 0) : null);
 
-// One race's result: { name, rows: [{ rank, bib, name, nation, times: [...] }], unranked }.
+// One race's result: { name, rows: [{ rank, bib, name, nation, times: [...] }], unranked, out }.
 // Alpine two-run rows have times [run1, run2, total]; one-run and cross-country rows [total].
+// `out` lists unranked skiers who have a run-1 time (they went out or were disqualified in
+// run 2): they still count for the order after run 1.
 export function resultFromPage(html) {
   const head = texts(html.slice(html.indexOf('event-header__inner'), html.indexOf('event-header__inner') + 3000));
   const rows = [];
   let unranked = 0;
+  const out = [];
   for (const chunk of html.split(/<a class="table-row"/).slice(1)) {
     if (!/athlete-biography/.test(chunk.slice(0, 300))) continue;
     const t = texts(chunk.slice(0, chunk.indexOf('</a>'))).slice(1); // the first piece is the link's attributes
     // Ranked rows: rank, bib, FIS code, name, year, nation, times… Unranked (DNF, DSQ): bib, code, name, …
     const ranked = /^\d{5,}$/.test(t[2] ?? '') && /^\d+$/.test(t[0]);
-    if (!ranked) { unranked++; continue; }
+    if (!ranked) {
+      unranked++;
+      if (TIME.test(t[5] ?? '')) out.push({ bib: Number(t[0]), name: t[2], nation: t[4], run1: secondsOf(t[5]) });
+      continue;
+    }
     // After the times comes the gap to the winner ("+0.58"; the winner's own row
     // repeats their time there), then FIS points. Keep only the times.
     const rest = t.slice(6);
@@ -97,7 +104,7 @@ export function resultFromPage(html) {
     const timesList = (gapAt < 0 ? rest : rest.slice(0, gapAt)).filter((x) => TIME.test(x));
     rows.push({ rank: Number(t[0]), bib: Number(t[1]), name: t[3], nation: t[5], times: timesList.map(secondsOf) });
   }
-  return { place: head[1] ?? '', series: head[2] ?? '', name: head[3] ?? '', rows, unranked };
+  return { place: head[1] ?? '', series: head[2] ?? '', name: head[3] ?? '', rows, unranked, out };
 }
 
 const nameOf = (r) => `${r.name.split(' ').map((w) => (w === w.toUpperCase() && w.length > 1 ? w[0] + w.slice(1).toLowerCase() : w)).join(' ')} (${r.nation})`;
@@ -116,12 +123,15 @@ export function alpineFacts(page) {
     result: podium(rows, gap),
   };
   if (runs === 2) {
-    // Run 1 order, among everyone with a run-1 time in the result.
-    const run1 = rows.filter((r) => r.times.length >= 3).sort((a, b) => a.times[0] - b.times[0]);
-    const run1Rank = new Map(run1.map((r, i) => [r, i + 1]));
+    // Run 1 order, among everyone with a run-1 time, including those who went out in run 2.
+    const run1 = [
+      ...rows.filter((r) => r.times.length >= 3).map((r) => ({ row: r, time: r.times[0], rank: r.rank })),
+      ...(page.out ?? []).map((o) => ({ row: o, time: o.run1, rank: null })),
+    ].sort((a, b) => a.time - b.time);
+    const run1Rank = new Map(run1.map((x, i) => [x.row, i + 1]));
     f.winnerRun1 = run1Rank.get(rows[0]);
-    f.run1LeaderFinish = run1[0].rank;
-    f.run1Spread = run1[4] ? run1[4].times[0] - run1[0].times[0] : null; // top 5 after run 1
+    f.run1LeaderFinish = run1[0].rank; // null: the leader went out in run 2
+    f.run1Spread = run1[4] ? run1[4].time - run1[0].time : null; // top 5 after run 1
     f.bigMover = rows.slice(0, 10).some((r) => run1Rank.get(r) - r.rank >= 10);
     f.result += ` (winner ${run1Rank.get(rows[0])}. after run 1)`;
   } else {

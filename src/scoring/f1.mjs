@@ -18,7 +18,7 @@ export function scoreF1(f, { sprint = false } = {}) {
   t.add(W.base, 'Base');
 
   t.add((Math.min(f.overtakes.length / share, 60) / 60) * W.overtakes, `${plural(f.overtakes.length, 'overtake')} on track (pit stops not counted)`);
-  t.add(Math.min(W.top5Overtake * (top5.length / share), 1.5), `${plural(top5.length, 'overtake')} for a top-5 place`);
+  t.add(Math.min(W.top5Overtake * (top5.length / share), W.top5OvertakesMax), `${plural(top5.length, 'overtake')} for a top-5 place`);
   t.add(W.leadChange * Math.min(f.leadChanges.length, 3), `The lead changed ${times(f.leadChanges.length)}`);
   const neutralised = [
     f.safetyCars.length && plural(f.safetyCars.length, 'safety car'),
@@ -28,7 +28,7 @@ export function scoreF1(f, { sprint = false } = {}) {
   t.add(Math.min(W.safetyCar * f.safetyCars.length + W.virtualSafetyCar * f.vscs.length + W.redFlag * f.redFlags.length, W.neutralisedMax), neutralised);
   const gap = f.gapP2 == null ? null : f.gapP2 / share;
   if (gap != null) t.add(gap < 1 ? W.finishUnder1s : gap < 3 ? W.finishUnder3s : gap < 10 ? W.finishUnder10s : 0, `Won by ${f.gapP2.toFixed(1)} s`);
-  t.add(Math.min(W.retirement * f.dnfs, 1), plural(f.dnfs, 'retirement'));
+  t.add(Math.min(W.retirement * f.dnfs, W.retirementsMax), plural(f.dnfs, 'retirement'));
   if (f.rain) t.add(W.rain, 'Rain during the race');
   const lateFrom = f.totalLaps * 0.8;
   if (top5.some((o) => o.lap > lateFrom) || f.leadChanges.some((l) => l > lateFrom)) t.add(W.lateFight, 'Fights at the front in the last laps');
@@ -48,14 +48,17 @@ export function scoreF1(f, { sprint = false } = {}) {
     values[Math.min(SEGMENTS - 1, Math.floor(((lap - 1) / f.totalLaps) * SEGMENTS))] += perLap[lap];
   }
 
-  return { score, segments: heat(values), advice: f1Advice(score, perLap, f.totalLaps), reasons: t.reasons, result: f.result };
+  return { score, segments: heat(values), advice: f1Advice(score, perLap, f.totalLaps, { redFlag: f.redFlags.length > 0 }), reasons: t.reasons, result: f.result };
 }
 
 // Skip windows in laps. The start (laps 1–3) and the last 15% of the race are
 // always kept: a tip must not hint at whether the finish was exciting.
-export function f1Advice(score, perLap, totalLaps) {
+// After a red flag there are no windows: the race may have been cut short, and
+// "the last 15%" of the laps actually driven would hint at how many there were.
+export function f1Advice(score, perLap, totalLaps, { redFlag = false } = {}) {
   if (score < 3) return { code: 'highlights' };
   if (score >= 9) return { code: 'full' };
+  if (redFlag) return { code: score >= 5 ? 'full' : 'highlights' };
   const to = Math.floor(totalLaps * 0.85) + 1; // perLap[0] is unused, lap n is index n
   const minLen = Math.max(5, Math.round(totalLaps * (score >= 7 ? 0.15 : 0.1)));
   const runs = quietRuns(perLap, { quiet: 1, from: 4, to, minLen, lead: 1 });
@@ -76,14 +79,14 @@ export function scoreQuali(f) {
   if (s10 != null) {
     t.add(s10 < 0.6 ? Q.tightTop10 : s10 < 0.9 ? Q.closeTop10 : s10 < 1.2 ? Q.fairlyCloseTop10 : 0, `Top 10 within ${s10.toFixed(2)} s in Q3`);
   }
-  t.add(Math.min(Q.poleChange * f.poleChanges, 2), `Provisional pole changed hands ${times(f.poleChanges)} in Q3`);
-  t.add(Math.min(Q.latePoleChange * f.latePoleChanges, 1.5), `${times(f.latePoleChanges)} in the last 4 minutes`);
+  t.add(Math.min(Q.poleChange * f.poleChanges, Q.poleChangesMax), `Provisional pole changed hands ${times(f.poleChanges)} in Q3`);
+  t.add(Math.min(Q.latePoleChange * f.latePoleChanges, Q.latePoleChangesMax), `${times(f.latePoleChanges)} in the last 4 minutes`);
   const cut = (m) => (m == null ? 0 : m < 0.02 ? Q.knifeEdgeCut : m < 0.05 ? Q.closeCut : 0);
   t.add(cut(f.q1Cut), `Knocked out of Q1 by ${f.q1Cut?.toFixed(3)} s`);
   t.add(cut(f.q2Cut), `Knocked out of Q2 by ${f.q2Cut?.toFixed(3)} s`);
-  t.add(Math.min(Q.redFlag * f.redFlags.length, 2.5), plural(f.redFlags.length, 'red flag'));
+  t.add(Math.min(Q.redFlag * f.redFlags.length, Q.redFlagsMax), plural(f.redFlags.length, 'red flag'));
   if (f.redFlags.includes(3)) t.add(Q.redFlagInQ3, 'A red flag in Q3');
-  t.add(Math.min(Q.deletedLapQ3 * f.deletedLaps[2], 0.9), `${plural(f.deletedLaps[2], 'lap')} deleted in Q3`);
+  t.add(Math.min(Q.deletedLapQ3 * f.deletedLaps[2], Q.deletedLapsQ3Max), `${plural(f.deletedLaps[2], 'lap')} deleted in Q3`);
   if (f.rain) t.add(Q.rain, 'Rain during the session');
   const score = finalScore(t.total);
 

@@ -145,7 +145,7 @@ export function factsFromRace(race, d) {
     missesByStage,
     leaders, // IBU ids, after each shooting (pursuit and mass start only)
     leadChanges,
-    lastShootingLeaderWon: leaders.length ? leaders.at(-1) === winner?.IBUId : null,
+    lastShootingLeaderWon: leaders.at(-1) ? leaders.at(-1) === winner?.IBUId : null,
     winnerStart: race.discipline === 'PU' ? Number(winner?.StartOrder) || null : null,
     winnerWorst,
     result: podiumText(rows),
@@ -187,7 +187,7 @@ function relayFacts(race, format, d, finished) {
     within30: teams.filter((r) => behind(r) <= 30).length,
     leaders: leaderAfter,
     leadChanges,
-    lastShootingLeaderWon: leaderAfter.length >= 2 ? leaderAfter.at(-2) === teams[0]?.Name : null, // leader at the last handover
+    lastShootingLeaderWon: leaderAfter.at(-2) ? leaderAfter.at(-2) === teams[0]?.Name : null, // leader at the last handover (null: unknown)
     loopsByLeg,
     closeAt,
     missesByStage: loopsByLeg,

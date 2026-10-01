@@ -6,7 +6,16 @@ import { getJson } from '../http.mjs';
 
 const BASE = 'https://site.api.espn.com/apis/site/v2/sports/soccer';
 
-export async function fetchDay(compKey, yyyymmdd) {
+// Each day is fetched once per run: the full build looks at today and yesterday twice
+// (for replays and for "Coming up"), and the second look can use the first answer.
+const dayCache = new Map();
+export function fetchDay(compKey, yyyymmdd) {
+  const key = `${compKey}|${yyyymmdd}`;
+  if (!dayCache.has(key)) dayCache.set(key, fetchDayNow(compKey, yyyymmdd).catch((err) => { dayCache.delete(key); throw err; }));
+  return dayCache.get(key);
+}
+
+async function fetchDayNow(compKey, yyyymmdd) {
   const data = await getJson(`${BASE}/${compKey}/scoreboard?dates=${yyyymmdd}`);
   return (data.events ?? []).map((e) => {
     const c = e.competitions?.[0] ?? {};
@@ -22,6 +31,9 @@ export async function fetchDay(compKey, yyyymmdd) {
     };
   });
 }
+
+// How long before kick-off to start asking for line-ups (they come out about 75 minutes before).
+export const LINEUP_MINUTES = 90;
 
 export const fetchSummary = (compKey, espnId) => getJson(`${BASE}/${compKey}/summary?event=${espnId}`);
 
@@ -145,6 +157,8 @@ export function factsFromSummary(summary) {
     shotsOnTarget: stat('shotsOnTarget'),
     extraTime: status === 'STATUS_FINAL_AET' || status === 'STATUS_FINAL_PEN' || events.some((e) => e.period?.number >= 3),
     shootout: status === 'STATUS_FINAL_PEN' || comp.competitors.some((t) => t.shootoutScore != null),
+    shootoutWinner: home.shootoutScore != null && home.shootoutScore !== away.shootoutScore
+      ? (Number(home.shootoutScore) > Number(away.shootoutScore) ? 'home' : 'away') : null,
   };
 }
 
@@ -164,7 +178,8 @@ export function lineupsFromSummary(summary) {
     const starters = (r?.roster ?? []).filter((p) => p.starter && p.athlete?.displayName);
     if (starters.length !== 11) return null;
     const players = starters
-      .map((p) => [p.jersey ?? '', p.athlete.displayName, p.position?.abbreviation ?? ''])
+      // Once a match is under way ESPN may list starters' position as "SUB": leave that out.
+      .map((p) => [p.jersey ?? '', p.athlete.displayName, p.position?.abbreviation === 'SUB' ? '' : p.position?.abbreviation ?? ''])
       .sort((a, b) => lineOf(a[2]) - lineOf(b[2]) || sideOf(a[2]) - sideOf(b[2]));
     const bench = (r.roster ?? [])
       .filter((p) => !p.starter && p.athlete?.displayName)

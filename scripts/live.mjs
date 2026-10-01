@@ -13,21 +13,15 @@ import { scoreF1, scoreQuali } from '../src/scoring/f1.mjs';
 import * as football from '../src/sources/espn-football.mjs';
 import * as tennis from '../src/sources/espn-tennis.mjs';
 import * as f1 from '../src/sources/openf1.mjs';
-import { getJson } from '../src/http.mjs';
 import { publishFootball, publishTennis, publishF1, upcomingFootball, upcomingTennis, lineupFields } from '../src/publish.mjs';
-import { loadData, saveData } from '../src/store.mjs';
+import { loadData, saveData, warn, saver } from '../src/store.mjs';
 
 const now = process.env.NOW ? new Date(process.env.NOW) : new Date(); // NOW=... pretends it's another time (for testing)
 const data = loadData();
 const { events, reasons, results } = data;
 let upcoming = data.upcoming;
 const before = JSON.stringify([upcoming, [...events.keys()]]);
-const warn = (msg) => console.log(`::warning::${msg}`);
-const save = (event, scored) => {
-  events.set(event.id, event);
-  reasons.set(event.id, scored.reasons);
-  results.set(event.id, scored.result);
-};
+const save = saver(data);
 
 // "In play" window: from `minutesBefore` the start until `hours` after it.
 const inWindow = (e, hours, minutesBefore = 10) => {
@@ -36,10 +30,10 @@ const inWindow = (e, hours, minutesBefore = 10) => {
 };
 const ymd = (iso) => iso.slice(0, 10).replaceAll('-', '');
 
-// Line-ups come out about 75 minutes before kick-off. From 90 minutes before,
+// Line-ups come out about 75 minutes before kick-off. From LINEUP_MINUTES before,
 // ask for each match that doesn't have them yet: one request per match and run,
 // and none once both teams are in.
-const LINEUP_MINUTES = 90;
+const { LINEUP_MINUTES } = football;
 
 async function lineupsFootball() {
   for (const e of upcoming.filter((x) => x.sport === 'football' && !x.lineups && inWindow(x, 4, LINEUP_MINUTES))) {
@@ -57,11 +51,17 @@ async function lineupsFootball() {
 async function liveFootball() {
   await lineupsFootball();
   const active = upcoming.filter((e) => e.sport === 'football' && inWindow(e, 4));
-  // One scoreboard request per competition and day covers all its matches.
-  const days = new Map(active.map((e) => [`${e.comp}|${ymd(e.start)}`, e]));
-  for (const key of days.keys()) {
+  // One scoreboard request per competition and day covers all its matches. ESPN's days are
+  // US Eastern days, so a kick-off before 06:00 UTC is also looked for under the day before.
+  const days = new Set(active.flatMap((e) => {
+    const keys = [`${e.comp}|${ymd(e.start)}`];
+    if (new Date(e.start).getUTCHours() < 6) keys.push(`${e.comp}|${ymd(new Date(Date.parse(e.start) - 864e5).toISOString())}`);
+    return keys;
+  }));
+  for (const key of days) {
     const [compKey, day] = key.split('|');
     const comp = FOOTBALL.find((c) => c.key === compKey);
+    if (!comp) continue; // a competition that was removed from competitions.mjs
     for (const m of await football.fetchDay(compKey, day)) {
       const id = `fb-${m.espnId}`;
       const old = upcoming.find((e) => e.id === id);
@@ -100,7 +100,7 @@ async function liveF1() {
       continue;
     }
     const sessionKey = Number(e.id.slice(3));
-    const [session] = await getJson(`https://api.openf1.org/v1/sessions?session_key=${sessionKey}`, { gapMs: 700 });
+    const session = await f1.fetchSession(sessionKey);
     if (!session) continue;
     const finished = new Date(session.date_end).getTime() + 3600e3 < now.getTime();
     if (!finished) {

@@ -13,26 +13,20 @@ import { scoreFootball } from '../src/scoring/football.mjs';
 import { scoreTennis } from '../src/scoring/tennis.mjs';
 import { scoreF1, scoreQuali } from '../src/scoring/f1.mjs';
 import * as football from '../src/sources/espn-football.mjs';
+import { LINEUP_MINUTES } from '../src/sources/espn-football.mjs';
 import * as tennis from '../src/sources/espn-tennis.mjs';
 import * as f1 from '../src/sources/openf1.mjs';
 import * as winter from '../src/sources/winter.mjs';
 import * as standings from '../src/sources/espn-standings.mjs';
 import { forecastOf, stakesFor, STAKES_COMPS } from '../src/prematch.mjs';
 import { publishFootball, publishTennis, publishF1, publishWinter, upcomingFootball, upcomingTennis, upcomingF1, upcomingWinter, expiringRights } from '../src/publish.mjs';
-import { loadData, saveData } from '../src/store.mjs';
-
-const warn = (msg) => console.log(`::warning::${msg}`);
+import { loadData, saveData, warn, saver } from '../src/store.mjs';
 
 const now = new Date();
 const only = process.argv[2];
 const data = loadData();
 const { events, reasons, results } = data;
-// Saves a scored event: the spoiler-free card data, and separately the reasons behind its score.
-const save = (event, scored) => {
-  events.set(event.id, event);
-  reasons.set(event.id, scored.reasons);
-  results.set(event.id, scored.result);
-};
+const save = saver(data);
 let state = data.state;
 // A sport's formula or weights changed: forget which days and Slams are done, so they're fetched again.
 state.versions ??= {};
@@ -74,6 +68,7 @@ async function buildFootball() {
     for (let ago = KEEP_DAYS.football; ago >= 0; ago--) {
       const day = ymd(daysAgo(ago));
       if (done.has(day)) continue;
+      if (outOfTime()) continue; // no time left to score anything: don't even fetch the day
       const matches = await football.fetchDay(comp.key, day);
       let complete = true;
       for (const m of matches) {
@@ -100,7 +95,6 @@ async function buildFootball() {
 
 // Keeps the line-ups the live check found, and looks for them itself for
 // matches starting within LINEUP_MINUTES (the live check doesn't run when this does).
-const LINEUP_MINUTES = 90;
 const previous = new Map(data.upcoming.map((e) => [e.id, e])); // the last run's upcoming list
 async function lineupsFor(comp, m) {
   const known = previous.get(`fb-${m.espnId}`)?.lineups;
@@ -150,7 +144,8 @@ async function buildUpcomingFootball() {
       }
     }
   }
-  // Matches still being played from yesterday evening (or with the day boundary in UTC).
+  // Matches still being played from yesterday evening. (ESPN's days are US Eastern days, so
+  // a late kick-off in UTC terms can be listed under the day before.)
   for (const comp of FOOTBALL) {
     for (const m of await football.fetchDay(comp.key, ymd(daysAgo(1)))) {
       if (m.state === 'in') upcoming.push(await upcomingEntry(comp, m));
@@ -191,15 +186,20 @@ async function buildF1() {
       continue;
     }
     const id = `f1-${race.sessionKey}`;
-    if (isCurrent(id) || now - new Date(race.start) > KEEP_DAYS.f1 * 864e5 || outOfTime()) continue;
+    if (isCurrent(id) || now - new Date(race.start) > KEEP_DAYS.f1 * 864e5) continue;
+    // Over, but not scored yet (no result from OpenF1, or out of time): keep it on the
+    // site as LIVE for up to a day, like a football match before the next run scores it.
+    const pending = () => { if (now - new Date(race.start) < 864e5) upcoming.push(upcomingF1({ ...race, live: true })); };
+    if (outOfTime()) { pending(); continue; }
     try {
       const data = quali ? await f1.fetchQualiData(race.sessionKey) : await f1.fetchRaceData(race.sessionKey);
-      if (!data) continue; // results not published yet; try next run
+      if (!data) { pending(); continue; } // results not published yet; try next run
       const scored = quali ? scoreQuali(f1.factsFromQuali(data)) : scoreF1(f1.factsFromRace(data), { sprint: race.session === 'sprint' });
       save(publishF1(race, scored), scored);
       console.log(`f1: ${race.name} ${f1.SESSIONS[race.session].toLowerCase()} ${year}`);
     } catch (err) {
       if (err.f1Live) throw err; // every other request would be refused too
+      pending();
       warn(`f1 ${race.name} ${year}: ${err.message}`);
     }
   }

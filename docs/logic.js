@@ -146,7 +146,7 @@ export function filterUpcoming(list, prefs) {
   return list
     .filter((e) => matchesCommon(e, prefs))
     .filter((e) => !prefs.favsOnly || isFavorite(e, prefs.favs, 'upcoming'))
-    .sort((a, b) => (b.status === 'live') - (a.status === 'live') || a.start.localeCompare(b.start));
+    .sort((a, b) => (b.status === 'live') - (a.status === 'live') || Date.parse(a.start) - Date.parse(b.start));
 }
 
 // "Today", "Tomorrow" or e.g. "Sat 4 Oct", in Norwegian time.
@@ -154,7 +154,8 @@ export function dayLabel(iso, now = new Date()) {
   const day = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Oslo' }).format(d); // YYYY-MM-DD
   const d = new Date(iso);
   if (day(d) === day(now)) return 'Today';
-  if (day(d) === day(new Date(now.getTime() + 864e5))) return 'Tomorrow';
+  // Tomorrow's date from today's noon, so a 23- or 25-hour day (the clock change) can't skip or repeat a day.
+  if (day(d) === day(new Date(Date.parse(`${day(now)}T12:00:00Z`) + 864e5))) return 'Tomorrow';
   return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Oslo', weekday: 'short', day: 'numeric', month: 'short' }).format(d);
 }
 
@@ -168,9 +169,8 @@ export function filterEvents(events, prefs, watched = new Set(), now = Date.now(
     if (prefs.favsOnly && !isFavorite(e, prefs.favs, 'replays')) return false;
     return true;
   });
-  return prefs.sort === 'score'
-    ? list.sort((a, b) => b.score - a.score || b.start.localeCompare(a.start))
-    : list.sort((a, b) => b.start.localeCompare(a.start));
+  const newest = (a, b) => Date.parse(b.start) - Date.parse(a.start); // the sources write times in different formats
+  return prefs.sort === 'score' ? list.sort((a, b) => b.score - a.score || newest(a, b)) : list.sort(newest);
 }
 
 // prefs.hideTennis / prefs.hideFootball. A race name gives nothing away, so F1 is never hidden.
@@ -283,12 +283,12 @@ export function hiddenTitleOf(event) {
 }
 
 // The lines shown by "Why this score?": [points, label] pairs, biggest first.
-export function reasonLines(reasons, score) {
+export function reasonLines(reasons) {
   const lines = [...reasons].sort((a, b) => Math.abs(b[0]) - Math.abs(a[0]))
     .map(([pts, label]) => ({ pts: `${pts > 0 ? '+' : ''}${pts.toFixed(1)}`, label, negative: pts < 0 }));
   const sum = Math.round(reasons.reduce((a, [p]) => a + p, 0) * 10) / 10;
   const note = sum > 10 ? `Adds up to ${sum.toFixed(1)}, capped at 10` : sum < 0 ? 'Adds up to below 0, so it counts as 0' : '';
-  return { lines, note, score };
+  return { lines, note };
 }
 
 // "Share my settings": the settings travel inside the link itself (after the #, which

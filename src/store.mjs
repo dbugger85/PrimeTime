@@ -15,6 +15,17 @@ const RESULTS = new URL('docs/data/results.json', root);
 const STATE = new URL('data/state.json', root);
 const readJson = (url, fallback) => (existsSync(url) ? JSON.parse(readFileSync(url)) : fallback);
 
+// A GitHub warning: shown in yellow in the run's log and summary.
+export const warn = (msg) => console.log(`::warning::${msg}`);
+
+// Saves a scored event: the spoiler-free card data, and separately the reasons behind
+// its score and the result (each only loaded after its warning on the page).
+export const saver = ({ events, reasons, results }) => (event, scored) => {
+  events.set(event.id, event);
+  reasons.set(event.id, scored.reasons);
+  results.set(event.id, scored.result);
+};
+
 export function loadData() {
   const data = readJson(EVENTS, {});
   return {

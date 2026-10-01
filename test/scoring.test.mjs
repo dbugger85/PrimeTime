@@ -10,7 +10,7 @@ import { factsFromRace, factsFromQuali } from '../src/sources/openf1.mjs';
 import { scoreFootball, footballAdvice } from '../src/scoring/football.mjs';
 import { scoreTennis, tennisAdvice } from '../src/scoring/tennis.mjs';
 import { scoreF1, f1Advice, scoreQuali, qualiAdvice } from '../src/scoring/f1.mjs';
-import { quietRuns, heat, SCORING_VERSIONS } from '../src/scoring/common.mjs';
+import { quietRuns, heat, SCORING_VERSIONS, fingerprint, finalScore, tally } from '../src/scoring/common.mjs';
 import { forecastOf, stakesFor } from '../src/prematch.mjs';
 import { scoreboardOdds } from '../src/sources/espn-football.mjs';
 import { tablesFrom } from '../src/sources/espn-standings.mjs';
@@ -92,10 +92,12 @@ test('football advice: skip windows anywhere before 75, never the last 15 minute
 });
 
 test('football advice on real matches stays before 75 minutes', () => {
-  for (const id of [401843437, 401879269, 401915443, 401879276, 760489, 760492, 760493, 760505, 760508, 760512, 760514, 760516]) {
+  const ids = [401843437, 401879269, 401915443, 401879276, 760489, 760492, 760493, 760505, 760508, 760512, 760514, 760516];
+  for (const id of ids) {
     const { advice } = fb(id);
     if (advice.code === 'skip') assert.ok(advice.ranges.every(([a, b]) => a < b && b <= 75), `${id}`);
   }
+  assert.ok(ids.some((id) => fb(id).advice.code === 'skip'), 'at least one real match gets a skip tip, or this test checks nothing');
 });
 
 test('f1 advice keeps the start and the last 15% of the race', () => {
@@ -208,6 +210,7 @@ test('weights.mjs: every weight is a number from 0 to 5', () => {
     }
   }
   for (const v of Object.values(SCORING_VERSIONS)) assert.match(v, /^\d+\.[0-9a-f]{8}$/, 'each version includes a fingerprint of its weights');
+  assert.notEqual(fingerprint({ ...WEIGHTS.FOOTBALL, goal: 9 }), fingerprint(WEIGHTS.FOOTBALL), 'changing a weight changes the version');
   assert.deepEqual(Object.keys(SCORING_VERSIONS).sort(), ['f1', 'football', 'tennis', 'winter']);
 });
 
@@ -316,6 +319,8 @@ test('alpine: a comeback from 13th after run 1 beats a 1.66 s runaway', () => {
   assert.ok(levi.score <= 3.5, `Levi got ${levi.score}`);
   assert.ok(dh.score >= 6, `downhill by 0.01 s got ${dh.score}`);
   assert.equal(gurgl.segments.length, 2, 'one block per run');
+  // Hallberg was 3rd after run 1 and went out in run 2: he still counts for the run-1 order.
+  assert.equal(fis.alpineFacts(fisPage('alpine-gurgl-2025-men-slalom')).winnerRun1, 14);
   assert.equal(dh.segments.length, 0, 'no strip for one-run races');
 });
 
@@ -387,4 +392,54 @@ test('stakes add a little to the score, and say so', () => {
   const title = scoreFootball({ ...facts, stakes: 'title' });
   assert.ok(title.reasons.some(([, label]) => label === 'Title race before kick-off'));
   assert.ok(title.reasons.reduce((a, [p]) => a + p, 0) > plain.reasons.reduce((a, [p]) => a + p, 0));
+});
+
+test('alpine: "Skip run 1" never depends on who won', () => {
+  const base = { runs: 2, gapP2: 0.1, gapP5: 0.4, run1Spread: 1.3, bigMover: false, result: 'x' };
+  const leaderWon = scoreAlpine({ ...base, winnerRun1: 1, run1LeaderFinish: 1 });
+  const leaderLost = scoreAlpine({ ...base, winnerRun1: 2, run1LeaderFinish: 2 });
+  const leaderOut = scoreAlpine({ ...base, winnerRun1: 2, run1LeaderFinish: null });
+  assert.equal(leaderWon.advice.code, 'skip');
+  assert.deepEqual(leaderLost.advice, leaderWon.advice);
+  assert.deepEqual(leaderOut.advice, leaderWon.advice);
+  assert.ok(leaderOut.reasons.some(([, l]) => /out of the result/.test(l)), 'a run-1 leader who went out is noticed');
+});
+
+test('biathlon relay: an unknown leader at the last handover is not a twist', () => {
+  const { r, d } = fixture('winter/biathlon-ruhpolding-2026-women-relay.json');
+  const stripped = structuredClone(d);
+  for (const row of stripped.results) delete row.TeamRankAfterLeg;
+  const f = biathlonFacts(r, stripped);
+  assert.equal(f.lastShootingLeaderWon, null);
+  assert.ok(!scoreBiathlon(f).reasons.some(([, l]) => /didn't win/.test(l)));
+});
+
+test('a score that is not a number is refused; a missing fact is left out', () => {
+  assert.throws(() => finalScore(NaN));
+  const t = tally();
+  t.add(2, 'two');
+  t.add(NaN, 'missing');
+  assert.equal(t.total, 2);
+  assert.deepEqual(t.reasons, [[2, 'two']]);
+});
+
+test('F1: no skip windows after a red flag (the race may have been cut short)', () => {
+  const quiet = new Array(71).fill(0);
+  assert.equal(f1Advice(5, quiet, 70).code, 'skip');
+  assert.deepEqual(f1Advice(5, quiet, 70, { redFlag: true }), { code: 'full' });
+  assert.deepEqual(f1Advice(4, quiet, 70, { redFlag: true }), { code: 'highlights' });
+});
+
+test('football: an underdog winning on penalties is an upset', () => {
+  const pens = fb(760489); // Germany 1–1 Paraguay, Paraguay (9% to win) won on penalties
+  assert.ok(pens.reasons.some(([, l]) => l === 'Upset: the underdog won on penalties'));
+});
+
+test('stakes: the bottom team is in a relegation battle, 2nd place in a top-4 race', () => {
+  const table = (points) => [{ name: 'PL', rows: points.map((p, i) => ({ team: `T${i + 1}`, rank: i + 1, points: p, played: 28 })) }];
+  const bottom = table([70, 65, 60, 58, 55, 50, 48, 45, 44, 42, 40, 38, 36, 35, 33, 31, 30, 29, 29, 29]);
+  assert.equal(stakesFor(bottom, 'T20', 'T10', 'eng.1'), 'relegation');
+  const top = table([80, 58, 57, 57, 57, 50, 45, ...new Array(13).fill(30)]);
+  assert.equal(stakesFor(top, 'T2', 'T5', 'eng.1'), 'top4');
+  assert.equal(stakesFor(top, 'T2', 'T9', 'eng.1'), null, '9th is too far down');
 });

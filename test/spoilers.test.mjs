@@ -62,6 +62,7 @@ export function checkEvent(e) {
   checkLineups(e);
   checkHints(e);
   assert.ok(!('forecast' in e), `${e.id}: a forecast on a replay could hint at an upset`);
+  assert.ok(typeof e.score === 'number' && e.score >= 0 && e.score <= 10, `${e.id}: score ${e.score} is not 0–10`);
   const allowed = [...ALLOWED.common, ...ALLOWED[e.sport]];
   for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}"`);
   assert.ok(ADVICE_CODES.includes(e.advice.code), `${e.id}: advice ${e.advice.code}`);

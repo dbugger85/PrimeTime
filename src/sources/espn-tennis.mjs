@@ -6,12 +6,15 @@ import { getJson } from '../http.mjs';
 
 const BASE = 'https://site.api.espn.com/apis/site/v2/sports/tennis/atp/scoreboard';
 
-// A day in the middle of each Slam's usual fortnight (month is 1-based), plus backups.
+// Days to try for each Slam (month is 1-based): the middle of its usual fortnight first,
+// then earlier days down to its usual first day, so it's found from day one. `id` is
+// ESPN's tournament id: a Slam that's done (state.slamsDone has "<id>-<year>") isn't
+// downloaded again, which saves about 2 MB per Slam per build.
 const SLAM_PROBES = [
-  { name: 'Australian Open', days: [[1, 25], [1, 21], [1, 29]] },
-  { name: 'Roland Garros', days: [[6, 1], [5, 28], [6, 5]] },
-  { name: 'Wimbledon', days: [[7, 6], [7, 2], [7, 10]] },
-  { name: 'US Open', days: [[9, 6], [9, 2], [8, 30]] },
+  { id: '154', name: 'Australian Open', days: [[1, 25], [1, 21], [1, 18], [1, 29]] },
+  { id: '172', name: 'Roland Garros', days: [[6, 1], [5, 28], [5, 24], [6, 5]] },
+  { id: '188', name: 'Wimbledon', days: [[7, 6], [7, 2], [6, 29], [7, 10]] },
+  { id: '189', name: 'US Open', days: [[9, 6], [9, 2], [8, 30], [8, 31]] },
 ];
 
 const ymd = (y, m, d) => `${y}${String(m).padStart(2, '0')}${String(d).padStart(2, '0')}`;
@@ -20,8 +23,9 @@ const ymd = (y, m, d) => `${y}${String(m).padStart(2, '0')}${String(d).padStart(
 export async function fetchSlams(year, now = new Date(), skipIds = new Set()) {
   const found = [];
   for (const slam of SLAM_PROBES) {
+    if (skipIds.has(`${slam.id}-${year}`)) continue;
     for (const [m, d] of slam.days) {
-      if (new Date(Date.UTC(year, m - 1, d)) > now) break;
+      if (new Date(Date.UTC(year, m - 1, d)) > now) continue; // not that far yet: try an earlier day
       const data = await getJson(`${BASE}?dates=${ymd(year, m, d)}`);
       const event = (data.events ?? []).find((e) => e.major);
       if (event) {

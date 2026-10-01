@@ -37,7 +37,8 @@ export const FOOTBALL = {
   favoriteDiscount: 0.25, //  taken off: share of the favorite's goals, times how big the mismatch was
   underdogBonus: 0.3, //      extra share for the underdog's goals, times how big the mismatch was
   upsetWin: 3.0, //           the underdog won (the full amount when the favorite was 50+ points likelier to win)
-  upsetDraw: 1.5, //          the underdog got a draw (same scale)
+  upsetDraw: 1.5, //          the underdog got a draw, or took the favorite to penalties (same scale)
+  upsetShootout: 2.0, //      the underdog won on penalties (same scale)
   evenMatch: 0.5, //          the teams were evenly matched on paper
 
   // Intensity and drama
@@ -80,7 +81,8 @@ export const TENNIS = {
 export const F1 = {
   base: 1.0, //               every race starts with this
   overtakes: 3.0, //          for 60+ clean overtakes on track (fewer give a share of it)
-  top5Overtake: 0.1, //       each overtake for a top-5 place (up to 1.5 in total)
+  top5Overtake: 0.1, //       each overtake for a top-5 place
+  top5OvertakesMax: 1.5, //   at most this much for top-5 overtakes in total
   leadChange: 0.8, //         each lead change on track (up to 3)
   safetyCar: 0.7, //          each safety car
   virtualSafetyCar: 0.3, //   each virtual safety car
@@ -89,7 +91,8 @@ export const F1 = {
   finishUnder1s: 1.5, //      the winner won by less than 1 second
   finishUnder3s: 1.0, //      … by 1–3 seconds
   finishUnder10s: 0.5, //     … by 3–10 seconds
-  retirement: 0.2, //         each car that retired (up to 1 in total)
+  retirement: 0.2, //         each car that retired
+  retirementsMax: 1.0, //     at most this much for retirements in total
   rain: 0.5, //               it rained during the race
   lateFight: 0.5, //          a fight at the front in the last 20% of the race
 };
@@ -104,13 +107,17 @@ export const F1_QUALIFYING = {
   tightTop10: 1.5, //         the whole top 10 within 0.6 s of pole in Q3
   closeTop10: 0.8, //         … within 0.9 s
   fairlyCloseTop10: 0.3, //   … within 1.2 s
-  poleChange: 0.4, //         each time provisional pole changed hands in Q3 (up to 2 in total)
-  latePoleChange: 0.6, //     each change in the last 4 minutes of Q3 (up to 1.5 in total)
+  poleChange: 0.4, //         each time provisional pole changed hands in Q3
+  poleChangesMax: 2.0, //     at most this much for pole changes in total
+  latePoleChange: 0.6, //     each change in the last 4 minutes of Q3
+  latePoleChangesMax: 1.5, // at most this much for late pole changes in total
   knifeEdgeCut: 0.6, //       a knockout in Q1 or Q2 decided by less than 0.02 s (each)
   closeCut: 0.3, //           … by 0.02–0.05 s (each)
-  redFlag: 0.6, //            each red flag (up to 2.5 in total)
+  redFlag: 0.6, //            each red flag
+  redFlagsMax: 2.5, //        at most this much for red flags in total
   redFlagInQ3: 0.5, //        extra for a red flag in Q3
-  deletedLapQ3: 0.3, //       each lap deleted in Q3, e.g. for track limits (up to 0.9)
+  deletedLapQ3: 0.3, //       each lap deleted in Q3, e.g. for track limits
+  deletedLapsQ3Max: 0.9, //   at most this much for deleted laps in total
   rain: 1.0, //               it rained during the session
 };
 
@@ -132,6 +139,7 @@ export const BIATHLON = {
   fairlyOpenRace: 0.6, //     … 4–5 within 30 s
   bigGroup: 0.8, //           head-to-head: 4 or more within 10 s at the finish
   leadChange: 0.5, //         each time the lead changed after a shooting (up to 2.5)
+  leadChangesMax: 2.5, //     at most this much for lead changes in total
   lastShootingTwist: 1.5, //  the leader after the last shooting (or handover) didn't win
   comebackPursuit: 1.0, //    pursuit won from 6th or further back at the start
   bigComebackPursuit: 1.5, // … from 11th or further back

@@ -49,9 +49,11 @@ function rulesFor(compKey, groupName, size) {
 }
 
 // Leagues (Premier League, Eliteserien, the Champions League table): a team is in a race when
-// it's within 6 points (title, relegation) or 3 points (the rest) of the line, never more than it
-// can still win, and, except for the title, within two places of it. A title race or relegation
-// battle needs one team in it; the other races need both, so mid-table matches stay unlabelled.
+// it's within 6 points (title, relegation) or 3 points (the rest) of the line, and never more
+// than it can still win. On the comfortable side of a line (just above the drop zone, just
+// outside the top 4) it also has to be within two places of it, so mid-table doesn't count;
+// everyone in the drop zone or inside the top 4 who is close on points does. A title race or
+// relegation battle needs one team in it; the other races need both.
 // Groups (Nations League, qualifiers): in a group of 4 nearly every match matters, so a label
 // only appears in the last two rounds, for a head-to-head across the line within 3 points.
 const ONE_TEAM = new Set(['title', 'relegation']);
@@ -81,7 +83,8 @@ export function stakesFor(tables, home, away, compKey) {
   if (played < total / (compKey === 'uefa.champions' ? 2 : 3)) return null;
   const inRace = (r, code, k) => {
     if (left(r) <= 0) return false;
-    if (code !== 'title' && Math.abs(r.rank - (k + 0.5)) > 2) return false; // within two places of the line
+    const comfortable = code === 'relegation' ? r.rank <= k : r.rank > k; // the side that's mostly mid-table
+    if (code !== 'title' && comfortable && Math.abs(r.rank - (k + 0.5)) > 2) return false; // within two places of the line
     const margin = Math.min(ONE_TEAM.has(code) ? 6 : 3, 3 * left(r));
     return r.rank <= k ? r.points - rows[k].points <= margin : rows[k - 1].points - r.points <= margin;
   };

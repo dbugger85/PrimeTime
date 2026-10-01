@@ -27,7 +27,7 @@ export function scoreBiathlon(f) {
   if (!f.h2h) t.add(f.within30 >= 6 ? B.openRace : f.within30 >= 4 ? B.fairlyOpenRace : 0, `${f.within30} within 30 s of the winner`);
   if (f.h2h && f.within10 >= 4) t.add(B.bigGroup, `${f.within10} ${f.relay ? 'teams' : 'athletes'} within 10 s at the finish`);
   if (f.h2h) {
-    t.add(Math.min(B.leadChange * f.leadChanges, 2.5), `The lead changed ${times(f.leadChanges)}`);
+    t.add(Math.min(B.leadChange * f.leadChanges, B.leadChangesMax), `The lead changed ${times(f.leadChanges)}`);
     if (f.lastShootingLeaderWon === false) t.add(B.lastShootingTwist, f.relay ? 'The leader at the last handover didn\'t win' : 'The leader after the last shooting didn\'t win');
   }
   if (f.winnerStart >= 11) t.add(B.bigComebackPursuit, `Won from ${ordinal(f.winnerStart)} at the start`);
@@ -76,8 +76,10 @@ export function scoreAlpine(f) {
   const score = finalScore(t.total);
   // Two-run races: one block per run. Run 2 carries the finish.
   const segments = f.runs === 2 ? heat([f.run1Spread != null ? Math.max(0, 1.5 - f.run1Spread) : 0.5, 1 + (t.total - A.base)]) : [];
+  // "Skip run 1" only looks at run 1 (a big spread at the top), never at who won:
+  // whether the run-1 leader won is exactly what someone who saw run 1 mustn't learn.
   const advice = score < 3 ? { code: 'highlights' }
-    : f.runs === 2 && score < 9 && (f.run1Spread ?? 0) > 1 && f.winnerRun1 > 1 ? { code: 'skip', unit: 'run', ranges: [[1, 1]] }
+    : f.runs === 2 && score < 9 && (f.run1Spread ?? 0) > 1 ? { code: 'skip', unit: 'run', ranges: [[1, 1]] }
     : { code: score >= 5 ? 'full' : 'highlights' };
   return { score, segments, advice, reasons: t.reasons, result: f.result };
 }

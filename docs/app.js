@@ -1,4 +1,4 @@
-import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, f1SessionName, isFavorite, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, teamSlug } from './logic.js';
+import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, teamSlug } from './logic.js';
 
 const SERVICES = {
   viaplay: { name: 'Viaplay', url: 'https://viaplay.no/sport' },
@@ -45,9 +45,39 @@ const fmt = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'Europe/Oslo', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
 });
 
-function savePrefs() {
+// A new filter starts from the top; starring a favorite keeps your place ("Show more" stays).
+// Streaming-service buttons for a card; the ones you have are highlighted.
+const servicePills = (e) => e.services.map((id) => {
+  const a = Object.assign(document.createElement('a'), { href: SERVICES[id].url, target: '_blank', rel: 'noopener', textContent: SERVICES[id].name });
+  a.className = 'pill';
+  if (prefs.services.includes(id)) a.classList.add('mine');
+  return a;
+});
+
+// "Show more (n left)" under the list, when there are more cards than shown.
+function moreButton(total) {
+  $('.more')?.remove();
+  if (total <= limit) return;
+  const more = Object.assign(document.createElement('button'), { type: 'button', className: 'more' });
+  more.textContent = `Show more (${total - limit} left)`;
+  more.onclick = () => { limit += PAGE; render(); };
+  $('#cards').after(more);
+}
+
+// A list whose lines are split at " · " into columns: "36' · 0–1 · Name (Team)".
+function columnsList(lines, className) {
+  const list = Object.assign(document.createElement('ul'), { className });
+  for (const line of lines) {
+    const li = document.createElement('li');
+    li.append(...line.split(' · ').map((part) => Object.assign(document.createElement('span'), { textContent: part })));
+    list.append(li);
+  }
+  return list;
+}
+
+function savePrefs({ keepPlace = false } = {}) {
   store.save('pt-prefs', prefs);
-  limit = PAGE; // a new filter starts from the top
+  if (!keepPlace) limit = PAGE;
 }
 
 const chip = (label, n, pressed, onclick) => {
@@ -135,7 +165,7 @@ let favsOpen = store.load('pt-favs-open', null) ?? !favCount(prefs.favs);
 function setFav(kind, name) {
   prefs.favs = kind === 'f1' ? { ...prefs.favs, f1: !prefs.favs.f1 } : toggleFav(prefs.favs, kind, name);
   if (!favCount(prefs.favs)) prefs.favsOnly = false;
-  savePrefs();
+  savePrefs({ keepPlace: true });
   render();
 }
 
@@ -258,7 +288,6 @@ function card(e) {
   li.dataset.tier = tier.key;
   li.dataset.id = e.id;
   li.classList.toggle('is-watched', watched.has(e.id));
-  li.classList.toggle('is-fav', isFavorite(e, prefs.favs, 'replays'));
   li.querySelector('.num').textContent = e.score.toFixed(1);
   li.querySelector('.tier').textContent = tier.label;
   li.querySelector('.sport').textContent = e.sport === 'winter' ? e.compName : SPORTS[e.sport];
@@ -283,13 +312,7 @@ function card(e) {
   strip.hidden = !prefs.hints || !e.segments.length;
   advice.hidden = !prefs.hints;
 
-  li.querySelector('.svc').append(...e.services.map((id) => {
-    const s = SERVICES[id];
-    const a = Object.assign(document.createElement('a'), { href: s.url, target: '_blank', rel: 'noopener', textContent: s.name });
-    a.className = 'pill';
-    if (prefs.services.includes(id)) a.classList.add('mine');
-    return a;
-  }));
+  li.querySelector('.svc').append(...servicePills(e));
 
   fillLineups(li, e);
 
@@ -319,7 +342,7 @@ function fillWhy(box, e) {
     box.textContent = 'No explanation saved for this event yet.';
     return;
   }
-  const { lines, note } = reasonLines(reasons, e.score);
+  const { lines, note } = reasonLines(reasons);
   const ul = document.createElement('ul');
   for (const l of lines) {
     const li = document.createElement('li');
@@ -338,15 +361,7 @@ function fillWhy(box, e) {
     const { text, goals = [], subs = [] } = typeof saved === 'string' ? { text: saved } : saved;
     const div = Object.assign(document.createElement('div'), { className: 'result' });
     div.append(Object.assign(document.createElement('p'), { className: 'result-text', textContent: text }));
-    if (goals.length) {
-      const list = Object.assign(document.createElement('ul'), { className: 'goals' });
-      for (const g of goals) {
-        const li = document.createElement('li');
-        li.append(...g.split(' · ').map((part) => Object.assign(document.createElement('span'), { textContent: part })));
-        list.append(li);
-      }
-      div.append(list);
-    }
+    if (goals.length) div.append(columnsList(goals, 'goals'));
     if (subs.length) { // behind its own button, like the line-ups
       const subsShown = subsOpen.has(e.id);
       const b = Object.assign(document.createElement('button'), { type: 'button', className: 'subs-btn' });
@@ -354,15 +369,7 @@ function fillWhy(box, e) {
       b.setAttribute('aria-expanded', String(subsShown));
       b.onclick = () => { subsShown ? subsOpen.delete(e.id) : subsOpen.add(e.id); render(); };
       div.append(b);
-      if (subsShown) {
-        const list = Object.assign(document.createElement('ul'), { className: 'goals subs' });
-        for (const s of subs) {
-          const li = document.createElement('li');
-          li.append(...s.split(' · ').map((part) => Object.assign(document.createElement('span'), { textContent: part })));
-          list.append(li);
-        }
-        div.append(list);
-      }
+      if (subsShown) div.append(columnsList(subs, 'goals subs'));
     }
     box.append(div);
   } else {
@@ -396,13 +403,17 @@ async function askSpoiler(id, level) {
   dlg.showModal();
   await new Promise((r) => dlg.addEventListener('close', r, { once: true }));
   if (dlg.returnValue !== 'ok') return;
-  if (!spoilerFiles[level]()) {
-    let file = {};
+  // Fetched once per visit, and again if it doesn't know this event yet (scored while the page was open).
+  if (!spoilerFiles[level]()?.[id]) {
+    let file = spoilerFiles[level]() ?? {};
     try { file = await (await fetch(cfg.file, { cache: 'no-cache' })).json(); } catch { /* shown as "not saved" */ }
     if (level === 'why') reasonsFile = file; else resultsFile = file;
   }
   cfg.shown.add(id);
   render();
+  // The button that was tapped is gone; move the focus to what it opened (for keyboards and screen readers).
+  const panel = document.querySelector(`.card[data-id="${CSS.escape(id)}"] .why`);
+  if (panel) { panel.tabIndex = -1; panel.focus({ preventScroll: true }); }
 }
 
 const timeFmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Oslo', hour: '2-digit', minute: '2-digit' });
@@ -411,7 +422,6 @@ function soonCard(e) {
   const li = $('#soon-tpl').content.firstElementChild.cloneNode(true);
   li.dataset.id = e.id;
   li.classList.toggle('live', e.status === 'live');
-  li.classList.toggle('is-fav', isFavorite(e, prefs.favs, 'upcoming'));
   li.querySelector('.time').textContent = e.status === 'live' ? 'LIVE' : timeFmt.format(new Date(e.start));
   li.querySelector('.tier').textContent = e.status === 'live' ? 'now' : '';
   li.querySelector('.sport').textContent = e.sport === 'winter' ? e.compName : SPORTS[e.sport];
@@ -422,12 +432,7 @@ function soonCard(e) {
   const sub = e.sport === 'tennis' ? subtitleOf(e) : e.sport === 'football' && prefs.preHints ? prematchLine(e) : '';
   li.querySelector('.sub').textContent = sub;
   li.querySelector('.sub').hidden = !sub;
-  li.querySelector('.svc').append(...e.services.map((id) => {
-    const a = Object.assign(document.createElement('a'), { href: SERVICES[id].url, target: '_blank', rel: 'noopener', textContent: SERVICES[id].name });
-    a.className = 'pill';
-    if (prefs.services.includes(id)) a.classList.add('mine');
-    return a;
-  }));
+  li.querySelector('.svc').append(...servicePills(e));
   fillLineups(li, e);
   return li;
 }
@@ -493,13 +498,7 @@ function renderUpcoming() {
     items.push(soonCard(e));
   }
   $('#cards').replaceChildren(...items);
-  $('.more')?.remove();
-  if (list.length > limit) {
-    const more = Object.assign(document.createElement('button'), { type: 'button', className: 'more' });
-    more.textContent = `Show more (${list.length - limit} left)`;
-    more.onclick = () => { limit += PAGE; render(); };
-    $('#cards').after(more);
-  }
+  moreButton(list.length);
   $('#status').textContent = list.length
     ? `${list.length} coming up. No scores here: they appear under Replays once the event has finished.`
     : prefs.favsOnly ? 'None of your favorites are coming up. Turn off “Only favorites” to see everything.' : 'Nothing coming up that matches these filters.';
@@ -510,13 +509,7 @@ function render() {
   if (prefs.view === 'upcoming') return renderUpcoming();
   const list = filterEvents(events, prefs, watched);
   $('#cards').replaceChildren(...list.slice(0, limit).map(card));
-  $('.more')?.remove();
-  if (list.length > limit) {
-    const more = Object.assign(document.createElement('button'), { type: 'button', className: 'more' });
-    more.textContent = `Show more (${list.length - limit} left)`;
-    more.onclick = () => { limit += PAGE; render(); };
-    $('#cards').after(more);
-  }
+  moreButton(list.length);
   const shown = list.length === 1 ? '1 event' : `${list.length} events`;
   $('#status').textContent = events.length
     ? (list.length ? shown : prefs.favsOnly
@@ -578,6 +571,16 @@ function bind() {
   on('#f-watched', 'hideWatched');
 }
 
+// Re-renders without the card you're looking at jumping when a card above it comes or goes:
+// notes the first card on screen and where it is, and scrolls it back to the same spot.
+function keepScroll(fn) {
+  const top = [...document.querySelectorAll('#cards > .card')].find((c) => c.getBoundingClientRect().bottom > 0);
+  const id = top?.dataset.id, before = top?.getBoundingClientRect().top;
+  fn();
+  const again = id && document.querySelector(`#cards > .card[data-id="${CSS.escape(id)}"]`);
+  if (again) scrollBy(0, again.getBoundingClientRect().top - before);
+}
+
 const REFRESH_MS = 5 * 60e3;
 let lastFetch = 0;
 
@@ -591,7 +594,7 @@ async function fetchData({ quiet = false } = {}) {
     if (quiet && data.generated === $('#updated').dataset.generated) return;
     events = data.events ?? [];
     upcoming = data.upcoming ?? [];
-    render(); // keeps filters and "Show more" as they were
+    keepScroll(render); // keeps filters, "Show more" and open panels as they were
     $('#updated').dataset.generated = data.generated;
     $('#updated').textContent = `Updated ${fmt.format(new Date(data.generated))}.`;
   } catch {
@@ -651,15 +654,18 @@ async function importSettings() {
   history.replaceState(null, '', location.pathname + location.search);
   const data = decodeSettings(code, DEFAULTS);
   const dlg = $('#import-dlg');
+  const okBtn = dlg.querySelector('button[value="ok"]');
   if (!data) {
     dlg.querySelector('h2').textContent = 'This settings link is broken';
     dlg.querySelector('.dlg-text').textContent = 'Try copying it again from your other device.';
-    dlg.querySelector('button[value="ok"]').hidden = true;
+    okBtn.hidden = true;
     dlg.showModal();
     return;
   }
-  const f = { ...DEFAULTS.favs, ...data.prefs.favs };
-  const favN = f.teams.length + f.players.length + (f.f1 ? 1 : 0);
+  // Put back what a broken link changed, in case one was opened earlier in this visit.
+  dlg.querySelector('h2').textContent = 'Load these settings?';
+  okBtn.hidden = false;
+  const favN = favCount({ ...DEFAULTS.favs, ...data.prefs.favs });
   const svcN = data.prefs.services?.length ?? 0;
   const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
   dlg.querySelector('.dlg-text').textContent =
@@ -677,10 +683,10 @@ async function importSettings() {
 }
 
 function load() {
-  window.primetimeStarted = true; // tells the safety net in index.html that the app is running
   setupInstall();
   bind();
   renderControls();
+  window.primetimeStarted = true; // tells the safety net in index.html that the app started (set last, so a crash above still shows it)
   fetchData();
   importSettings();
   addEventListener('hashchange', importSettings); // a link opened while the page is already open

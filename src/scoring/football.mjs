@@ -70,6 +70,8 @@ export function scoreFootball(f) {
     const winner = diff > 0 ? 'home' : diff < 0 ? 'away' : null;
     if (gap >= 0.15 && winner && winner !== fav) t.add(ts * W.upsetWin * Math.min(2 * gap, 1), 'Upset: the underdog won');
     else if (gap >= 0.15 && !winner && !f.shootout) t.add(ts * W.upsetDraw * Math.min(2 * gap, 1), 'The underdog held on for a draw');
+    else if (gap >= 0.15 && f.shootoutWinner && f.shootoutWinner !== fav) t.add(ts * W.upsetShootout * Math.min(2 * gap, 1), 'Upset: the underdog won on penalties');
+    else if (gap >= 0.15 && f.shootout) t.add(ts * W.upsetDraw * Math.min(2 * gap, 1), 'The underdog took the favorite to penalties');
     if (gap < 0.2) t.add(ts * W.evenMatch * (1 - gap / 0.2), 'Evenly matched on paper');
   }
   t.add(W.equaliser * equalisers, plural(equalisers, 'equaliser'));
@@ -119,7 +121,8 @@ export function scoreFootball(f) {
 
   // The strip on the card uses 15-minute blocks.
   const blocks = new Array(SEGMENTS).fill(0).map((_, b) => slots[b * 3] + slots[b * 3 + 1] + slots[b * 3 + 2]);
-  return { score, segments: heat(blocks), advice: footballAdvice(score, slots), reasons: t.reasons, result: f.result };
+  // Full heat needs about a goal's worth (4: a goal and a shot or two) in the block.
+  return { score, segments: heat(blocks, { floor: 4 }), advice: footballAdvice(score, slots), reasons: t.reasons, result: f.result };
 }
 
 // Skip windows in whole minutes. The last 15 minutes are never skipped: whether

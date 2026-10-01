@@ -69,7 +69,7 @@ test('names: separate switches for tennis and football, F1 never hidden', () => 
 });
 
 test('reason lines: biggest first, signed, with a cap note', () => {
-  const { lines, note } = reasonLines([[0.5, 'small'], [-1.5, 'one-sided'], [4.8, '4 goals'], [7, 'lots']], 10);
+  const { lines, note } = reasonLines([[0.5, 'small'], [-1.5, 'one-sided'], [4.8, '4 goals'], [7, 'lots']]);
   assert.deepEqual(lines.map((l) => l.pts), ['+7.0', '+4.8', '-1.5', '+0.5']);
   assert.equal(lines[2].negative, true);
   assert.equal(note, 'Adds up to 10.8, capped at 10');
@@ -220,4 +220,19 @@ test('pre-match hints: one short line, or nothing', () => {
   assert.equal(prematchLine({ forecast: 'lively' }), 'Could be lively');
   assert.equal(prematchLine({ stakes: 'relegation' }), 'Relegation battle');
   assert.equal(prematchLine({}), '');
+});
+
+test('"Tomorrow" is right on the nights the clocks change', () => {
+  // 25 Oct 2026: clocks go back, so the day has 25 hours.
+  assert.equal(dayLabel('2026-10-26T08:00:00Z', new Date('2026-10-24T22:30:00Z')), 'Tomorrow'); // 00:30 Sun Oslo → Mon match
+  // 29 Mar 2026: clocks go forward (23 hours).
+  assert.equal(dayLabel('2026-03-29T12:00:00Z', new Date('2026-03-28T22:30:00Z')), 'Tomorrow'); // 23:30 Sat → Sun match
+  assert.equal(dayLabel('2026-03-29T22:30:00Z', new Date('2026-03-28T22:30:00Z')), 'Mon 30 Mar'); // 00:30 Mon is not "tomorrow"
+});
+
+test('sorting reads the times, whatever their format', () => {
+  const a = { id: 'a', start: '2026-10-01T18:00:00+02:00' }; // 16:00 UTC
+  const b = { id: 'b', start: '2026-10-01T17:00Z' };
+  const prefs = { sport: 'all', services: [], comp: 'all', favsOnly: false, favs: { teams: [], players: [], f1: false, winter: [] } };
+  assert.deepEqual(filterUpcoming([b, a].map((e) => ({ ...e, sport: 'f1', services: [], status: 'upcoming' })), prefs).map((e) => e.id), ['a', 'b']);
 });

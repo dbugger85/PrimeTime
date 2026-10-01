@@ -17,13 +17,22 @@ async function fetchPolitely(url, { gapMs = 300, retries = 4 } = {}, read) {
     lastCall.set(host, Date.now());
     let res;
     try {
-      res = await fetch(url, { headers: { 'user-agent': 'PrimeTime (github.com/dbugger85/PrimeTime)' } });
+      // 30 s at most: a server that hangs instead of failing would otherwise use up the whole run.
+      res = await fetch(url, { headers: { 'user-agent': 'PrimeTime (github.com/dbugger85/PrimeTime)' }, signal: AbortSignal.timeout(30e3) });
     } catch (err) {
       if (attempt >= retries) throw err;
       await sleep(1000 * 2 ** attempt);
       continue;
     }
-    if (res.ok) return read(res);
+    if (res.ok) {
+      try {
+        return await read(res);
+      } catch (err) { // the body timed out or was cut off: try again like a failed request
+        if (attempt >= retries) throw err;
+        await sleep(1000 * 2 ** attempt);
+        continue;
+      }
+    }
     if ((res.status === 429 || res.status >= 500) && attempt < retries) {
       await sleep(2000 * 2 ** attempt);
       continue;

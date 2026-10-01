@@ -10,11 +10,18 @@ const get = (path) => getJson(`${BASE}/${path}`, { gapMs: 700, retries: 5 });
 export const SESSIONS = { race: 'Race', qualifying: 'Qualifying', sprint: 'Sprint', 'sprint-qualifying': 'Sprint Qualifying' };
 export const isQualiSession = (session) => session === 'qualifying' || session === 'sprint-qualifying';
 
+// The season's meetings (Grand Prix names), fetched once per year and run.
+const meetingCache = new Map();
+const meetingsOf = (year) => {
+  if (!meetingCache.has(year)) meetingCache.set(year, get(`meetings?year=${year}`).catch((err) => { meetingCache.delete(year); throw err; }));
+  return meetingCache.get(year);
+};
+
 // Races of a season (or other sessions: see SESSIONS), oldest first, each
 // marked finished (ended over an hour ago) or not.
 export async function fetchRaces(year, now = new Date(), session = 'race') {
   const name = encodeURIComponent(SESSIONS[session]);
-  const [sessions, meetings] = [await get(`sessions?year=${year}&session_name=${name}`), await get(`meetings?year=${year}`)];
+  const [sessions, meetings] = [await get(`sessions?year=${year}&session_name=${name}`), await meetingsOf(year)];
   const names = new Map(meetings.map((m) => [m.meeting_key, m.meeting_name]));
   return sessions
     .filter((s) => !s.is_cancelled)
@@ -31,6 +38,15 @@ export async function fetchRaces(year, now = new Date(), session = 'race') {
 
 // OpenF1 answers "404 Not Found" instead of an empty list when it has no rows.
 const maybe = (path) => get(path).catch((err) => { if (/^404/.test(err.message)) return []; throw err; });
+
+// "LANDO NORRIS" -> "Lando Norris" (for the result spoiler), or "Car 4" if unknown.
+function driverName(d, num) {
+  const full = d.drivers?.find((x) => x.driver_number === num)?.full_name;
+  return full ? full.split(' ').map((w) => w[0] + w.slice(1).toLowerCase()).join(' ') : `Car ${num}`;
+}
+
+// One session's times (date_start, date_end), or undefined.
+export const fetchSession = async (sessionKey) => (await maybe(`sessions?session_key=${sessionKey}`))[0];
 
 // Everything the scorer needs for one race. Returns null if OpenF1 has no result yet.
 export async function fetchRaceData(sessionKey) {
@@ -90,10 +106,7 @@ export function factsFromRace(d) {
   const startMoves = moves.filter((o) => o.lap === 1 && !undone(o)).length;
 
   // "1. Lando Norris, 2. …, 3. … (won by 4.4 s)", names in normal case.
-  const nameOf = (num) => {
-    const full = d.drivers?.find((x) => x.driver_number === num)?.full_name;
-    return full ? full.split(' ').map((w) => w[0] + w.slice(1).toLowerCase()).join(' ') : `Car ${num}`;
-  };
+  const nameOf = (num) => driverName(d, num);
   const podium = [1, 2, 3].map((p) => d.result.find((r) => r.position === p)).filter(Boolean);
   const gap = d.result.find((r) => r.position === 2)?.gap_to_leader;
   const result = podium.map((r) => `${r.position}. ${nameOf(r.driver_number)}`).join(', ')
@@ -174,10 +187,7 @@ export function factsFromQuali(d) {
   }
   const q3End = q3Laps.length ? finished(q3Laps.at(-1)) : 0;
 
-  const nameOf = (num) => {
-    const full = d.drivers?.find((x) => x.driver_number === num)?.full_name;
-    return full ? full.split(' ').map((w) => w[0] + w.slice(1).toLowerCase()).join(' ') : `Car ${num}`;
-  };
+  const nameOf = (num) => driverName(d, num);
   const top = d.result.filter((r) => r.position <= 3).sort((a, b) => a.position - b.position);
   const gapP2 = q3.length >= 2 ? best(q3[1], 2) - best(q3[0], 2) : null;
   const result = top.map((r) => `${r.position}. ${nameOf(r.driver_number)}`).join(', ')

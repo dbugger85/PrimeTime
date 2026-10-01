@@ -55,7 +55,7 @@ export function lineupFields(lineups) {
     lineups: lineups.slice(0, 2).map((t) => ({
       formation: /^\d(-\d){1,4}$/.test(t.formation) ? t.formation : '',
       players: t.players.slice(0, 11).map(([n, name, pos]) => [
-        /^\d{1,3}$/.test(n) ? n : '', String(name), /^[A-Z]{1,3}(-[LR])?$/.test(pos) ? pos : ''],
+        /^\d{1,3}$/.test(n) ? n : '', String(name), /^[A-Z]{1,3}(-[LR])?$/.test(pos) && pos !== 'SUB' ? pos : ''],
       ),
       bench: (t.bench ?? []).slice(0, 15).map(([n, name]) => [/^\d{1,3}$/.test(n) ? n : '', String(name)]),
     })),

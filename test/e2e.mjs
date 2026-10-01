@@ -237,8 +237,20 @@ try {
     await page.waitForSelector('.card .num');
     await checkLineups(page, 'replay');
 
-    // Favorites: star a team on a card, filter to favorites only, search, remove.
+    // Starring a team after "Show more" keeps your place (it used to jump back to 40 cards).
     await page.click('#sports [data-sport="football"]');
+    if (await page.$('.more')) {
+      await page.click('.more');
+      const shownBefore = await page.$$eval('#cards > .card', (els) => els.length);
+      const far = (await page.$$('#cards > .card .star')).at(-1); // a star on the last card shown
+      await far.click();
+      assert.equal(await page.$$eval('#cards > .card', (els) => els.length), shownBefore, 'still the same cards after starring');
+      await (await page.$$('#cards > .card .star[aria-pressed="true"]'))[0].click(); // un-star again
+      await page.click('#sports [data-sport="all"]');
+      await page.click('#sports [data-sport="football"]');
+    }
+
+    // Favorites: star a team on a card, filter to favorites only, search, remove.
     assert.ok(await page.$eval('#fav-only', (e) => e.disabled), '"Only favorites" is off until you have one');
     const team = await page.$eval('.card .title .name', (e) => e.firstChild.textContent);
     const other = await page.$eval('.card .title .name:nth-child(2)', (e) => e.firstChild.textContent);

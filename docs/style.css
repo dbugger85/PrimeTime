@@ -1,12 +1,12 @@
-/* Colours are CSS variables. The light set is in :root, and the dark set is
-   repeated in the media query and in :root[data-theme="dark"]. Change both. */
+/* Colours are CSS variables: the light set in :root, the dark set in the media query below. */
 :root {
+  color-scheme: light; /* native controls (dropdowns, the search field) follow the theme */
   --bg: #f3f1ec;
   --surface: #ffffff;
   --ink: #141821;
   --muted: #5d6472;
   --line: #dedad2;
-  --accent: #e8590c;
+  --accent: #c2410c; /* dark enough for white text on it, and for orange text on white (AA) */
   --accent-ink: #ffffff;
   --chip: #ebe8e1;
   --must: #d9480f;
@@ -21,7 +21,8 @@
   --live: #d6336c;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root {
+    color-scheme: dark;
     --bg: #0d1321;
     --surface: #161e30;
     --ink: #eef1f6;
@@ -41,26 +42,6 @@
     --shadow: none;
     --live: #f0457f;
   }
-}
-:root[data-theme="dark"] {
-  --bg: #0d1321;
-  --surface: #161e30;
-  --ink: #eef1f6;
-  --muted: #97a0b3;
-  --line: #26304a;
-  --accent: #ff7a2f;
-  --accent-ink: #0d1321;
-  --chip: #1f2940;
-  --must: #ff7a2f;
-  --good: #f5a524;
-  --decent: #8391a8;
-  --skip: #525d73;
-  --h0: #222c44;
-  --h1: #5a3a2a;
-  --h2: #c2602a;
-  --h3: #ff7a2f;
-  --shadow: none;
-  --live: #f0457f;
 }
 
 * { box-sizing: border-box; }
@@ -94,6 +75,8 @@ h1 { font: 700 32px/1 'Barlow Condensed', system-ui, sans-serif; letter-spacing:
   font-weight: 700; font-size: 16px; cursor: pointer;
 }
 .views button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+/* Two ways filters hide themselves: .replay-only by view (not under Coming up),
+   and data-for="tennis all" by sport (app.js sets hidden). */
 body[data-view="upcoming"] .replay-only { display: none; }
 .day { list-style: none; font-weight: 700; font-size: 14px; color: var(--muted); margin: 10px 2px 0; text-transform: uppercase; letter-spacing: 0.04em; }
 .soon .badge { border-style: dashed; }
@@ -142,8 +125,8 @@ body[data-view="upcoming"] .replay-only { display: none; }
 }
 #fav-hits { margin-top: 8px; }
 #fav-hits .chip { min-height: 36px; font-size: 14px; border-style: dashed; }
-.star {
-  border: 0; background: none; padding: 4px 3px; margin-left: 1px; min-height: 28px;
+.star { /* at least 32 × 32 px, so it's easy to hit next to a name */
+  border: 0; background: none; padding: 0; margin: -4px 0; min-width: 32px; min-height: 32px;
   font-size: 17px; line-height: 1; color: var(--muted); cursor: pointer; vertical-align: -1px;
 }
 .star[aria-pressed="true"] { color: var(--accent); }
@@ -214,7 +197,8 @@ body[data-view="upcoming"] .replay-only { display: none; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
 .svc { display: flex; flex-wrap: wrap; gap: 6px; }
 .pill {
-  font-size: 12.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+  display: inline-flex; align-items: center; min-height: 32px;
+  font-size: 12.5px; font-weight: 600; padding: 0 12px; border-radius: 999px;
   background: var(--chip); color: var(--ink); text-decoration: none;
 }
 .pill.mine { background: var(--accent); color: var(--accent-ink); }
@@ -270,14 +254,14 @@ body[data-view="upcoming"] .replay-only { display: none; }
 }
 .why .result-text { font-weight: 700; }
 .why .goals { margin-top: 6px; gap: 2px; font-size: 14px; font-variant-numeric: tabular-nums; }
-.why .goals li { grid-template-columns: 2.9em 2.6em 1fr; }
+.why .goals li { grid-template-columns: 3.6em 2.6em 1fr; } /* 3.6em fits "90+2'" */
 .why .goals li span:nth-child(-n+2) { color: var(--muted); }
 .why .subs-btn {
   display: block; margin-top: 6px; border: 0; background: none; padding: 6px 0; min-height: 36px;
   color: var(--ink); font-size: 13.5px; font-weight: 600; cursor: pointer;
 }
 .why .subs { margin-top: 2px; }
-.why .subs li { grid-template-columns: 2.9em 1fr; }
+.why .subs li { grid-template-columns: 3.6em 1fr; }
 .why .subs li span:nth-child(2) { color: var(--ink); }
 dialog {
   border: 1px solid var(--line); border-radius: 16px; padding: 20px; max-width: min(92vw, 420px);
