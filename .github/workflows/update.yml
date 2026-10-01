@@ -69,6 +69,8 @@ jobs:
           git config user.name "primetime-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/data/events.json docs/data/reasons.json docs/data/results.json data/state.json
+          mkdir -p docs/cal # git add fails on a folder that isn't there (git doesn't keep empty ones)
+          git add -A docs/cal
           if git diff --cached --quiet; then
             echo "Nothing changed."
             echo "changed=false" >> "$GITHUB_OUTPUT"

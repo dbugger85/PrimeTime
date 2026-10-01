@@ -11,6 +11,9 @@ import { scoreFootball, footballAdvice } from '../src/scoring/football.mjs';
 import { scoreTennis, tennisAdvice } from '../src/scoring/tennis.mjs';
 import { scoreF1, f1Advice, scoreQuali, qualiAdvice } from '../src/scoring/f1.mjs';
 import { quietRuns, heat, SCORING_VERSIONS } from '../src/scoring/common.mjs';
+import { forecastOf, stakesFor } from '../src/prematch.mjs';
+import { scoreboardOdds } from '../src/sources/espn-football.mjs';
+import { tablesFrom } from '../src/sources/espn-standings.mjs';
 import * as WEIGHTS from '../src/scoring/weights.mjs';
 import { factsFromRace as biathlonFacts, seconds } from '../src/sources/ibu.mjs';
 import * as fis from '../src/sources/fis.mjs';
@@ -332,4 +335,56 @@ test('cross-country: a 50 km decided by 0.4 s beats a 22 s interval start', () =
   assert.ok(oslo.score >= 7, `Oslo got ${oslo.score}`);
   assert.ok(lahti.score < 3.5, `Lahti got ${lahti.score}`);
   assert.equal(oslo.segments.length, 0);
+});
+
+test('forecast from the odds: even, lively, one-sided, or nothing', () => {
+  const odds = scoreboardOdds(fixture('football/odds-brann-viking.json')); // +170 / +280 / +120, over 3.5 at -105
+  assert.ok(Math.abs(odds.chances.home + odds.chances.draw + odds.chances.away - 1) < 1e-9);
+  assert.ok(odds.goals > 3.3 && odds.goals < 3.5, `about 3.4 goals expected, got ${odds.goals}`);
+  assert.equal(forecastOf(odds), 'lively');
+  const c = (home, away, goals = 2.6) => forecastOf({ chances: { home, draw: 1 - home - away, away }, goals });
+  assert.equal(c(0.36, 0.37), 'even');
+  assert.equal(c(0.06, 0.85, 4.5), 'one-sided', 'a mismatch is one-sided, however many goals');
+  assert.equal(c(0.47, 0.30, 3.45), 'lively');
+  assert.equal(c(0.64, 0.15, 3.3), null, 'a clear favorite: nothing to say');
+  assert.equal(forecastOf(null), null);
+  assert.equal(scoreboardOdds({ overUnder: 2.5 }), null, 'no win odds, no forecast');
+  const even = scoreboardOdds({ moneyline: { home: { close: { odds: 'EVEN' } }, draw: { close: { odds: '+250' } }, away: { close: { odds: '+260' } } } });
+  assert.ok(even && even.chances.home > even.chances.away, '"EVEN" counts as +100');
+});
+
+test("what's at stake, from the table before the match", () => {
+  const nor = tablesFrom(fixture('football/standings-nor.1-2026-10-01.json')); // Viking and Bodø/Glimt on 50 after 21
+  assert.equal(stakesFor(nor, 'SK Brann', 'Viking FK', 'nor.1'), 'title');
+  assert.equal(stakesFor(nor, 'Bodo/Glimt', 'Kristiansund BK', 'nor.1'), 'title', 'one team in the race is enough in a league');
+  assert.equal(stakesFor(nor, 'IK Start', 'Hamarkameratene', 'nor.1'), 'relegation');
+  assert.equal(stakesFor(nor, 'KFUM Oslo', 'Vålerenga', 'nor.1'), 'relegation');
+  assert.equal(stakesFor(nor, 'Rosenborg', 'Sandefjord', 'nor.1'), null, '5th against 11th: nothing much at stake');
+  assert.equal(stakesFor(nor, 'Lillestrom', 'Molde', 'nor.1'), null, 'a European race needs both teams in it');
+  // Labels must stay the exception: at most about half of all possible pairings.
+  const teams = nor[0].rows.map((r) => r.team);
+  const pairs = teams.flatMap((x) => teams.filter((y) => x < y).map((y) => [x, y]));
+  const labelled = pairs.filter(([x, y]) => stakesFor(nor, x, y, 'nor.1')).length;
+  assert.ok(labelled <= pairs.length * 0.7, `${labelled} of ${pairs.length} Eliteserien pairings labelled`);
+  assert.equal(stakesFor(nor, 'Viking FK', 'Nowhere FC', 'nor.1'), null, 'unknown team');
+  // Nations League groups after 2 of 6 games: too early, and small groups need a head-to-head.
+  const nl = tablesFrom(fixture('football/standings-uefa.nations-2026-10-01.json'));
+  assert.equal(stakesFor(nl, 'Wales', 'Norway', 'uefa.nations'), null);
+  // A group in its last two rounds: only a head-to-head across the line, within 3 points.
+  const group = [{ name: 'Group A1', rows: [['France', 1, 8], ['Belgium', 2, 6], ['Italy', 3, 4], ['Türkiye', 4, 3]].map(([team, rank, points]) => ({ team, rank, points, played: 5 })) }];
+  assert.equal(stakesFor(group, 'France', 'Belgium', 'uefa.nations'), 'group');
+  assert.equal(stakesFor(group, 'Belgium', 'Italy', 'uefa.nations'), 'relegation', 'League A: 3rd and 4th both go down or to a play-off');
+  assert.equal(stakesFor(group, 'Italy', 'Türkiye', 'uefa.nations'), null, 'both below the line');
+  assert.equal(stakesFor(group, 'France', 'Türkiye', 'uefa.nations'), null);
+  // Early in a league season: nothing yet.
+  const early = [{ name: 'x', rows: [1, 2, 3, 4].map((rank) => ({ team: `T${rank}`, rank, points: 9 - rank, played: 1 })) }];
+  assert.equal(stakesFor(early, 'T1', 'T2', 'eng.1'), null);
+});
+
+test('stakes add a little to the score, and say so', () => {
+  const facts = factsFromSummary(fixture('football/760516.json'));
+  const plain = scoreFootball(facts);
+  const title = scoreFootball({ ...facts, stakes: 'title' });
+  assert.ok(title.reasons.some(([, label]) => label === 'Title race before kick-off'));
+  assert.ok(title.reasons.reduce((a, [p]) => a + p, 0) > plain.reasons.reduce((a, [p]) => a + p, 0));
 });

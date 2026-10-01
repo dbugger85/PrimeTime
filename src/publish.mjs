@@ -4,6 +4,7 @@
 
 import { readFileSync } from 'node:fs';
 import { SCORING_VERSIONS } from './scoring/common.mjs';
+import { FORECASTS, STAKES } from './prematch.mjs';
 
 const rights = JSON.parse(readFileSync(new URL('./rights/norway.json', import.meta.url)));
 
@@ -61,10 +62,19 @@ export function lineupFields(lineups) {
   };
 }
 
-export const publishFootball = (comp, match, scored, lineups) => ({
+// What was at stake before kick-off ('title', 'relegation', …; see prematch.mjs), frozen
+// then and kept on the replay: it describes the table before the match, so it's no spoiler.
+const stakesField = (stakes) => (stakes in STAKES ? { stakes } : {});
+
+// The forecast ('even', 'lively', 'one-sided') is for upcoming matches only. On a
+// replay, "looked one-sided" next to a score would hint at an upset. Raw odds never get out.
+const forecastField = (forecast) => (FORECASTS.includes(forecast) ? { forecast } : {});
+
+export const publishFootball = (comp, match, scored, { lineups, stakes } = {}) => ({
   ...base(`fb-${match.espnId}`, 'football', comp.key, comp.name, match.start, scored, comp.key),
   teams: [match.home, match.away],
   ...lineupFields(lineups),
+  ...stakesField(stakes),
 });
 
 // Players are sorted by name: ESPN tends to list the winner second.
@@ -120,10 +130,12 @@ export const upcomingWinter = (race, compName) => ({
   ...winterFields(race),
 });
 
-export const upcomingFootball = (comp, match, lineups) => ({
+export const upcomingFootball = (comp, match, { lineups, stakes, forecast } = {}) => ({
   ...upcomingBase(`fb-${match.espnId}`, 'football', comp.key, comp.name, match.start, match.state === 'in', comp.key),
   teams: [match.home, match.away],
   ...lineupFields(lineups),
+  ...stakesField(stakes),
+  ...forecastField(forecast),
 });
 
 export const upcomingTennis = (match) => ({

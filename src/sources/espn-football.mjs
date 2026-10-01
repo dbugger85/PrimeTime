@@ -18,6 +18,7 @@ export async function fetchDay(compKey, yyyymmdd) {
       away: team('away'),
       finished: Boolean(e.status?.type?.completed),
       state: e.status?.type?.state, // 'pre' (not started), 'in' (playing now) or 'post'
+      odds: scoreboardOdds(c.odds?.[0]), // for the pre-match forecast; never published as such
     };
   });
 }
@@ -37,12 +38,36 @@ const minuteOf = (e) => {
 // Returns { home, draw, away } adding up to 1, or null without odds.
 export function winChances(summary) {
   const o = (summary.pickcenter ?? summary.odds ?? [])[0];
-  const lines = [o?.homeTeamOdds?.moneyLine, o?.drawOdds?.moneyLine, o?.awayTeamOdds?.moneyLine];
+  const chances = fairChances([o?.homeTeamOdds?.moneyLine, o?.drawOdds?.moneyLine, o?.awayTeamOdds?.moneyLine]);
+  return chances && { home: chances[0], draw: chances[1], away: chances[2] };
+}
+
+// Moneyline odds -> chances adding up to 1, or null if any is missing.
+function fairChances(lines) {
   if (!lines.every((m) => Number.isFinite(m) && m !== 0)) return null;
   const raw = lines.map((m) => (m > 0 ? 100 / (m + 100) : -m / (-m + 100)));
   const sum = raw.reduce((a, b) => a + b, 0);
-  const [home, draw, away] = raw.map((p) => p / sum);
-  return { home, draw, away };
+  return raw.map((p) => p / sum);
+}
+
+// The scoreboard has the same odds as text ("+170"), plus the over/under goal line
+// (e.g. 3.5, with prices for over and under). Returns { chances, goals } or null,
+// where `goals` is roughly the expected number of goals: the line, nudged up or
+// down by how likely the bookmaker thinks "over" is.
+export function scoreboardOdds(o) {
+  const price = (x) => {
+    const v = x?.close?.odds ?? x?.open?.odds;
+    return /^even$/i.test(v) ? 100 : Number(v); // "EVEN" is the same as +100
+  };
+  const ml = o?.moneyline;
+  const win = fairChances([price(ml?.home), price(ml?.draw), price(ml?.away)]);
+  if (!win) return null;
+  const over = fairChances([price(o.total?.over), price(o.total?.under)]);
+  const line = Number(o.overUnder);
+  return {
+    chances: { home: win[0], draw: win[1], away: win[2] },
+    goals: Number.isFinite(line) ? line + (over ? 2 * (over[0] - 0.5) : 0) : null,
+  };
 }
 
 // Turns an ESPN summary into the plain facts the scorer needs.

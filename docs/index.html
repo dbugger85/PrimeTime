@@ -58,6 +58,13 @@
     <div id="favs-body">
       <p class="small" id="favs-hint"></p>
       <div class="chips" id="favs"></div>
+      <div class="cal" id="cal" hidden>
+        <button type="button" class="cal-btn" id="cal-btn" aria-expanded="false" aria-controls="cal-body">▸ Add to calendar</button>
+        <div id="cal-body" hidden>
+          <ul class="cal-links" id="cal-links" aria-live="polite"></ul>
+          <p class="small">Your teams' matches with kick-off and where to watch, kept up to date. iPhone: tap Subscribe. Android: tap Copy link, then in Google Calendar on a computer choose Other calendars → From URL and paste it (Google updates it about once a day).</p>
+        </div>
+      </div>
       <input type="search" id="fav-q" placeholder="Add a team, player, F1 or winter sport…" autocomplete="off" aria-label="Search for a team, player, F1 or winter sport">
       <div class="chips" id="fav-hits"></div>
     </div>
@@ -107,6 +114,7 @@
       <label class="check" data-for="tennis all"><input type="checkbox" id="f-hide-tn"> Hide tennis players</label>
       <label class="check" data-for="football all"><input type="checkbox" id="f-hide-fb"> Hide football teams</label>
       <label class="check replay-only"><input type="checkbox" id="f-hints"> Show skip tips</label>
+      <label class="check" data-for="football all"><input type="checkbox" id="f-prehints"> Show pre-match hints</label>
       <label class="check replay-only"><input type="checkbox" id="f-watched"> Hide watched</label>
     </div>
     <p class="small" data-for="tennis football all">Why hide names? In a tournament, just seeing who plays a later round tells you who won earlier. Tap a hidden name to reveal it.</p>

@@ -69,15 +69,16 @@ async function liveFootball() {
       if (m.finished) {
         try {
           const summary = await football.fetchSummary(compKey, m.espnId);
-          const scored = scoreFootball(football.factsFromSummary(summary));
-          save(publishFootball(comp, m, scored, football.lineupsFromSummary(summary) ?? old.lineups), scored);
+          const scored = scoreFootball({ ...football.factsFromSummary(summary), stakes: old.stakes });
+          save(publishFootball(comp, m, scored, { lineups: football.lineupsFromSummary(summary) ?? old.lineups, stakes: old.stakes }), scored);
           upcoming = upcoming.filter((e) => e.id !== id);
           console.log(`scored ${m.home} – ${m.away}`);
         } catch (err) {
           warn(`football ${compKey} ${m.espnId}: ${err.message}`); // try again next time
         }
       } else if (m.state === 'pre' || m.state === 'in') {
-        upcoming = upcoming.map((e) => (e.id === id ? upcomingFootball(comp, m, old.lineups) : e)); // live flag, new kick-off time
+        // Live flag and new kick-off time; the pre-match hints stay as the full build froze them.
+        upcoming = upcoming.map((e) => (e.id === id ? upcomingFootball(comp, m, { lineups: old.lineups, stakes: old.stakes, forecast: old.forecast }) : e));
       } else {
         upcoming = upcoming.filter((e) => e.id !== id); // postponed or cancelled
       }

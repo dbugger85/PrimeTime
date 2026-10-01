@@ -13,12 +13,15 @@ import { publishFootball, publishTennis, publishF1, publishWinter, upcomingFootb
 import { factsFromRace as biathlonFacts } from '../src/sources/ibu.mjs';
 import * as fis from '../src/sources/fis.mjs';
 import { scoreBiathlon, scoreAlpine, scoreCrossCountry } from '../src/scoring/winter.mjs';
+import { STAKES, FORECASTS } from '../src/prematch.mjs';
+import { icsForTeam } from '../src/calendar.mjs';
+import { readdirSync } from 'node:fs';
 
 const fixture = (path) => JSON.parse(readFileSync(new URL(`./fixtures/${path}`, import.meta.url)));
 
 const ALLOWED = {
   common: ['id', 'sport', 'comp', 'compName', 'start', 'score', 'segments', 'advice', 'services', 'v'],
-  football: ['teams', 'lineups'],
+  football: ['teams', 'lineups', 'stakes'], // and 'forecast', but only on upcoming matches
   tennis: ['players', 'draw', 'round'],
   f1: ['circuit', 'session'],
   winter: ['race', 'place', 'series', 'gender'],
@@ -48,8 +51,17 @@ function checkLineups(e) {
   }
 }
 
+// Pre-match hints: only known codes, never odds or numbers.
+function checkHints(e) {
+  if ('stakes' in e) assert.ok(e.stakes in STAKES, `${e.id}: stakes ${e.stakes}`);
+  if ('forecast' in e) assert.ok(FORECASTS.includes(e.forecast), `${e.id}: forecast ${e.forecast}`);
+  assert.doesNotMatch(JSON.stringify(e), /moneyline|overUnder|odds|%/i, `${e.id}: odds leaked`);
+}
+
 export function checkEvent(e) {
   checkLineups(e);
+  checkHints(e);
+  assert.ok(!('forecast' in e), `${e.id}: a forecast on a replay could hint at an upset`);
   const allowed = [...ALLOWED.common, ...ALLOWED[e.sport]];
   for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}"`);
   assert.ok(ADVICE_CODES.includes(e.advice.code), `${e.id}: advice ${e.advice.code}`);
@@ -115,7 +127,7 @@ test('line-ups: only the starters, and only once both teams have 11', () => {
   const lineups = lineupsFromSummary(summary);
   const comp = { key: 'uefa.nations', name: 'Nations League' };
   const match = { espnId: '401861093', start: '2026-10-01T16:00Z', home: 'Azerbaijan', away: 'Liechtenstein', state: 'pre' };
-  const soon = upcomingFootball(comp, match, lineups);
+  const soon = upcomingFootball(comp, match, { lineups });
   checkUpcoming(soon);
   assert.deepEqual(soon.lineups.map((t) => t.formation), ['4-2-3-1', '5-3-2']);
   assert.deepEqual(soon.lineups[0].players[0], ['1', 'Emil Balayev', 'G'], 'goalkeeper first');
@@ -129,16 +141,16 @@ test('line-ups: only the starters, and only once both teams have 11', () => {
   const after = structuredClone(summary);
   for (const r of after.rosters) r.roster.forEach((p, i) => Object.assign(p, { subbedIn: !p.starter && i % 2 === 0, subbedOut: p.starter && i % 3 === 0 }));
   after.rosters[0].roster.reverse();
-  assert.deepEqual(upcomingFootball(comp, match, lineupsFromSummary(after)).lineups.map((t) => t.bench), soon.lineups.map((t) => t.bench));
+  assert.deepEqual(upcomingFootball(comp, match, { lineups: lineupsFromSummary(after) }).lineups.map((t) => t.bench), soon.lineups.map((t) => t.bench));
 
   // A real finished match: the replay shows its line-ups, never who came on.
   const finished = fixture('football/401861083.json');
-  const bulgaria = publishFootball(comp, { ...match, espnId: '401861083' }, scoreFootball(factsFromSummary(finished)), lineupsFromSummary(finished));
+  const bulgaria = publishFootball(comp, { ...match, espnId: '401861083' }, scoreFootball(factsFromSummary(finished)), { lineups: lineupsFromSummary(finished) });
   checkEvent(bulgaria);
   assert.equal(bulgaria.lineups[0].bench.length, 12);
   assert.doesNotMatch(JSON.stringify(bulgaria), /subbed|replaces| on for /i);
 
-  const replay = publishFootball(comp, match, scoreFootball(factsFromSummary(fixture('football/760516.json'))), lineups);
+  const replay = publishFootball(comp, match, scoreFootball(factsFromSummary(fixture('football/760516.json'))), { lineups });
   checkEvent(replay);
   assert.deepEqual(replay.lineups, soon.lineups);
 
@@ -146,7 +158,22 @@ test('line-ups: only the starters, and only once both teams have 11', () => {
   assert.equal(lineupsFromSummary({ rosters: summary.rosters.map((r) => ({ ...r, roster: [] })) }), null);
   assert.equal(lineupsFromSummary({ rosters: [summary.rosters[0]] }), null);
   assert.equal(lineupsFromSummary({}), null);
-  assert.ok(!('lineups' in upcomingFootball(comp, match, null)));
+  assert.ok(!('lineups' in upcomingFootball(comp, match, { lineups: null })));
+});
+
+test('pre-match hints: codes only; the forecast never reaches a replay', () => {
+  const comp = { key: 'nor.1', name: 'Eliteserien' };
+  const match = { espnId: '401843455', start: '2026-10-09T17:00Z', home: 'SK Brann', away: 'Viking FK', state: 'pre' };
+  const soon = upcomingFootball(comp, match, { stakes: 'title', forecast: 'lively' });
+  checkUpcoming(soon);
+  assert.equal(soon.stakes, 'title');
+  assert.equal(soon.forecast, 'lively');
+  const odd = upcomingFootball(comp, match, { stakes: 'Title race 2-1', forecast: 0.42 });
+  assert.ok(!('stakes' in odd) && !('forecast' in odd), 'unknown values are dropped');
+  const replay = publishFootball(comp, match, scoreFootball({ ...factsFromSummary(fixture('football/760516.json')), stakes: 'title' }), { stakes: 'title', forecast: 'lively' });
+  checkEvent(replay);
+  assert.equal(replay.stakes, 'title');
+  assert.ok(!('forecast' in replay));
 });
 
 test('tennis players are listed alphabetically, not winner-last', () => {
@@ -156,10 +183,11 @@ test('tennis players are listed alphabetically, not winner-last', () => {
 });
 
 export function checkUpcoming(e) {
-  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', ...ALLOWED[e.sport]];
+  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', ...ALLOWED[e.sport], ...(e.sport === 'football' ? ['forecast'] : [])];
   for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}" on an upcoming event`);
   assert.ok(['upcoming', 'live'].includes(e.status));
   checkLineups(e);
+  checkHints(e);
   const text = JSON.stringify({ ...e, id: '', start: '', lineups: '' });
   assert.doesNotMatch(text, /\d+\s*[-–:]\s*\d+/, `${e.id}: looks like a score`);
 }
@@ -211,4 +239,33 @@ test('winter streaming rights depend on the venue, the season and the series', (
   assert.deepEqual(servicesFor('biathlon', { country: 'ITA', series: 'Olympics', start: '2026-02-10T10:00Z' }), ['nrk', 'hbomax']);
   assert.deepEqual(servicesFor('biathlon', { country: 'FIN', series: 'World Cup', start: '2026-11-28T10:00Z' }), ['nrk', 'tv2play']);
   assert.deepEqual(servicesFor('eng.1'), ['viaplay'], 'entries without rules work as before');
+});
+
+// Calendar feeds: when and where only. A replay's rating, score or result never goes in.
+function checkIcs(text, name) {
+  const fields = text.replace(/\r\n /g, '').split('\r\n').filter((l) => /^(SUMMARY|DESCRIPTION|LOCATION):/.test(l)).join('\n');
+  assert.doesNotMatch(fields, /\d+\s*[-–:]\s*\d+/, `${name}: looks like a score`);
+  assert.doesNotMatch(fields, BANNED_WORDS, `${name}: spoiler word`);
+  assert.doesNotMatch(fields, /forecast|one-sided|lively|even on paper|\b\d+\.\d\b/i, `${name}: a forecast or a rating`);
+  for (const line of text.split('\r\n')) assert.ok(Buffer.byteLength(line) <= 75, `${name}: line too long`);
+}
+
+test('calendar feeds: kick-off and where to watch, nothing else', () => {
+  const comp = { key: 'nor.1', name: 'Eliteserien' };
+  const replay = publishFootball(comp, { espnId: '760516', start: '2026-09-20T16:00Z', home: 'Bodo/Glimt', away: 'Brann' },
+    scoreFootball(factsFromSummary(fixture('football/760516.json'))), { stakes: 'title' });
+  const soon = upcomingFootball(comp, { espnId: '2', start: '2026-10-10T16:00Z', home: 'Bodo/Glimt', away: 'Kristiansund BK', state: 'pre' }, { stakes: 'title', forecast: 'one-sided' });
+  const ics = icsForTeam('Bodo/Glimt', [soon, replay]);
+  checkIcs(ics, 'test feed');
+  assert.match(ics, /^BEGIN:VCALENDAR\r\n/);
+  assert.match(ics, /DTSTART:20261010T160000Z/);
+  assert.match(ics, /SUMMARY:Bodo\/Glimt – Kristiansund BK/);
+  assert.match(ics, /LOCATION:TV 2 Play/);
+  assert.equal(ics, icsForTeam('Bodo/Glimt', [replay, soon]), 'same input, same file (no churn)');
+  assert.equal(icsForTeam('Nobody', []).includes('BEGIN:VEVENT'), false);
+});
+
+test('the real calendar feeds are spoiler-free', { skip: !existsSync(new URL('../docs/cal/', import.meta.url)) }, () => {
+  const dir = new URL('../docs/cal/', import.meta.url);
+  for (const f of readdirSync(dir).filter((x) => x.endsWith('.ics'))) checkIcs(readFileSync(new URL(f, dir), 'utf8'), f);
 });

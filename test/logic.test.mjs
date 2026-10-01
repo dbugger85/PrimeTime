@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel } from '../docs/logic.js';
+import { migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel, prematchLine } from '../docs/logic.js';
 
 const now = Date.parse('2026-09-26T12:00:00Z');
 const ev = (o) => ({ services: [], segments: [], advice: { code: 'full' }, compName: 'X', ...o });
@@ -213,4 +213,11 @@ test('winter: titles, gender filter, sport chips and favorites per sport and gen
   assert.equal(adviceText({ code: 'skip', unit: 'stage', ranges: [[1, 2]] }), 'Start after shooting 2');
   assert.equal(adviceText({ code: 'skip', unit: 'leg', ranges: [[1, 2]] }), 'Start at leg 3');
   assert.equal(adviceText({ code: 'skip', unit: 'run', ranges: [[1, 1]] }), 'Skip run 1');
+});
+
+test('pre-match hints: one short line, or nothing', () => {
+  assert.equal(prematchLine({ stakes: 'title', forecast: 'even' }), 'Title race · looks even on paper');
+  assert.equal(prematchLine({ forecast: 'lively' }), 'Could be lively');
+  assert.equal(prematchLine({ stakes: 'relegation' }), 'Relegation battle');
+  assert.equal(prematchLine({}), '');
 });

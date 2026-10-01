@@ -258,6 +258,26 @@ export function subtitleOf(event) {
   return `Formula 1 · ${f1SessionName(event)} · ${event.circuit}`;
 }
 
+// Pre-match hints for football (worked out before kick-off, see src/prematch.mjs):
+// what's at stake, and on upcoming matches a forecast from the odds. One quiet line.
+export const STAKES_LABELS = {
+  title: 'Title race', relegation: 'Relegation battle', top4: 'Top-4 race', top8: 'Top-8 race',
+  europe: 'European spots', playoff: 'Play-off spots', group: 'Top of the group', qualify: 'Qualifying race',
+};
+const FORECAST_TEXT = { even: 'looks even on paper', lively: 'could be lively', 'one-sided': 'looks one-sided' };
+export function prematchLine(event) {
+  const line = [STAKES_LABELS[event.stakes], FORECAST_TEXT[event.forecast]].filter(Boolean).join(' · ');
+  return line && line[0].toUpperCase() + line.slice(1);
+}
+
+// File name for a team's calendar feed: "Bodø/Glimt" -> "bodo-glimt" (docs/cal/bodo-glimt.ics).
+export function teamSlug(name) {
+  return name.toLowerCase()
+    .replace(/ø/g, 'o').replace(/æ/g, 'ae').replace(/ß/g, 'ss')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // å -> a, é -> e …
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'team';
+}
+
 export function hiddenTitleOf(event) {
   return event.sport === 'tennis' ? 'Players hidden' : 'Teams hidden';
 }

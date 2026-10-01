@@ -59,3 +59,9 @@ A static site on GitHub Pages, fed by a scheduled GitHub Action that fetches fre
 3. Cross-country. ✅ No sprints: FIS gives no times for sprint finals.
 
 The alpine season starts in Sölden in late October. Each sport keeps about a year of races. The owner will name some remembered thrillers and duds to check the scores against.
+
+## Later decisions (2026-10-01)
+- **Line-ups:** from ESPN, not X. Shown on upcoming, live and replay cards behind a button, each bench behind its own button. Substitutions only behind the "Show the result" warning.
+- **Pre-match hints:** a forecast from the odds ("looks even on paper", "could be lively", "looks one-sided", no question mark) on upcoming matches only, and what's at stake from the table before kick-off, also kept on replays. Publishing the 3-level forecast code is OK; raw odds stay private.
+- **Stakes score bonus:** yes, small (title 0.5, relegation 0.4, other races 0.2).
+- **Calendar:** per-team subscription feeds linked from My favorites, no per-card button.

@@ -54,6 +54,12 @@ export const FOOTBALL = {
   lotsOfYellows: 0.6, //      9 or more yellow cards
   extraTime: 1.0, //          went to extra time
   shootout: 1.5, //           decided on penalties
+
+  // What was at stake, from the league table before kick-off (only for matches
+  // seen in "Coming up" before they started)
+  titleRace: 0.5, //          a title race
+  relegationBattle: 0.4, //   a relegation battle
+  otherRace: 0.2, //          top-4, top-8, European spots, play-off spots, top of the group, qualifying
 };
 
 export const TENNIS = {

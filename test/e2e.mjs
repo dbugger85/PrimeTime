@@ -7,7 +7,7 @@
 // Screenshots go to test/screenshots/ (ignored by git).
 
 import { spawn } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
@@ -217,6 +217,22 @@ try {
       await page.screenshot({ path: `${shots}/upcoming.png` });
     }
     await checkLineups(page, 'upcoming');
+    // Pre-match hints: one quiet line on some football cards, gone when switched off.
+    await page.click('#sports [data-sport="football"]');
+    const hints = await page.$$eval('.card.soon .sub:not([hidden])', (els) => els.map((e) => e.textContent));
+    assert.ok(hints.every((t) => /^(Title race|Relegation battle|Top-4 race|Top-8 race|European spots|Play-off spots|Top of the group|Qualifying race|Looks even on paper|Could be lively|Looks one-sided)/.test(t)), `odd hint: ${hints}`);
+    assert.doesNotMatch(hints.join(' '), /\d|%/, 'no numbers in the hints');
+    if (hints.length) {
+      await page.$eval('.card.soon:has(.sub:not([hidden]))', (e) => e.scrollIntoView({ block: 'start' }));
+      await page.screenshot({ path: `${shots}/upcoming-hints.png` });
+      const wasOpen = await page.$eval('#filters', (d) => d.open);
+      await page.$eval('#filters', (d) => { d.open = true; });
+      await page.click('#f-prehints');
+      assert.equal(await page.$$eval('.card.soon .sub:not([hidden])', (els) => els.length), 0, 'switch hides the hints');
+      await page.click('#f-prehints');
+      await page.$eval('#filters', (d, open) => { d.open = open; }, wasOpen);
+    }
+    await page.click('#sports [data-sport="all"]');
     await page.click('#views [data-view="replays"]');
     await page.waitForSelector('.card .num');
     await checkLineups(page, 'replay');
@@ -232,6 +248,19 @@ try {
     const titles = await page.$$eval('.card .title', (els) => els.map((e) => e.textContent));
     assert.ok(titles.length > 0 && titles.every((t) => t.includes(team)), `only ${team} matches show`);
     await page.screenshot({ path: `${shots}/favorites.png` });
+
+    // Calendar: closed until tapped, then a webcal link to a feed that exists.
+    assert.ok(await page.$eval('#cal-body', (e) => e.hidden), 'calendar starts closed');
+    await page.click('#cal-btn');
+    const feed = await page.$eval('#cal-links a', (a) => a.href);
+    assert.match(feed, /^webcal:\/\/.+\/cal\/[a-z0-9-]+\.ics$/);
+    if (process.env.BASE_URL || existsSync(new URL('../docs/cal/', import.meta.url))) { // made by the bot, or a local build
+      const res = await page.evaluate(async (u) => { const r = await fetch(u); return [r.status, (await r.text()).slice(0, 15)]; }, feed.replace(/^webcal:/, new URL(base).protocol));
+      assert.deepEqual(res, [200, 'BEGIN:VCALENDAR'], `${feed} is served`);
+    }
+    await page.$eval('#cal', (e) => e.scrollIntoView({ block: 'center' }));
+    await page.screenshot({ path: `${shots}/favorites-calendar.png` });
+    await page.click('#cal-btn');
     await page.$eval('.card', (e) => e.scrollIntoView());
     await page.screenshot({ path: `${shots}/favorites-cards.png` });
     await page.fill('#fav-q', 'f1');

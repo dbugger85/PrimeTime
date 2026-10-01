@@ -1,4 +1,4 @@
-import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, f1SessionName, isFavorite, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf } from './logic.js';
+import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, f1SessionName, isFavorite, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, teamSlug } from './logic.js';
 
 const SERVICES = {
   viaplay: { name: 'Viaplay', url: 'https://viaplay.no/sport' },
@@ -10,7 +10,7 @@ const SERVICES = {
 
 const DEFAULTS = {
   view: 'replays', sport: 'all', services: [], comp: 'all', days: 30, minScore: 0, sort: 'date',
-  round: '', draw: '', f1Session: '', hideTennis: true, hideFootball: false, hints: true, hideWatched: false,
+  round: '', draw: '', f1Session: '', hideTennis: true, hideFootball: false, hints: true, preHints: true, hideWatched: false,
   favsOnly: false, favs: { teams: [], players: [], f1: false, winter: [] }, gender: '',
 };
 
@@ -32,6 +32,7 @@ let reasonsFile = null; // loaded only after the spoiler warning is accepted
 const resultShown = new Set(); // results revealed this visit only (after a second warning)
 const lineupsOpen = new Set(); // football line-ups opened this visit only
 const subsOpen = new Set(); // substitution lists opened (inside a shown result) this visit only
+let calOpen = false; // "Add to calendar" opened this visit
 const benchOpen = new Set(); // benches opened this visit only, as "<event id>:<team index>"
 let resultsFile = null; // loaded only after the second warning is accepted
 let events = [];
@@ -116,6 +117,7 @@ function renderControls() {
   $('#f-hide-tn').checked = prefs.hideTennis;
   $('#f-hide-fb').checked = prefs.hideFootball;
   $('#f-hints').checked = prefs.hints;
+  $('#f-prehints').checked = prefs.preHints;
   $('#f-watched').checked = prefs.hideWatched;
 
   const active = activeFilters(prefs, view);
@@ -135,6 +137,32 @@ function setFav(kind, name) {
   if (!favCount(prefs.favs)) prefs.favsOnly = false;
   savePrefs();
   render();
+}
+
+// Calendar feeds for favorite teams: the bot writes docs/cal/<team>.ics (src/calendar.mjs).
+// "Subscribe" opens the phone's calendar (webcal://); "Copy link" is for Google Calendar.
+function renderCalendar(teams) {
+  $('#cal').hidden = !teams.length;
+  const btn = $('#cal-btn');
+  btn.textContent = calOpen ? '▾ Add to calendar' : '▸ Add to calendar';
+  btn.setAttribute('aria-expanded', String(calOpen));
+  btn.onclick = () => { calOpen = !calOpen; renderCalendar(prefs.favs.teams); };
+  $('#cal-body').hidden = !calOpen;
+  if (!calOpen) return;
+  $('#cal-links').replaceChildren(...teams.map((team) => {
+    const url = new URL(`cal/${teamSlug(team)}.ics`, location.href);
+    url.hash = '';
+    url.search = '';
+    const li = document.createElement('li');
+    const sub = Object.assign(document.createElement('a'), { href: url.href.replace(/^https?:/, 'webcal:'), textContent: 'Subscribe', className: 'pill' });
+    sub.hidden = /Android/i.test(navigator.userAgent); // Android has no webcal:// handler
+    const copy = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Copy link', className: 'pill' });
+    copy.onclick = async () => {
+      try { await navigator.clipboard.writeText(url.href); copy.textContent = 'Copied ✓'; } catch { prompt('Copy this link:', url.href); }
+    };
+    li.append(Object.assign(document.createElement('span'), { className: 'cal-team', textContent: team }), sub, copy);
+    return li;
+  }));
 }
 
 // "My favorites": an "Only favorites" switch, one chip per favorite (tap to remove), and a search box.
@@ -159,6 +187,7 @@ function renderFavs() {
     ...favs.winter.map((k) => remove('winter', k, winterLabel(k))),
     ...(favs.f1 ? [remove('f1', null, F1_NAME)] : []),
   );
+  renderCalendar(favs.teams);
   $('#favs-hint').textContent = !n
     ? 'Tap ☆ after a name on a card, or search below.'
     : prefs.favsOnly && favs.players.length && prefs.view === 'replays' && ['all', 'tennis'].includes(prefs.sport)
@@ -236,7 +265,8 @@ function card(e) {
   li.querySelector('.when').textContent = fmt.format(new Date(e.start));
 
   fillTitle(li.querySelector('.title'), e);
-  li.querySelector('.sub').textContent = subtitleOf(e);
+  const stakes = prefs.preHints ? prematchLine(e) : ''; // replays only have the stakes, never the forecast
+  li.querySelector('.sub').textContent = stakes ? `${subtitleOf(e)} · ${stakes}` : subtitleOf(e);
 
   const strip = li.querySelector('.strip');
   const advice = li.querySelector('.advice');
@@ -388,8 +418,10 @@ function soonCard(e) {
   li.querySelector('.comp').textContent = e.sport === 'f1' ? `${f1SessionName(e)} · ${e.circuit}`
     : e.sport === 'winter' ? e.place : e.compName;
   fillTitle(li.querySelector('.title'), e);
-  li.querySelector('.sub').textContent = e.sport === 'tennis' ? subtitleOf(e) : '';
-  li.querySelector('.sub').hidden = e.sport !== 'tennis'; // the meta line already says it
+  // Tennis: draw and round. Football: the pre-match hints, if any. Otherwise the meta line says it all.
+  const sub = e.sport === 'tennis' ? subtitleOf(e) : e.sport === 'football' && prefs.preHints ? prematchLine(e) : '';
+  li.querySelector('.sub').textContent = sub;
+  li.querySelector('.sub').hidden = !sub;
   li.querySelector('.svc').append(...e.services.map((id) => {
     const a = Object.assign(document.createElement('a'), { href: SERVICES[id].url, target: '_blank', rel: 'noopener', textContent: SERVICES[id].name });
     a.className = 'pill';
@@ -542,6 +574,7 @@ function bind() {
   };
   $('#share-btn').onclick = shareSettings;
   on('#f-hints', 'hints');
+  on('#f-prehints', 'preHints');
   on('#f-watched', 'hideWatched');
 }
 

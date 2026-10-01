@@ -2,9 +2,11 @@
 //   docs/data/events.json   spoiler-free: scored events + upcoming/live events (the page loads this)
 //   docs/data/reasons.json  spoilers: why each event got its score (loaded only after a warning)
 //   docs/data/results.json  big spoilers: the actual result (loaded only after a second warning)
+//   docs/cal/<team>.ics     calendar feeds, one per football team (src/calendar.mjs)
 //   data/state.json         bookkeeping: what's complete, when the last full build ran
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { writeCalendars } from './calendar.mjs';
 
 const root = new URL('..', import.meta.url);
 const EVENTS = new URL('docs/data/events.json', root);
@@ -36,8 +38,9 @@ export function saveData({ events, upcoming, reasons, results, state }, now = ne
   const pick = (map) => JSON.stringify(Object.fromEntries(list.filter((e) => map.has(e.id)).map((e) => [e.id, map.get(e.id)]))) + '\n';
   writeFileSync(REASONS, pick(reasons));
   writeFileSync(RESULTS, pick(results));
+  const feeds = writeCalendars(new URL('docs/cal/', root), list, soon, state, now); // updates state.calTeams
   writeFileSync(STATE, JSON.stringify(state, null, 1) + '\n');
   const count = (s) => list.filter((e) => e.sport === s).length;
   const live = soon.filter((e) => e.status === 'live').length;
-  return `events.json: ${list.length} events (football ${count('football')}, tennis ${count('tennis')}, f1 ${count('f1')}, winter ${count('winter')}), ${soon.length} upcoming (${live} live)`;
+  return `events.json: ${list.length} events (football ${count('football')}, tennis ${count('tennis')}, f1 ${count('f1')}, winter ${count('winter')}), ${soon.length} upcoming (${live} live), ${feeds} calendar feeds`;
 }

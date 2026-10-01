@@ -248,6 +248,15 @@ body[data-view="upcoming"] .replay-only { display: none; }
   color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer;
 }
 .lineups .bench { font-size: 13px; color: var(--muted); line-height: 1.45; }
+.cal { margin-top: 6px; }
+.cal-btn {
+  border: 0; background: none; padding: 6px 0; min-height: 36px;
+  color: var(--ink); font-size: 13.5px; font-weight: 600; cursor: pointer;
+}
+.cal-links { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 6px; }
+.cal-links li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cal-team { font-weight: 600; margin-right: auto; }
+.cal-links .pill { border: 0; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 600; }
 .why { margin-top: 6px; padding: 10px 12px; border-radius: 10px; background: var(--chip); font-size: 14px; }
 .why ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .why li { display: grid; grid-template-columns: 3.4em 1fr; }

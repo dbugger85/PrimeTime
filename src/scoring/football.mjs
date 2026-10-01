@@ -3,6 +3,7 @@
 
 import { finalScore, heat, quietRuns, tally, plural, times } from './common.mjs';
 import { FOOTBALL as W } from './weights.mjs';
+import { STAKES } from '../prematch.mjs';
 
 const SEGMENTS = 6; // 15-minute blocks; extra time counts toward the last one
 
@@ -93,6 +94,11 @@ export function scoreFootball(f) {
   t.add(W.woodwork * Math.min(f.woodwork.length, 3), `Hit the woodwork ${times(f.woodwork.length)}`);
   if (f.corners >= 12) t.add(W.manyCorners, `${f.corners} corners`);
   t.add(f.yellows >= 9 ? W.lotsOfYellows : f.yellows >= 6 ? W.manyYellows : 0, `${f.yellows} yellow cards`);
+
+  if (f.stakes) {
+    const points = f.stakes === 'title' ? W.titleRace : f.stakes === 'relegation' ? W.relegationBattle : W.otherRace;
+    t.add(points, `${STAKES[f.stakes] ?? 'Something at stake'} before kick-off`);
+  }
 
   if (f.extraTime) t.add(W.extraTime, 'Went to extra time');
   if (f.shootout) t.add(W.shootout, 'Decided on penalties');

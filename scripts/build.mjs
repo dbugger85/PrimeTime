@@ -16,6 +16,8 @@ import * as football from '../src/sources/espn-football.mjs';
 import * as tennis from '../src/sources/espn-tennis.mjs';
 import * as f1 from '../src/sources/openf1.mjs';
 import * as winter from '../src/sources/winter.mjs';
+import * as standings from '../src/sources/espn-standings.mjs';
+import { forecastOf, stakesFor, STAKES_COMPS } from '../src/prematch.mjs';
 import { publishFootball, publishTennis, publishF1, publishWinter, upcomingFootball, upcomingTennis, upcomingF1, upcomingWinter, expiringRights } from '../src/publish.mjs';
 import { loadData, saveData } from '../src/store.mjs';
 
@@ -38,6 +40,8 @@ delete state.version; // the old single version, before each sport had its own
 if (state.versions.football !== SCORING_VERSIONS.football) state.footballDays = {};
 if (state.versions.tennis !== SCORING_VERSIONS.tennis) state.slamsDone = [];
 state.footballDays ??= {};
+state.stakes ??= {}; // frozen "what's at stake" per match id: { code, start }
+for (const [id, s] of Object.entries(state.stakes)) if (now - new Date(s.start) > (KEEP_DAYS.football + 2) * 864e5) delete state.stakes[id];
 state.slamsDone ??= [];
 
 // GitHub stops a run after 30 minutes and then nothing is saved. Re-scoring a
@@ -79,8 +83,9 @@ async function buildFootball() {
         if (outOfTime()) { complete = false; continue; }
         try {
           const summary = await football.fetchSummary(comp.key, m.espnId);
-          const scored = scoreFootball(football.factsFromSummary(summary));
-          save(publishFootball(comp, m, scored, football.lineupsFromSummary(summary)), scored);
+          const stakes = events.get(id)?.stakes ?? previous.get(id)?.stakes ?? state.stakes[id]?.code; // frozen before kick-off
+          const scored = scoreFootball({ ...football.factsFromSummary(summary), stakes });
+          save(publishFootball(comp, m, scored, { lineups: football.lineupsFromSummary(summary), stakes }), scored);
         } catch (err) {
           complete = false;
           warn(`football ${comp.key} ${m.espnId}: ${err.message}`);
@@ -96,9 +101,9 @@ async function buildFootball() {
 // Keeps the line-ups the live check found, and looks for them itself for
 // matches starting within LINEUP_MINUTES (the live check doesn't run when this does).
 const LINEUP_MINUTES = 90;
-const oldLineups = new Map(data.upcoming.filter((e) => e.lineups).map((e) => [e.id, e.lineups]));
+const previous = new Map(data.upcoming.map((e) => [e.id, e])); // the last run's upcoming list
 async function lineupsFor(comp, m) {
-  const known = oldLineups.get(`fb-${m.espnId}`);
+  const known = previous.get(`fb-${m.espnId}`)?.lineups;
   if (known || new Date(m.start) - now > LINEUP_MINUTES * 60e3) return known;
   try {
     return football.lineupsFromSummary(await football.fetchSummary(comp.key, m.espnId));
@@ -107,18 +112,48 @@ async function lineupsFor(comp, m) {
   }
 }
 
+// League tables for "what's at stake": one request per competition and run, only when needed.
+const tables = new Map();
+async function tablesFor(compKey) {
+  if (!STAKES_COMPS.has(compKey)) return null;
+  if (!tables.has(compKey)) {
+    try {
+      tables.set(compKey, await standings.fetchTables(compKey));
+    } catch (err) {
+      warn(`standings ${compKey}: ${err.message}`);
+      tables.set(compKey, null);
+    }
+  }
+  return tables.get(compKey);
+}
+
+// The forecast and the stakes are worked out only while a match hasn't started, and then
+// kept as they were: once it's on, the odds and the table follow the score.
+async function upcomingEntry(comp, m) {
+  const old = previous.get(`fb-${m.espnId}`);
+  const lineups = await lineupsFor(comp, m);
+  if (m.state !== 'pre') return upcomingFootball(comp, m, { lineups, stakes: old?.stakes, forecast: old?.forecast });
+  const table = await tablesFor(comp.key);
+  const stakes = table ? stakesFor(table, m.home, m.away, comp.key) : old?.stakes; // keep the old one if ESPN failed
+  // Also remembered in state, in case the match finishes but can't be scored at once
+  // (it then isn't in the next run's upcoming list any more).
+  if (stakes) state.stakes[`fb-${m.espnId}`] = { code: stakes, start: m.start };
+  else delete state.stakes[`fb-${m.espnId}`];
+  return upcomingFootball(comp, m, { lineups, stakes, forecast: forecastOf(m.odds) });
+}
+
 async function buildUpcomingFootball() {
   for (const comp of FOOTBALL) {
     for (let ahead = 0; ahead <= UPCOMING_DAYS.football; ahead++) {
       for (const m of await football.fetchDay(comp.key, ymd(daysAgo(-ahead)))) {
-        if (m.state === 'pre' || m.state === 'in') upcoming.push(upcomingFootball(comp, m, await lineupsFor(comp, m)));
+        if (m.state === 'pre' || m.state === 'in') upcoming.push(await upcomingEntry(comp, m));
       }
     }
   }
   // Matches still being played from yesterday evening (or with the day boundary in UTC).
   for (const comp of FOOTBALL) {
     for (const m of await football.fetchDay(comp.key, ymd(daysAgo(1)))) {
-      if (m.state === 'in') upcoming.push(upcomingFootball(comp, m, await lineupsFor(comp, m)));
+      if (m.state === 'in') upcoming.push(await upcomingEntry(comp, m));
     }
   }
 }
