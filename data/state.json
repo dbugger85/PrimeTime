@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-02T12:40:41.295Z",
+ "lastFull": "2026-10-02T21:04:03.813Z",
  "versions": {
   "football": "14.094e5569",
   "tennis": "9.c615cf94",
@@ -1771,6 +1771,12 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/coventry-newcastle/s26100269417225073",
     "until": "2026-10-14T21:30:00.000Z"
+   }
+  },
+  "fb-401843456": {
+   "start": "2026-10-10T14:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/bodoe-glimt-kristiansund-qcrwac64"
    }
   }
  }
