@@ -5,7 +5,7 @@
 # GitHub's own schedule proved unreliable (it never started for this repo), so an
 # outside cron service (cron-job.org) starts this workflow every 5 minutes
 # through the API with mode "auto". See "Outside trigger" in CLAUDE.md.
-# Everything runs in this one workflow, so two runs never write the data at once.
+# The update job has its own queue, so two runs never write the data at once.
 name: Update and publish
 
 on:
@@ -26,14 +26,17 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: update
-  cancel-in-progress: false
-
 jobs:
+  # Each job has its own queue. On 2026-10-02 a deploy job sat "queued" for 6 hours
+  # (GitHub never gave it a runner); with one queue for the whole workflow, that
+  # blocked every update after it. Now updates carry on, and the next deploy
+  # replaces a stuck one.
   update:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    concurrency:
+      group: update
+      cancel-in-progress: false
     outputs:
       publish: ${{ steps.save.outputs.changed == 'true' || steps.mode.outputs.mode == 'full' }}
     steps:
@@ -95,6 +98,10 @@ jobs:
     needs: update
     if: needs.update.outputs.publish == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: pages
+      cancel-in-progress: true
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
