@@ -63,7 +63,8 @@ export function scoreFootball(f) {
   if (Math.abs(diff) <= 1) closeMinutes += end - prevMin;
   t.add(W.closeMatch * (closeMinutes / end), `Within one goal for ${Math.round((100 * closeMinutes) / end)}% of the match`);
   const underdogWon = odds && gap >= 0.15 && diff !== 0 && (diff > 0 ? 'home' : 'away') !== fav;
-  if (Math.abs(diff) >= 3 && !underdogWon) t.add(-Math.min(W.blowout + W.blowoutPerGoal * (Math.abs(diff) - 3), W.blowoutMax), `One-sided: won by ${Math.abs(diff)} goals`);
+  // The same for any margin of 3+: a 6–0 is no duller than a 3–0, and its extra goals are still worth seeing.
+  if (Math.abs(diff) >= 3 && !underdogWon) t.add(-W.blowout, `One-sided: won by ${Math.abs(diff)} goals`);
 
   // Upsets and even matches. `diff` is now the final goal difference, home minus away.
   if (odds) {

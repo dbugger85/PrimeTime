@@ -9,7 +9,7 @@ import { FORECASTS, OUTLOOKS, STAKES } from './prematch.mjs';
 const rights = JSON.parse(readFileSync(new URL('./rights/norway.json', import.meta.url)));
 
 export const ADVICE_CODES = ['full', 'highlights', 'skip'];
-const UNITS = ['min', 'lap', 'set', 'part', 'stage', 'leg', 'run']; // part: F1 qualifying; stage, leg: biathlon; run: alpine
+const UNITS = ['min', 'lap', 'set', 'stage', 'leg', 'run']; // stage, leg: biathlon; run: alpine
 
 // ctx { country, series, start } is used by entries with rules (winter sports):
 // the first rule whose conditions all match decides, otherwise `services`.
@@ -38,9 +38,9 @@ function base(id, sport, comp, compName, start, scored, rightsKey, ctx) {
     comp,
     compName,
     start,
-    score: scored.score,
+    score: scored.score, // null: unrated (F1 qualifying)
     segments: scored.segments.map((s) => Math.max(0, Math.min(3, s | 0))),
-    advice: cleanAdvice(scored.advice),
+    advice: scored.score == null ? null : cleanAdvice(scored.advice),
     services: servicesFor(rightsKey, ctx),
     v: SCORING_VERSIONS[sport],
   };

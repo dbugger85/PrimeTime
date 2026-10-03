@@ -10,11 +10,13 @@ import * as WEIGHTS from './weights.mjs';
 // Also bump it when the published fields change (football 11: line-ups), so older events get them.
 // Football 12: upsets on penalties. Winter 2: run-1 order counts skiers who went out in run 2.
 // Football 13: xG (optional, from FotMob), and points above 7 count less. 14: "xG" in the reasons.
-const FORMULA_VERSIONS = { football: 14, tennis: 9, f1: 10, winter: 2 };
+// Football 15: the one-sided penalty no longer grows with the margin.
+// F1 11: qualifying unrated; lead changes count like other top-3 passes, and not at the start.
+const FORMULA_VERSIONS = { football: 15, tennis: 9, f1: 11, winter: 2 };
 const SPORT_WEIGHTS = {
   football: WEIGHTS.FOOTBALL,
   tennis: WEIGHTS.TENNIS,
-  f1: { race: WEIGHTS.F1, qualifying: WEIGHTS.F1_QUALIFYING },
+  f1: WEIGHTS.F1,
   winter: { biathlon: WEIGHTS.BIATHLON, alpine: WEIGHTS.ALPINE, crossCountry: WEIGHTS.CROSS_COUNTRY },
 };
 export const fingerprint = (x) => createHash('sha1').update(JSON.stringify(x)).digest('hex').slice(0, 8);

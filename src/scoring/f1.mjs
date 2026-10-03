@@ -1,8 +1,8 @@
 // F1 watchability score (0–10), heat strip and skip advice.
 // Input: the facts from factsFromRace() in src/sources/openf1.mjs.
 
-import { finalScore, heat, quietRuns, tally, plural, times } from './common.mjs';
-import { F1 as W, F1_QUALIFYING as Q } from './weights.mjs';
+import { finalScore, heat, quietRuns, tally, plural } from './common.mjs';
+import { F1 as W } from './weights.mjs';
 
 const SEGMENTS = 10; // equal slices of the race, so the strip doesn't reveal the lap count
 
@@ -19,7 +19,10 @@ export function scoreF1(f, { sprint = false } = {}) {
 
   t.add((Math.min(f.overtakes.length / share, 60) / 60) * W.overtakes, `${plural(f.overtakes.length, 'overtake')} on track (pit stops not counted)`);
   t.add(Math.min(W.top5Overtake * (top5.length / share), W.top5OvertakesMax), `${plural(top5.length, 'overtake')} for a top-5 place`);
-  t.add(W.leadChange * Math.min(f.leadChanges.length, 3), `The lead changed ${times(f.leadChanges.length)}`);
+  // Fights for the top 3: lead changes and passes for 2nd and 3rd count the same, so the
+  // score doesn't depend on whether the leader (often the pole-sitter) stayed in front.
+  const front = f.leadChanges.length + f.overtakes.filter((o) => o.position === 2 || o.position === 3).length;
+  t.add(Math.min(W.frontFight * front, W.frontFightsMax), `${plural(front, 'pass', 'passes')} for a top-3 place`);
   const neutralised = [
     f.safetyCars.length && plural(f.safetyCars.length, 'safety car'),
     f.vscs.length && plural(f.vscs.length, 'virtual safety car'),
@@ -37,8 +40,10 @@ export function scoreF1(f, { sprint = false } = {}) {
 
   const perLap = new Array(f.totalLaps + 1).fill(0);
   const add = (lap, w) => { perLap[Math.min(Math.max(lap, 1), f.totalLaps)] += w; };
-  f.overtakes.forEach((o) => add(o.lap, o.position <= 5 ? 2 : 1));
-  f.leadChanges.forEach((l) => add(l, 3));
+  // A pass for the lead weighs like any top-5 pass, so the strip doesn't point at it. Lead changes
+  // come from the lap-by-lap order (OpenF1's overtakes miss some), so its overtakes for 1st are skipped.
+  f.overtakes.forEach((o) => o.position > 1 && add(o.lap, o.position <= 5 ? 2 : 1));
+  f.leadChanges.forEach((l) => add(l, 2));
   f.safetyCars.forEach((l) => add(l, 3));
   f.vscs.forEach((l) => add(l, 1.5));
   f.redFlags.forEach((l) => add(l, 4));
@@ -66,43 +71,8 @@ export function f1Advice(score, perLap, totalLaps, { redFlag = false } = {}) {
   return { code: 'skip', unit: 'lap', ranges: runs.map(([a, b]) => [a, b - 1]) }; // laps a..b-1 inclusive
 }
 
-// Qualifying: a score, a strip of exactly 3 blocks (Q1, Q2, Q3) and skip advice.
-// Input: the facts from factsFromQuali() in src/sources/openf1.mjs.
+// Qualifying is published without a score, strip or tips: the owner found that how
+// exciting qualifying was gives the grid away. Only the result is kept, for "Show the result".
 export function scoreQuali(f) {
-  const t = tally();
-  t.add(Q.base, 'Base');
-  const g = f.poleGap;
-  if (g != null) {
-    t.add(g < 0.03 ? Q.poleUnder003 : g < 0.07 ? Q.poleUnder007 : g < 0.15 ? Q.poleUnder015 : g < 0.3 ? Q.poleUnder030 : 0, `Pole by ${g.toFixed(3)} s`);
-  }
-  const s10 = f.top10Spread;
-  if (s10 != null) {
-    t.add(s10 < 0.6 ? Q.tightTop10 : s10 < 0.9 ? Q.closeTop10 : s10 < 1.2 ? Q.fairlyCloseTop10 : 0, `Top 10 within ${s10.toFixed(2)} s in Q3`);
-  }
-  t.add(Math.min(Q.poleChange * f.poleChanges, Q.poleChangesMax), `Provisional pole changed hands ${times(f.poleChanges)} in Q3`);
-  t.add(Math.min(Q.latePoleChange * f.latePoleChanges, Q.latePoleChangesMax), `${times(f.latePoleChanges)} in the last 4 minutes`);
-  const cut = (m) => (m == null ? 0 : m < 0.02 ? Q.knifeEdgeCut : m < 0.05 ? Q.closeCut : 0);
-  t.add(cut(f.q1Cut), `Knocked out of Q1 by ${f.q1Cut?.toFixed(3)} s`);
-  t.add(cut(f.q2Cut), `Knocked out of Q2 by ${f.q2Cut?.toFixed(3)} s`);
-  t.add(Math.min(Q.redFlag * f.redFlags.length, Q.redFlagsMax), plural(f.redFlags.length, 'red flag'));
-  if (f.redFlags.includes(3)) t.add(Q.redFlagInQ3, 'A red flag in Q3');
-  t.add(Math.min(Q.deletedLapQ3 * f.deletedLaps[2], Q.deletedLapsQ3Max), `${plural(f.deletedLaps[2], 'lap')} deleted in Q3`);
-  if (f.rain) t.add(Q.rain, 'Rain during the session');
-  const score = finalScore(t.total);
-
-  // How much happened in each part. Q3 is where pole is decided, so it's never skipped.
-  const parts = [1, 2, 3].map((q) => 2 * f.redFlags.filter((x) => x === q).length + Math.min(0.1 * f.deletedLaps[q - 1], 0.5));
-  parts[0] += 3 * cut(f.q1Cut);
-  parts[1] += 3 * cut(f.q2Cut);
-  parts[2] += 2 * (t.reasons.find(([, l]) => l.startsWith('Pole by'))?.[0] ?? 0) + f.poleChanges * 0.5 + f.latePoleChanges;
-  return { score, segments: heat(parts), advice: qualiAdvice(score, parts), reasons: t.reasons, result: f.result };
-}
-
-// Skip Q1 and/or Q2 when little happened there; Q3 is always kept.
-export function qualiAdvice(score, parts) {
-  if (score < 3) return { code: 'highlights' };
-  if (score >= 9) return { code: 'full' };
-  const quiet = [0, 1].filter((i) => parts[i] < 1);
-  if (!quiet.length) return { code: 'full' };
-  return { code: 'skip', unit: 'part', ranges: quiet.length === 2 ? [[1, 2]] : [[quiet[0] + 1, quiet[0] + 1]] };
+  return { score: null, segments: [], advice: null, reasons: [], result: f.result };
 }

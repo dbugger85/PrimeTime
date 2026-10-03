@@ -149,7 +149,7 @@ for (const [sport, run] of Object.entries({ football: liveFootball, f1: liveF1, 
   }
 }
 
-if (JSON.stringify([upcoming, [...events.keys()]]) === before) {
+if (JSON.stringify([upcoming, [...events.keys()]]) === before && !data.migrated) {
   console.log('live: nothing changed');
 } else {
   console.log(saveData({ events, upcoming, reasons, results, state: data.state }, now));

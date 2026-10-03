@@ -9,7 +9,7 @@ import { matchesFromSlam } from '../src/sources/espn-tennis.mjs';
 import { factsFromRace, factsFromQuali } from '../src/sources/openf1.mjs';
 import { scoreFootball, footballAdvice } from '../src/scoring/football.mjs';
 import { scoreTennis, tennisAdvice } from '../src/scoring/tennis.mjs';
-import { scoreF1, f1Advice, scoreQuali, qualiAdvice } from '../src/scoring/f1.mjs';
+import { scoreF1, f1Advice, scoreQuali } from '../src/scoring/f1.mjs';
 import { quietRuns, heat, SCORING_VERSIONS, fingerprint, finalScore, tally } from '../src/scoring/common.mjs';
 import { forecastOf, outlookOf, stakesFor } from '../src/prematch.mjs';
 import { scoreboardOdds } from '../src/sources/espn-football.mjs';
@@ -38,17 +38,20 @@ test('football: thrillers score high, routine wins score low', () => {
   assert.ok(franceSweden30.score < mexicoEngland23.score);
 });
 
-test('football: team strength from the odds, blowouts score low', () => {
+test('football: team strength from the odds, blowouts score below thrillers', () => {
   const viking81 = fb(401843437); // Eliteserien, Viking 79% favorites, 8-1
   const bayernBodo50 = fb(401915443); // Champions League, Bayern 89% favorites, 5-0
   const spursVilla23 = fb(401879269); // evenly matched, 2-3
-  assert.ok(viking81.score < 5, `8-1 got ${viking81.score}`);
-  assert.ok(bayernBodo50.score < 5, `5-0 got ${bayernBodo50.score}`);
-  assert.ok(spursVilla23.score >= 9, `even 2-3 got ${spursVilla23.score}`);
+  const franceSweden30 = fb(760492); // a plain 3-0
+  // The owner found a goal-fest blowout (Poland 6-0 Romania at 5.4) too low: lots of goals are still fun.
+  assert.ok(viking81.score >= 5.5 && viking81.score < 7, `8-1 got ${viking81.score}`);
+  assert.ok(bayernBodo50.score < 6, `5-0 got ${bayernBodo50.score}`);
+  assert.ok(viking81.score > franceSweden30.score, 'nine goals beat a plain 3-0');
+  assert.ok(spursVilla23.score >= viking81.score + 2, `even 2-3 got ${spursVilla23.score}`);
   assert.ok(viking81.reasons.some(([, l]) => /favorite/.test(l)), 'the breakdown mentions the favorite');
   // The same match without odds still punishes the blowout, just less.
   const noOdds = scoreFootball({ ...factsFromSummary(fixture('football/401843437.json')), odds: null });
-  assert.ok(noOdds.score < 6 && noOdds.score > viking81.score, `8-1 without odds got ${noOdds.score}`);
+  assert.ok(noOdds.score < 7.5 && noOdds.score > viking81.score, `8-1 without odds got ${noOdds.score}`);
 });
 
 test('football: an upset scores higher than the same result the expected way round', () => {
@@ -227,35 +230,19 @@ test('weights.mjs: team strength can be switched off', () => {
 
 const quali = (name) => factsFromQuali(fixture(`f1/${name}.json`).d);
 
-test('F1 qualifying: facts from OpenF1', () => {
-  const hu = quali('qualifying-hungary-2025'); // pole by 0.026 s, top 10 within 0.54 s
-  assert.equal(hu.poleGap.toFixed(3), '0.026');
-  assert.equal(hu.top10Spread.toFixed(2), '0.54');
-  assert.ok(hu.q2Cut > 0 && hu.q2Cut < 0.02, `Q2 knockout by ${hu.q2Cut}`);
-  assert.equal(hu.poleChanges, 4);
-  assert.deepEqual(hu.redFlags, []);
-  assert.equal(hu.deletedLaps.length, 3);
+test('F1 qualifying is unrated: no score, strip or tips, just the result', () => {
+  const hu = scoreQuali(quali('qualifying-hungary-2025')); // pole by 0.026 s
+  assert.deepEqual({ ...hu, result: '' }, { score: null, segments: [], advice: null, reasons: [], result: '' });
   assert.match(hu.result, /^1\. .+ \(pole by 0\.026 s\)$/);
 });
 
-test('F1 qualifying: a knife-edge session beats a dull one', () => {
-  const hu = scoreQuali(quali('qualifying-hungary-2025'));
-  const jp = scoreQuali(quali('qualifying-japan-2026')); // pole by 0.3 s, nothing else happened
-  assert.ok(hu.score >= 7.5, `Hungary 2025 got ${hu.score}`);
-  assert.ok(jp.score < 3.5, `Japan 2026 got ${jp.score}`);
-  for (const s of [hu, jp]) {
-    assert.equal(s.segments.length, 3);
-    const sum = s.reasons.reduce((a, [p]) => a + p, 0);
-    assert.ok(Math.abs(Math.min(10, sum) - s.score) <= 0.3);
-  }
-});
-
-test('F1 qualifying advice never skips Q3', () => {
-  assert.deepEqual(qualiAdvice(5, [0, 0, 0]), { code: 'skip', unit: 'part', ranges: [[1, 2]] });
-  assert.deepEqual(qualiAdvice(5, [2, 0, 3]), { code: 'skip', unit: 'part', ranges: [[2, 2]] });
-  assert.deepEqual(qualiAdvice(5, [2, 2, 0]), { code: 'full' });
-  assert.deepEqual(qualiAdvice(2, [0, 0, 0]), { code: 'highlights' });
-  assert.deepEqual(qualiAdvice(9.5, [0, 0, 0]), { code: 'full' });
+test('F1: the score does not depend on whether the leader stayed in front', () => {
+  const facts = factsFromRace(fixture('f1/british-grand-prix-2025.json').d);
+  const others = facts.overtakes.filter((o) => o.position > 3);
+  const lead = { ...facts, leadChanges: [30], overtakes: [...others, { lap: 30, position: 1 }] }; // a pass for the lead…
+  const second = { ...facts, leadChanges: [], overtakes: [...others, { lap: 30, position: 2 }] }; // …or for 2nd
+  assert.equal(scoreF1(lead).score, scoreF1(second).score);
+  assert.deepEqual(scoreF1(lead).segments, scoreF1(second).segments);
 });
 
 test('football: an underdog winning big is a shock, not a blowout', () => {

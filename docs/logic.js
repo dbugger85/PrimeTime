@@ -3,6 +3,7 @@
 export const SPORTS = { football: 'Football', tennis: 'Tennis', f1: 'F1', winter: 'Winter' };
 
 export function tierOf(score) {
+  if (score == null) return { key: 'unrated', label: 'Not rated' }; // F1 qualifying
   if (score >= 8) return { key: 'must', label: 'Must-watch' };
   if (score >= 6) return { key: 'good', label: 'Good' };
   if (score >= 4) return { key: 'decent', label: 'Decent' };
@@ -24,10 +25,6 @@ export function adviceText(a) {
   if (a.unit === 'stage') return `Start after shooting ${r[0][1]}`; // biathlon: never the last shooting or the finish
   if (a.unit === 'leg') return `Start at leg ${r[0][1] + 1}`; // relays: never the last leg
   if (a.unit === 'run') return 'Skip run 1'; // alpine: run 2 decides it
-  if (a.unit === 'part') { // F1 qualifying: Q1, Q2 (Q3 is never skipped)
-    const [x, y] = r[0];
-    return x === y ? `Skip Q${x}` : `Skip Q${x} and Q${y}`;
-  }
   if (a.unit === 'lap') {
     return `Watch the start, then skip laps ${joinAnd(r.map(([x, y]) => `${x}–${y}`))}`;
   }

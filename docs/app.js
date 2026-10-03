@@ -305,7 +305,7 @@ function card(e) {
   li.dataset.tier = tier.key;
   li.dataset.id = e.id;
   li.classList.toggle('is-watched', watched.has(e.id));
-  li.querySelector('.num').textContent = e.score.toFixed(1);
+  li.querySelector('.num').textContent = e.score == null ? '–' : e.score.toFixed(1);
   li.querySelector('.tier').textContent = tier.label;
   li.querySelector('.sport').textContent = e.sport === 'winter' ? e.compName : SPORTS[e.sport];
   li.querySelector('.when').textContent = fmt.format(new Date(e.start));
@@ -329,10 +329,10 @@ function card(e) {
       b.style.width = `${width}%`;
       strip.append(b);
     }
-    advice.textContent = adviceText(e.advice);
+    if (e.advice) advice.textContent = adviceText(e.advice);
   }
   strip.hidden = !prefs.hints || !e.segments.length;
-  advice.hidden = !prefs.hints;
+  advice.hidden = !prefs.hints || !e.advice; // unrated events (F1 qualifying) get no tips
 
   li.querySelector('.svc').append(...servicePills(e));
 
@@ -340,12 +340,17 @@ function card(e) {
 
   const why = li.querySelector('.why');
   const whyBtn = li.querySelector('.why-btn');
-  if (whyShown.has(e.id)) {
+  const unrated = e.score == null; // F1 qualifying: no score to explain, so straight to the result
+  if (unrated ? resultShown.has(e.id) : whyShown.has(e.id)) {
     whyBtn.hidden = true;
     why.hidden = false;
     fillWhy(why, e);
   }
-  whyBtn.onclick = () => askSpoiler(e.id, 'why');
+  if (unrated) {
+    whyBtn.textContent = '⚠⚠ Show the result';
+    whyBtn.classList.add('result-btn');
+  }
+  whyBtn.onclick = () => askSpoiler(e.id, unrated ? 'result' : 'why');
 
   const w = li.querySelector('.watched');
   w.textContent = watched.has(e.id) ? 'Watched ✓' : 'Mark watched';
@@ -359,6 +364,12 @@ function card(e) {
 }
 
 function fillWhy(box, e) {
+  box.replaceChildren();
+  if (e.score != null) fillReasons(box, e); // unrated events (F1 qualifying) only have the result
+  else if (resultShown.has(e.id)) box.append(resultBox(e));
+}
+
+function fillReasons(box, e) {
   const reasons = reasonsFile?.[e.id];
   if (!reasons) {
     box.textContent = 'No explanation saved for this event yet.';
@@ -376,29 +387,32 @@ function fillWhy(box, e) {
   if (note) box.append(Object.assign(document.createElement('p'), { className: 'small', textContent: note }));
 
   // Second level: the actual result, behind another warning.
-  if (resultShown.has(e.id)) {
-    // Tennis and F1 results are one line of text; football is
-    // {text, goals: ["36' · 0–1 · Name (Team)", …], subs: ["58' · Name on for Name (Team)", …]}.
-    const saved = resultsFile?.[e.id] ?? 'No result saved for this event yet.';
-    const { text, goals = [], subs = [] } = typeof saved === 'string' ? { text: saved } : saved;
-    const div = Object.assign(document.createElement('div'), { className: 'result' });
-    div.append(Object.assign(document.createElement('p'), { className: 'result-text', textContent: text }));
-    if (goals.length) div.append(columnsList(goals, 'goals'));
-    if (subs.length) { // behind its own button, like the line-ups
-      const subsShown = subsOpen.has(e.id);
-      const b = Object.assign(document.createElement('button'), { type: 'button', className: 'subs-btn' });
-      b.textContent = subsShown ? '▾ Substitutions' : `▸ Substitutions (${subs.length})`;
-      b.setAttribute('aria-expanded', String(subsShown));
-      b.onclick = () => { subsShown ? subsOpen.delete(e.id) : subsOpen.add(e.id); render(); };
-      div.append(b);
-      if (subsShown) div.append(columnsList(subs, 'goals subs'));
-    }
-    box.append(div);
-  } else {
+  if (resultShown.has(e.id)) box.append(resultBox(e));
+  else {
     const b = Object.assign(document.createElement('button'), { type: 'button', className: 'why-btn result-btn', textContent: '⚠⚠ Show the result' });
     b.onclick = () => askSpoiler(e.id, 'result');
     box.append(b);
   }
+}
+
+function resultBox(e) {
+  // Tennis and F1 results are one line of text; football is
+  // {text, goals: ["36' · 0–1 · Name (Team)", …], subs: ["58' · Name on for Name (Team)", …]}.
+  const saved = resultsFile?.[e.id] ?? 'No result saved for this event yet.';
+  const { text, goals = [], subs = [] } = typeof saved === 'string' ? { text: saved } : saved;
+  const div = Object.assign(document.createElement('div'), { className: 'result' });
+  div.append(Object.assign(document.createElement('p'), { className: 'result-text', textContent: text }));
+  if (goals.length) div.append(columnsList(goals, 'goals'));
+  if (subs.length) { // behind its own button, like the line-ups
+    const subsShown = subsOpen.has(e.id);
+    const b = Object.assign(document.createElement('button'), { type: 'button', className: 'subs-btn' });
+    b.textContent = subsShown ? '▾ Substitutions' : `▸ Substitutions (${subs.length})`;
+    b.setAttribute('aria-expanded', String(subsShown));
+    b.onclick = () => { subsShown ? subsOpen.delete(e.id) : subsOpen.add(e.id); render(); };
+    div.append(b);
+    if (subsShown) div.append(columnsList(subs, 'goals subs'));
+  }
+  return div;
 }
 
 const SPOILER_LEVELS = {

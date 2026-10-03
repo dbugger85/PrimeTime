@@ -76,13 +76,18 @@ export function checkEvent(e) {
   checkHints(e);
   assert.ok(!('forecast' in e), `${e.id}: a forecast on a replay could hint at an upset`);
   assert.ok(!('outlook' in e), `${e.id}: an outlook on a replay could hint at an upset`);
-  assert.ok(typeof e.score === 'number' && e.score >= 0 && e.score <= 10, `${e.id}: score ${e.score} is not 0–10`);
+  const quali = e.session === 'qualifying' || e.session === 'sprint-qualifying';
+  if (quali) { // unrated: no score, strip or tips, since they gave the grid away
+    assert.ok(e.score === null && e.advice === null && e.segments.length === 0, `${e.id}: qualifying must be unrated`);
+  } else assert.ok(typeof e.score === 'number' && e.score >= 0 && e.score <= 10, `${e.id}: score ${e.score} is not 0–10`);
   if ('limited' in e) assert.equal(e.limited, true, `${e.id}: limited is only ever true`);
   const allowed = [...ALLOWED.common, ...ALLOWED[e.sport]];
   for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}"`);
-  assert.ok(ADVICE_CODES.includes(e.advice.code), `${e.id}: advice ${e.advice.code}`);
-  assert.deepEqual(Object.keys(e.advice).filter((k) => !['code', 'unit', 'ranges'].includes(k)), []);
-  if (e.advice.code === 'skip') {
+  if (!quali) {
+    assert.ok(ADVICE_CODES.includes(e.advice.code), `${e.id}: advice ${e.advice.code}`);
+    assert.deepEqual(Object.keys(e.advice).filter((k) => !['code', 'unit', 'ranges'].includes(k)), []);
+  }
+  if (e.advice?.code === 'skip') {
     assert.ok(e.advice.ranges.length >= 1 && e.advice.ranges.length <= 3);
     assert.ok(e.advice.ranges.every(([a, b]) => Number.isInteger(a) && Number.isInteger(b) && a <= b));
     if (e.advice.unit === 'min') assert.ok(e.advice.ranges.every(([, b]) => b <= 75), `${e.id}: skips the ending`);
@@ -90,7 +95,6 @@ export function checkEvent(e) {
     if (e.advice.unit === 'stage') assert.ok(e.advice.ranges.every(([, b]) => b <= e.segments.length - 2), `${e.id}: skips the last shooting or the finish`);
     if (e.advice.unit === 'leg') assert.ok(e.advice.ranges.every(([, b]) => b <= e.segments.length - 1), `${e.id}: skips the last leg`);
     if (e.advice.unit === 'run') assert.deepEqual(e.advice.ranges, [[1, 1]], `${e.id}: only run 1 can be skipped`);
-    if (e.advice.unit === 'part') assert.ok(e.sport === 'f1' && e.advice.ranges.every(([, b]) => b <= 2), `${e.id}: skips Q3, where pole is decided`);
   }
   assert.ok(e.segments.every((s) => Number.isInteger(s) && s >= 0 && s <= 3));
   if (e.sport === 'football') assert.equal(e.segments.length, 6, 'fixed length, so extra time is not revealed');
@@ -100,9 +104,7 @@ export function checkEvent(e) {
     assert.equal(e.segments.length, expected, `${e.id}: the strip length must only depend on the race type`);
     assert.ok(['women', 'men', 'mixed'].includes(e.gender));
   }
-  const quali = e.session === 'qualifying' || e.session === 'sprint-qualifying';
   if (e.sport === 'f1' && !quali) assert.equal(e.segments.length, 10, 'fixed length, so a shortened race is not revealed');
-  if (quali) assert.equal(e.segments.length, 3, 'Q1, Q2, Q3');
   if ('session' in e) assert.ok(['qualifying', 'sprint', 'sprint-qualifying'].includes(e.session), `${e.id}: session ${e.session}`);
   const text = JSON.stringify({ ...e, id: '', start: '', lineups: '', links: '' }); // line-ups and links are checked above
   assert.doesNotMatch(text, /\d+\s*[-–:]\s*\d+/, `${e.id}: looks like a score`);

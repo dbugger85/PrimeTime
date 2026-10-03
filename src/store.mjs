@@ -8,6 +8,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { writeCalendars } from './calendar.mjs';
 import { linkFields } from './publish.mjs';
+import { SCORING_VERSIONS } from './scoring/common.mjs';
 
 const root = new URL('..', import.meta.url);
 const EVENTS = new URL('docs/data/events.json', root);
@@ -29,13 +30,28 @@ export const saver = ({ events, reasons, results }) => (event, scored) => {
 
 export function loadData() {
   const data = readJson(EVENTS, {});
-  return {
+  const loaded = {
     events: new Map((data.events ?? []).map((e) => [e.id, e])),
     upcoming: data.upcoming ?? [],
     reasons: new Map(Object.entries(readJson(REASONS, {}))),
     results: new Map(Object.entries(readJson(RESULTS, {}))),
     state: readJson(STATE, {}),
   };
+  loaded.migrated = unrateQualifying(loaded); // the live check must save these even if nothing else changed
+  return loaded;
+}
+
+// F1 qualifying used to get a score, a strip and tips (until F1 version 11). Its saved
+// result is all that's still needed, so older sessions are un-rated here instead of re-fetched.
+function unrateQualifying({ events, reasons }) {
+  let n = 0;
+  for (const e of events.values()) {
+    if (e.sport !== 'f1' || !/qualifying/.test(e.session ?? '') || e.score === null) continue;
+    events.set(e.id, { ...e, score: null, segments: [], advice: null, v: SCORING_VERSIONS.f1 });
+    reasons.set(e.id, []);
+    n++;
+  }
+  return n > 0;
 }
 
 // Writes all the files. Returns a one-line summary.

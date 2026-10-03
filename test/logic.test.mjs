@@ -16,6 +16,7 @@ const ids = (list) => list.map((e) => e.id).join('');
 test('tiers', () => {
   assert.equal(tierOf(9).label, 'Must-watch');
   assert.equal(tierOf(6).label, 'Good');
+  assert.equal(tierOf(null).key, 'unrated', 'F1 qualifying has no score');
   assert.equal(tierOf(4.5).label, 'Decent');
   assert.equal(tierOf(1).label, 'Skip it');
 });
@@ -169,11 +170,9 @@ test('settings link: round trip, recent watched marks only, broken links', () =>
   assert.deepEqual(decodeSettings(odd, defaults), { prefs: { services: ['tv2play'] }, watched: [] }, 'wrong types are dropped');
 });
 
-test('F1 qualifying: titles, skip text and the sessions filter', () => {
-  const q = ev({ id: 'q', sport: 'f1', score: 7, start: '2026-06-09T14:00Z', compName: 'British Grand Prix', circuit: 'Silverstone', session: 'qualifying' });
+test('F1 qualifying: titles and the sessions filter', () => {
+  const q = ev({ id: 'q', sport: 'f1', score: null, start: '2026-06-09T14:00Z', compName: 'British Grand Prix', circuit: 'Silverstone', session: 'qualifying' });
   assert.equal(titleOf(q), 'British Grand Prix qualifying');
-  assert.equal(adviceText({ code: 'skip', unit: 'part', ranges: [[1, 1]] }), 'Skip Q1');
-  assert.equal(adviceText({ code: 'skip', unit: 'part', ranges: [[1, 2]] }), 'Skip Q1 and Q2');
   const all = [...events, q];
   const f1 = { ...base, sport: 'f1' };
   assert.equal(ids(filterEvents(all, f1, new Set(), now)), 'dq', 'newest first: the race is a day after qualifying');
@@ -182,7 +181,7 @@ test('F1 qualifying: titles, skip text and the sessions filter', () => {
   assert.equal(ids(filterEvents(all, { ...base, f1Session: 'race' }, new Set(), now)), 'abcdq', 'ignored off the F1 tab');
   assert.equal(activeFilters({ ...f1, days: 30, sort: 'date', f1Session: 'race' }, 'replays'), 1);
   const sp = ev({ id: 's', sport: 'f1', score: 6, start: '2026-06-08T14:00Z', compName: 'British Grand Prix', circuit: 'Silverstone', session: 'sprint' });
-  const sq = ev({ id: 't', sport: 'f1', score: 5, start: '2026-06-07T14:00Z', compName: 'British Grand Prix', circuit: 'Silverstone', session: 'sprint-qualifying' });
+  const sq = ev({ id: 't', sport: 'f1', score: null, start: '2026-06-07T14:00Z', compName: 'British Grand Prix', circuit: 'Silverstone', session: 'sprint-qualifying' });
   assert.equal(titleOf(sp), 'British Grand Prix sprint');
   assert.equal(titleOf(sq), 'British Grand Prix sprint qualifying');
   assert.equal(subtitleOf(sq), 'Formula 1 · Sprint qualifying · Silverstone');

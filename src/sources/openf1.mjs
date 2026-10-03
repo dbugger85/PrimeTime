@@ -90,10 +90,11 @@ export function factsFromRace(d) {
     while (i < leaderRows.length && Date.parse(leaderRows[i].date) < until) cur = leaderRows[i++].driver_number;
     leaderAfter.push(cur);
   }
+  // Not at the start (lap 1): whether the pole-sitter kept the lead into turn 1 would show in the score.
   const leadChanges = [];
-  for (let lap = 1; lap < leaderAfter.length; lap++) {
+  for (let lap = 2; lap < leaderAfter.length; lap++) {
     const [was, now] = [leaderAfter[lap - 1], leaderAfter[lap]];
-    if (was !== now && (lap === 1 || (!nearPit(was, lap) && !nearPit(now, lap)))) leadChanges.push(lap);
+    if (was !== now && !nearPit(was, lap) && !nearPit(now, lap)) leadChanges.push(lap);
   }
 
   // Overtakes after the first lap, not pit-related, and not undone within two laps (timing noise).
@@ -131,79 +132,24 @@ export function factsFromRace(d) {
   };
 }
 
-// Everything the qualifying scorer needs. Returns null if OpenF1 has no result yet.
+// Qualifying gets no score or tips (the owner found they gave too much away), so only
+// the result is needed, for "Show the result". Returns null if OpenF1 has no result yet.
 export async function fetchQualiData(sessionKey) {
   const result = await maybe(`session_result?session_key=${sessionKey}`);
   if (!result.length) return null;
-  return {
-    result,
-    raceControl: await maybe(`race_control?session_key=${sessionKey}`),
-    laps: await maybe(`laps?session_key=${sessionKey}`),
-    weather: await maybe(`weather?session_key=${sessionKey}`),
-    drivers: await maybe(`drivers?session_key=${sessionKey}`),
-  };
+  return { result, drivers: await maybe(`drivers?session_key=${sessionKey}`) };
 }
 
-// Qualifying facts. Q1 and Q2 knock out the slowest cars; Q3 decides pole.
-// session_result gives each car's best time in each part (duration: [q1, q2, q3]).
+// "1. Lando Norris, 2. …, 3. … (pole by 0.026 s)". session_result gives each car's
+// best time in each part (duration: [q1, q2, q3]).
 export function factsFromQuali(d) {
   const best = (r, q) => (typeof r.duration?.[q] === 'number' ? r.duration[q] : null);
-  const inPart = (q) => d.result.filter((r) => best(r, q) != null).sort((a, b) => best(a, q) - best(b, q));
-  const [q1, q2, q3] = [0, 1, 2].map(inPart);
-
-  // How close the knockout was: the last car through vs the first one out, by
-  // their times in that part. With 22 cars, 16 get through Q1 (15 of 20), and 10 get through Q2.
-  const cutMargin = (part, q, through) => (part.length > through ? best(part[through], q) - best(part[through - 1], q) : null);
-  const q1Through = d.result.length > 20 ? 16 : 15;
-
-  const rc = d.raceControl ?? [];
-  // Not every message says which part it's from, so go by time: a part starts
-  // with its first message that does.
-  const starts = [1, 2, 3].map((q) => Math.min(...rc.filter((m) => m.qualifying_phase === q).map((m) => Date.parse(m.date))));
-  const phaseOf = (m) => {
-    const t = Date.parse(m.date);
-    return starts[2] <= t ? 3 : starts[1] <= t ? 2 : 1;
-  };
-  // One red flag can come with several messages, so flags within 3 minutes count once.
-  const reds = rc.filter((m) => m.flag === 'RED').sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
-  const redFlags = reds.filter((m, i) => !i || Date.parse(m.date) - Date.parse(reds[i - 1].date) > 180e3).map(phaseOf);
-  const deleted = rc.filter((m) => /DELETED/i.test(m.message ?? '') && !/REINSTATED/i.test(m.message ?? ''));
-
-  // Provisional pole in Q3: walk the laps in the order they were finished.
-  const q3Start = Number.isFinite(starts[2]) ? starts[2] : null;
-  const q3Drivers = new Set(q3.map((r) => r.driver_number));
-  const finished = (l) => Date.parse(l.date_start) + l.lap_duration * 1000;
-  const q3Laps = (d.laps ?? [])
-    .filter((l) => l.date_start && typeof l.lap_duration === 'number' && q3Drivers.has(l.driver_number) && q3Start && Date.parse(l.date_start) >= q3Start)
-    .sort((a, b) => finished(a) - finished(b));
-  let holder = null, bestTime = Infinity;
-  const poleChanges = [];
-  for (const l of q3Laps) {
-    if (l.lap_duration < bestTime) {
-      if (holder !== null && holder !== l.driver_number) poleChanges.push(finished(l));
-      holder = l.driver_number;
-      bestTime = l.lap_duration;
-    }
-  }
-  const q3End = q3Laps.length ? finished(q3Laps.at(-1)) : 0;
-
+  const q3 = d.result.filter((r) => best(r, 2) != null).sort((a, b) => best(a, 2) - best(b, 2));
   const nameOf = (num) => driverName(d, num);
   const top = d.result.filter((r) => r.position <= 3).sort((a, b) => a.position - b.position);
   const gapP2 = q3.length >= 2 ? best(q3[1], 2) - best(q3[0], 2) : null;
   const result = top.map((r) => `${r.position}. ${nameOf(r.driver_number)}`).join(', ')
     + (gapP2 != null ? ` (pole by ${gapP2.toFixed(3)} s)` : '');
 
-  const sessionStart = Math.min(...(d.laps ?? []).filter((l) => l.date_start).map((l) => Date.parse(l.date_start)));
-  return {
-    result,
-    poleGap: gapP2,
-    top10Spread: q3.length >= 10 ? best(q3[9], 2) - best(q3[0], 2) : null,
-    q1Cut: cutMargin(q1, 0, q1Through),
-    q2Cut: cutMargin(q2, 1, 10),
-    poleChanges: poleChanges.length,
-    latePoleChanges: poleChanges.filter((t) => q3End - t <= 4 * 60e3).length,
-    redFlags, // the part (1, 2 or 3) each red flag came in
-    deletedLaps: [1, 2, 3].map((q) => deleted.filter((m) => phaseOf(m) === q).length),
-    rain: (d.weather ?? []).some((w) => w.rainfall > 0 && Date.parse(w.date) >= sessionStart),
-  };
+  return { result };
 }
