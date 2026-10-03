@@ -259,7 +259,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-03T14:19:08.355Z",
+ "lastFull": "2026-10-03T17:10:45.990Z",
  "versions": {
   "football": "15.2d5b0660",
   "tennis": "9.c615cf94",
@@ -1781,6 +1781,12 @@
    "start": "2026-10-10T14:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/bodoe-glimt-kristiansund-qcrwac64"
+   }
+  },
+  "fb-401843451": {
+   "start": "2026-10-10T16:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/rosenborg-sandefjord-jmqjhqqw"
    }
   }
  }
