@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-04T13:15:46.434Z",
+ "lastFull": "2026-10-04T16:10:41.924Z",
  "versions": {
   "football": "15.2d5b0660",
   "tennis": "9.c615cf94",
@@ -1805,6 +1805,12 @@
    "start": "2026-10-11T12:30Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/fredrikstad-tromsoe-q5srmkvx"
+   }
+  },
+  "fb-401843457": {
+   "start": "2026-10-11T15:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/aalesund-sarpsborg-08-5f6fbajd"
    }
   }
  }
