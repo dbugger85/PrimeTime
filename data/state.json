@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-05T18:01:16.715Z",
+ "lastFull": "2026-10-05T21:05:58.104Z",
  "versions": {
   "football": "15.2d5b0660",
   "tennis": "9.c615cf94",
@@ -1817,6 +1817,12 @@
    "start": "2026-10-11T15:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/start-hamkam-8es08hkg"
+   }
+  },
+  "fb-401843452": {
+   "start": "2026-10-11T17:15Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/lillestroem-molde-b4cg8595"
    }
   }
  }
