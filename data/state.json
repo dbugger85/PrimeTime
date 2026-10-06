@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-06T17:15:48.501Z",
+ "lastFull": "2026-10-06T20:10:47.442Z",
  "versions": {
   "football": "15.2d5b0660",
   "tennis": "9.c615cf94",
@@ -1701,12 +1701,6 @@
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/rosenborg-hamkam-ta5wjjdc"
    }
   },
-  "fb-401873920": {
-   "start": "2026-09-04T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/sandefjord-viking-gsxa800r"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -1817,6 +1811,30 @@
    "start": "2026-10-12T17:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kfum-oslo-vaalerenga-hn3h0sj1"
+   }
+  },
+  "fb-401915418": {
+   "start": "2026-10-13T16:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/lens-sporting-cp-mkpsam06"
+   }
+  },
+  "fb-401915417": {
+   "start": "2026-10-13T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/arsenal-lille-egkbk2nd"
+   }
+  },
+  "fb-401915412": {
+   "start": "2026-10-13T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/atletico-manchester-united-y5p897hq"
+   }
+  },
+  "fb-401915435": {
+   "start": "2026-10-13T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/galatasaray-barcelona-bbarj5r1"
    }
   }
  }
