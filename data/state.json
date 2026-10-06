@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-06T14:25:37.710Z",
+ "lastFull": "2026-10-06T17:15:48.501Z",
  "versions": {
   "football": "15.2d5b0660",
   "tennis": "9.c615cf94",
@@ -1707,18 +1707,6 @@
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/sandefjord-viking-gsxa800r"
    }
   },
-  "fb-401843427": {
-   "start": "2026-09-04T17:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/aalesund-start-3vfesp30"
-   }
-  },
-  "fb-401873921": {
-   "start": "2026-09-04T17:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/fredrikstad-bodoe-glimt-qw0g2n0n"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -1823,6 +1811,12 @@
    "start": "2026-10-11T17:15Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/lillestroem-molde-b4cg8595"
+   }
+  },
+  "fb-401843453": {
+   "start": "2026-10-12T17:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kfum-oslo-vaalerenga-hn3h0sj1"
    }
   }
  }
