@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-07T10:31:07.333Z",
+ "lastFull": "2026-10-07T13:25:36.128Z",
  "versions": {
   "football": "15.2d5b0660",
   "tennis": "9.c615cf94",
@@ -1870,6 +1870,13 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/newcastle-aston-villa/s26100746790834597",
     "until": "2026-10-19T19:30:00.000Z"
+   }
+  },
+  "fb-401879261": {
+   "start": "2026-10-18T13:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/brighton-crystal-palace/s26100717315873556",
+    "until": "2026-10-20T15:30:00.000Z"
    }
   }
  }
