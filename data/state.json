@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-07T07:40:44.351Z",
+ "lastFull": "2026-10-07T10:31:07.333Z",
  "versions": {
   "football": "15.2d5b0660",
   "tennis": "9.c615cf94",
@@ -1863,6 +1863,13 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/man-city-ipswich/s26100757197913430",
     "until": "2026-10-19T16:30:00.000Z"
+   }
+  },
+  "fb-401879258": {
+   "start": "2026-10-17T16:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/newcastle-aston-villa/s26100746790834597",
+    "until": "2026-10-19T19:30:00.000Z"
    }
   }
  }
