@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-07T04:45:45.508Z",
+ "lastFull": "2026-10-07T07:40:44.351Z",
  "versions": {
   "football": "15.2d5b0660",
   "tennis": "9.c615cf94",
@@ -1835,6 +1835,34 @@
    "start": "2026-10-13T19:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/galatasaray-barcelona-bbarj5r1"
+   }
+  },
+  "fb-401878771": {
+   "start": "2026-10-17T11:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/everton-chelsea/s26100743408353547",
+    "until": "2026-10-19T14:25:00.000Z"
+   }
+  },
+  "fb-401879262": {
+   "start": "2026-10-17T14:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/brentford-liverpool/s26100749445060935",
+    "until": "2026-10-19T16:55:00.000Z"
+   }
+  },
+  "fb-401878770": {
+   "start": "2026-10-17T14:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/fulham-hull/s26100713739620721",
+    "until": "2026-10-19T16:30:00.000Z"
+   }
+  },
+  "fb-401879259": {
+   "start": "2026-10-17T14:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/man-city-ipswich/s26100757197913430",
+    "until": "2026-10-19T16:30:00.000Z"
    }
   }
  }
