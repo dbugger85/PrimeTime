@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-07T13:25:36.128Z",
+ "lastFull": "2026-10-07T16:23:19.688Z",
  "versions": {
   "football": "15.2d5b0660",
   "tennis": "9.c615cf94",
@@ -1687,18 +1687,6 @@
    "start": "2026-09-06T15:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/sarpsborg-08-vaalerenga-9gtef5j7"
-   }
-  },
-  "fb-401873914": {
-   "start": "2026-09-05T16:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/brann-lillestroem-qqn5w84d"
-   }
-  },
-  "fb-401873923": {
-   "start": "2026-09-05T14:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/rosenborg-hamkam-ta5wjjdc"
    }
   },
   "fb-401879268": {
