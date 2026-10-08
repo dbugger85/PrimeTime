@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-08T15:25:32.469Z",
+ "lastFull": "2026-10-08T18:15:35.792Z",
  "versions": {
   "football": "15.2d5b0660",
   "tennis": "9.c615cf94",
@@ -1669,12 +1669,6 @@
    "start": "2026-09-08T16:45Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/club-brugge-aston-villa-z2yc527p"
-   }
-  },
-  "fb-401843430": {
-   "start": "2026-09-06T17:15Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kristiansund-tromsoe-ctm8efmp"
    }
   },
   "fb-401879268": {
