@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-08T06:45:43.221Z",
+ "lastFull": "2026-10-08T09:40:35.953Z",
  "versions": {
   "football": "15.2d5b0660",
   "tennis": "9.c615cf94",
@@ -1865,6 +1865,13 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/brighton-crystal-palace/s26100717315873556",
     "until": "2026-10-20T15:30:00.000Z"
+   }
+  },
+  "fb-401879260": {
+   "start": "2026-10-18T13:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/leeds-man-united/s26100813468056807",
+    "until": "2026-10-20T16:30:00.000Z"
    }
   }
  }
