@@ -1,7 +1,6 @@
 {
  "footballDays": {
   "eng.1": [
-   "20260908",
    "20260909",
    "20260910",
    "20260911",
@@ -33,7 +32,6 @@
    "20261007"
   ],
   "uefa.champions": [
-   "20260908",
    "20260909",
    "20260910",
    "20260911",
@@ -65,7 +63,6 @@
    "20261007"
   ],
   "nor.1": [
-   "20260908",
    "20260909",
    "20260910",
    "20260911",
@@ -97,7 +94,6 @@
    "20261007"
   ],
   "uefa.nations": [
-   "20260908",
    "20260909",
    "20260910",
    "20260911",
@@ -129,7 +125,6 @@
    "20261007"
   ],
   "uefa.euroq": [
-   "20260908",
    "20260909",
    "20260910",
    "20260911",
@@ -161,7 +156,6 @@
    "20261007"
   ],
   "fifa.worldq.uefa": [
-   "20260908",
    "20260909",
    "20260910",
    "20260911",
@@ -193,7 +187,6 @@
    "20261007"
   ],
   "uefa.euro": [
-   "20260908",
    "20260909",
    "20260910",
    "20260911",
@@ -225,7 +218,6 @@
    "20261007"
   ],
   "fifa.world": [
-   "20260908",
    "20260909",
    "20260910",
    "20260911",
@@ -267,9 +259,9 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-09T17:15:36.138Z",
+ "lastFull": "2026-10-09T18:08:36.792Z",
  "versions": {
-  "football": "15.2d5b0660",
+  "football": "16.92dfab07",
   "tennis": "9.c615cf94",
   "f1": "11.376e0bc0",
   "winter": "2.1e4975a6"
@@ -1860,6 +1852,90 @@
    "start": "2026-10-13T19:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/viking-bayern-c45qmfys"
+   }
+  }
+ },
+ "ratings": {
+  "clubsTried": "2026-10-09",
+  "nationsTried": "2026-10-09",
+  "leagues": {
+   "eng.1": {
+    "Manchester City": 1932,
+    "Arsenal": 1979,
+    "Brighton & Hove Albion": 1775,
+    "Brentford": 1737,
+    "Leeds United": 1657,
+    "Liverpool": 2001,
+    "Everton": 1702,
+    "Hull City": 1450,
+    "Newcastle United": 1830,
+    "Chelsea": 1859,
+    "Ipswich Town": 1593,
+    "Manchester United": 1749,
+    "Nottingham Forest": 1782,
+    "Sunderland": 1550,
+    "Crystal Palace": 1775,
+    "Aston Villa": 1804,
+    "AFC Bournemouth": 1798,
+    "Coventry City": 1502,
+    "Fulham": 1763,
+    "Tottenham Hotspur": 1775
+   },
+   "uefa.champions": {
+    "Paris Saint-Germain": 1916,
+    "Bayern Munich": 1888,
+    "Barcelona": 1890,
+    "Manchester United": 1749,
+    "Como": 1611,
+    "Sporting CP": 1813,
+    "VfB Stuttgart": 1762,
+    "Manchester City": 1932,
+    "Aston Villa": 1804,
+    "Lens": 1708,
+    "Real Betis": 1651,
+    "Borussia Dortmund": 1765,
+    "Liverpool": 2001,
+    "Real Madrid": 1952,
+    "Arsenal": 1979,
+    "AEK Athens": 1560,
+    "AS Roma": 1783,
+    "Shakhtar Donetsk": 1564,
+    "Fenerbahce": 1690,
+    "PSV Eindhoven": 1802,
+    "Villarreal": 1737,
+    "Club Brugge": 1755,
+    "Lille": 1806,
+    "Slavia Prague": 1696,
+    "Atlético Madrid": 1858,
+    "Internazionale": 1996,
+    "LASK Linz": 1405,
+    "Napoli": 1867,
+    "Galatasaray": 1711,
+    "Viking FK": 1476,
+    "FC Porto": 1744,
+    "RB Leipzig": 1748,
+    "Feyenoord Rotterdam": 1754,
+    "Sabah FK": 1307,
+    "Slovan Bratislava": 1409,
+    "Bodo/Glimt": 1582
+   },
+   "nor.1": {
+    "Viking FK": 1476,
+    "Bodo/Glimt": 1582,
+    "Tromso": 1373,
+    "Molde": 1498,
+    "Rosenborg": 1452,
+    "Lillestrom": 1272,
+    "SK Brann": 1496,
+    "Fredrikstad": 1367,
+    "Sarpsborg FK": 1361,
+    "KFUM Oslo": 1316,
+    "Sandefjord": 1325,
+    "Vålerenga": null,
+    "Hamarkameratene": 1309,
+    "Aalesund": null,
+    "Kristiansund BK": 1296,
+    "IK Start": null
    }
   }
  }
