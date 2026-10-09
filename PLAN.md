@@ -65,3 +65,11 @@ The alpine season starts in Sölden in late October. Each sport keeps about a ye
 - **Pre-match hints:** a forecast from the odds ("looks even on paper", "could be lively", "looks one-sided", no question mark) on upcoming matches only, and what's at stake from the table before kick-off, also kept on replays. Publishing the 3-level forecast code is OK; raw odds stay private.
 - **Stakes score bonus:** yes, small (title 0.5, relegation 0.4, other races 0.2).
 - **Calendar:** per-team subscription feeds linked from My favorites, no per-card button.
+
+## Later decisions (2026-10-09): big matches, a non-linear score, Elo and win chances
+- **Big matches score higher** (football 16): all points are multiplied by ×0.8 (two of the weakest teams) to ×1.2 (two of the strongest), from Elo ratings. **Clubs are rated against their own league** (the best of Eliteserien counts like the best of the PL); **national teams on the world scale**. Research (TV-audience studies of the PL and CL) found team quality draws viewers more than an even match, so the mean of the two teams' strengths is used.
+- **Non-linear top:** a smooth curve above 5 replaces "points above 7 count less". **A 10 is practically never given**; the best thrillers land around 9.3–9.6.
+- **Ratings:** Club Elo for clubs, eloratings.net for national teams, **refreshed once a week** (not every build). Club Elo was down on 2026-10-09, so a saved copy from January 2025 is used until it answers; the bot switches by itself.
+- **"Show Elo ratings"** setting, **off by default**: the latest number in brackets after each team name, the same on every card (so two cards can't reveal a result).
+- **"Show win chances"** setting, **off by default**: "Win chance: Arsenal 69% · draw 19% · Leeds United 12%" from the odds, Coming up only, frozen at kick-off. This replaces "raw odds stay private" for the percentages only; the odds themselves stay private.
+- Fable reviewed the plan before the build and the code after it.
