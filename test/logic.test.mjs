@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel, prematchLine } from '../docs/logic.js';
+import { chancesLine, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel, prematchLine } from '../docs/logic.js';
 
 const now = Date.parse('2026-09-26T12:00:00Z');
 const ev = (o) => ({ services: [], segments: [], advice: { code: 'full' }, compName: 'X', ...o });
@@ -238,7 +238,14 @@ test('sorting reads the times, whatever their format', () => {
   assert.deepEqual(filterUpcoming([b, a].map((e) => ({ ...e, sport: 'f1', services: [], status: 'upcoming' })), prefs).map((e) => e.id), ['a', 'b']);
 });
 
-test('"Points above 7 count less" is always the last line of "Why this score?"', () => {
-  const { lines } = reasonLines([[2.4, '2 goals'], [-3.1, 'Points above 7 count less'], [0.5, 'Hit the woodwork'], [-0.4, 'The favorite scoring']]);
-  assert.deepEqual(lines.map((l) => l.label), ['2 goals', 'Hit the woodwork', 'The favorite scoring', 'Points above 7 count less']);
+test('the big-match factor and the curve are always the last lines of "Why this score?"', () => {
+  const { lines } = reasonLines([[2.4, '2 goals'], [-3.1, 'Higher scores are harder to reach'], [0.9, 'Big match: two strong teams (×1.15)'], [0.5, 'Hit the woodwork'], [-0.4, 'The favorite scoring']]);
+  assert.deepEqual(lines.map((l) => l.label), ['2 goals', 'Hit the woodwork', 'The favorite scoring', 'Big match: two strong teams (×1.15)', 'Higher scores are harder to reach']);
+});
+
+test('"Show win chances": one line from the pre-match chances, football only', () => {
+  const e = { sport: 'football', teams: ['SK Brann', 'Viking FK'], chances: [45, 27, 28] };
+  assert.equal(chancesLine(e), 'Win chance: SK Brann 45% · draw 27% · Viking FK 28%');
+  assert.equal(chancesLine({ ...e, chances: undefined }), '');
+  assert.equal(chancesLine({ sport: 'tennis', players: ['A', 'B'] }), '');
 });

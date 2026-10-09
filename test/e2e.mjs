@@ -163,7 +163,7 @@ try {
     assert.deepEqual(await page.$$eval('#f-days option', (els) => els.map((e) => e.value)), ['7', '30']);
     await page.click('#comps .chip:nth-child(2)');
     const comp = await page.$eval('#comps .chip[aria-pressed="true"]', (e) => e.firstChild.textContent);
-    const shownComps = await page.$$eval('.card .sub', (els) => [...new Set(els.map((e) => e.textContent))]);
+    const shownComps = await page.$$eval('.card .sub', (els) => [...new Set(els.map((e) => e.textContent.split(' · ')[0]))]); // stakes tags follow the name
     assert.deepEqual(shownComps, [comp]);
     assert.equal(await page.$eval('#filter-count', (e) => e.textContent), '1 on');
     await page.screenshot({ path: `${shots}/football-filtered.png` });
@@ -242,9 +242,28 @@ try {
       await page.click('#f-prehints');
       await page.$eval('#filters', (d, open) => { d.open = open; }, wasOpen);
     }
+    // "Show win chances": off by default; on, one line per upcoming football match with odds.
+    assert.equal(await page.$$eval('.card.soon .chances:not([hidden])', (els) => els.length), 0, 'no chances by default');
+    await page.$eval('#filters', (d) => { d.open = true; });
+    await page.click('#f-chances');
+    const chances = await page.$$eval('.card.soon .chances:not([hidden])', (els) => els.map((e) => e.textContent));
+    assert.ok(chances.length && chances.every((t) => /^Win chance: .+ \d+% · draw \d+% · .+ \d+%$/.test(t)), `odd chances: ${chances.slice(0, 3)}`);
+    await page.$eval('.card.soon:has(.chances:not([hidden]))', (e) => e.scrollIntoView({ block: 'start' }));
+    await page.screenshot({ path: `${shots}/upcoming-chances.png` });
+    await page.click('#f-chances');
+    await page.$eval('#filters', (d) => { d.open = false; });
     await page.click('#sports [data-sport="all"]');
     await page.click('#views [data-view="replays"]');
     await page.waitForSelector('.card .num');
+    // "Show Elo ratings": off by default; on, a number in brackets after football team names.
+    assert.equal(await page.$$eval('.title .elo', (els) => els.length), 0, 'no ratings by default');
+    await page.$eval('#filters', (d) => { d.open = true; });
+    await page.click('#f-elo');
+    const elos = await page.$$eval('.title .elo', (els) => els.map((e) => e.textContent));
+    assert.ok(elos.length && elos.every((t) => /^ \(\d{3,4}\)$/.test(t)), `odd Elo: ${elos.slice(0, 5)}`);
+    await page.screenshot({ path: `${shots}/elo-ratings.png` });
+    await page.click('#f-elo');
+    await page.$eval('#filters', (d) => { d.open = false; });
     await checkLineups(page, 'replay');
     // Direct links: a ▶ on the button, straight to the match on the service's own site.
     const direct = await page.$$eval('.card .svc a.pill:has(.go)', (els) => els.map((a) => a.href));
@@ -270,7 +289,8 @@ try {
     const other = await page.$eval('.card .title .name:nth-child(2)', (e) => e.dataset.name);
     await follow(page, team);
     assert.equal(await page.$eval('.card .title .name .star', (e) => e.textContent), '★');
-    assert.equal(await page.$eval('.card .title .name', (e) => e.textContent), `${team}★`, 'the star sits right after the name');
+    const named = await page.$eval('.card .title .name', (e) => e.textContent);
+    assert.ok(named === `${team}★` || new RegExp(`^${team.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\(\\d+\\)★$`).test(named), `the star sits right after the name (and its Elo): ${named}`);
     await page.click('#fav-only');
     const titles = await page.$$eval('.card .title', (els) => els.map((e) => e.textContent));
     assert.ok(titles.length > 0 && titles.every((t) => t.includes(team)), `only ${team} matches show`);

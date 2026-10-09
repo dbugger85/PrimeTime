@@ -62,8 +62,12 @@ export const FOOTBALL = {
   relegationBattle: 0.4, //   a relegation battle
   otherRace: 0.2, //          top-4, top-8, European spots, play-off spots, top of the group, qualifying
 
+  // Big match, from the teams' Elo ratings (not the odds): clubs are compared with the rest of
+  // their own league, national teams with the whole world
+  bigMatch: 0.2, //           two of the strongest teams: all points ×1.2; two of the weakest: ×0.8; an average pair: ×1 (0 = off)
+
   // The top end
-  aboveSevenCounts: 0.4, //   each point above 7 counts this much (0.4 = 40%), so only a rare thriller reaches 10
+  curveFrom: 5, //            above this, each point counts a bit less than the one before, so scores bend towards 10 and a 10 is almost impossible (lower = stricter; from 0 to 9)
 };
 
 export const TENNIS = {

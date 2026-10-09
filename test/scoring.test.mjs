@@ -209,7 +209,8 @@ test('result lines (only ever shown behind the second spoiler warning)', () => {
 test('weights.mjs: every weight is a number from 0 to 5', () => {
   for (const [sport, weights] of Object.entries(WEIGHTS)) {
     for (const [name, w] of Object.entries(weights)) {
-      assert.ok(typeof w === 'number' && Number.isFinite(w) && w >= 0 && w <= 5, `${sport}.${name} is ${w}: use a number from 0 to 5`);
+      const max = name === 'curveFrom' ? 9 : 5; // where the curve starts, on the 0–10 scale
+      assert.ok(typeof w === 'number' && Number.isFinite(w) && w >= 0 && w <= max, `${sport}.${name} is ${w}: use a number from 0 to ${max}`);
     }
   }
   for (const v of Object.values(SCORING_VERSIONS)) assert.match(v, /^\d+\.[0-9a-f]{8}$/, 'each version includes a fingerprint of its weights');
@@ -374,7 +375,7 @@ test("what's at stake, from the table before the match", () => {
 });
 
 test('stakes add a little to the score, and say so', () => {
-  const facts = factsFromSummary(fixture('football/760516.json'));
+  const facts = factsFromSummary(fixture('football/401879276.json')); // Bournemouth 0–1 Liverpool: below the curve, so the bonus shows in full
   const plain = scoreFootball(facts);
   const title = scoreFootball({ ...facts, stakes: 'title' });
   assert.ok(title.reasons.some(([, label]) => label === 'Title race before kick-off'));
@@ -459,7 +460,7 @@ test('outlook: a rough word for upcoming matches, or nothing', () => {
   assert.equal(outlookOf(null), null, 'no odds, no guess');
 });
 
-test('football with and without xG; points above 7 count less', () => {
+test('football with and without xG; higher scores are harder to reach', () => {
   const facts = factsFromSummary(fixture('football/760516.json')); // France 4–6 England
   const noXg = scoreFootball({ ...facts, xg: null });
   assert.equal(noXg.limited, true, 'no xG: limited info');
@@ -472,10 +473,106 @@ test('football with and without xG; points above 7 count less', () => {
   const open = scoreFootball({ ...oneNil, xg: { home: 2.5, away: 1.5, shots: [] } }).score;
   const closed = scoreFootball({ ...oneNil, xg: { home: 0.6, away: 0.5, shots: [] } }).score;
   assert.ok(open > closed, `chances ${open} vs potshots ${closed}`);
-  // The squeeze: raw 12 becomes 9.0, with a line saying so.
-  assert.ok(noXg.reasons.some(([, l]) => l === 'Points above 7 count less'));
-  const raw = noXg.reasons.filter(([, l]) => l !== 'Points above 7 count less').reduce((a, [p]) => a + p, 0);
-  assert.equal(noXg.score, Math.min(10, Math.round((7 + (raw - 7) * 0.4) * 10) / 10));
+  // The curve: above 5 each point counts a bit less, bending towards 10, with a line saying so.
+  const CURVE = 'Higher scores are harder to reach';
+  assert.ok(noXg.reasons.some(([, l]) => l === CURVE));
+  const raw = noXg.reasons.filter(([, l]) => l !== CURVE).reduce((a, [p]) => a + p, 0);
+  const curve = (x) => (x <= 5 ? x : 5 + 5 * (1 - Math.exp(-(x - 5) / 5)));
+  assert.ok(Math.abs(noXg.score - curve(raw)) <= 0.15, `score ${noXg.score} vs curve ${curve(raw)}`);
+  assert.ok(curve(30) < 10 && curve(5) === 5 && curve(8) > 7, 'smooth, and never quite 10');
+});
+
+test('big match: the same match scores higher between two strong teams', async () => {
+  const W = (await import('../src/scoring/weights.mjs')).FOOTBALL;
+  const facts = factsFromSummary(fixture('football/760492.json')); // France 3-0 Sweden
+  const strong = scoreFootball({ ...facts, strength: { home: 0.95, away: 0.9 } });
+  const average = scoreFootball({ ...facts, strength: { home: 0.6, away: 0.4 } });
+  const weak = scoreFootball({ ...facts, strength: { home: 0.1, away: 0.05 } });
+  const unknown = scoreFootball({ ...facts, strength: null });
+  assert.ok(strong.score > average.score && average.score > weak.score, `${strong.score} > ${average.score} > ${weak.score}`);
+  assert.equal(average.score, unknown.score, 'an average pair, or unknown teams: no change');
+  assert.ok(!unknown.reasons.some(([, l]) => /×/.test(l)), 'no big-match line without ratings');
+  assert.ok(strong.reasons.some(([, l]) => /^Big match: two strong teams \(×1\.17\)$/.test(l)), strong.reasons.join(' | '));
+  assert.ok(weak.reasons.some(([, l]) => /^Two weaker teams \(×0\.83\)$/.test(l)));
+  const before = W.bigMatch;
+  try {
+    W.bigMatch = 0; // the off switch
+    assert.equal(scoreFootball({ ...facts, strength: { home: 1, away: 1 } }).score, unknown.score);
+  } finally {
+    W.bigMatch = before;
+  }
+});
+
+test('team ratings: parsing, names and each team\'s strength', async () => {
+  const { parseClubElo, parseWorldElo, clubElo, nationElo, strengthOf, updateRatings } = await import('../src/sources/ratings.mjs');
+  const clubs = parseClubElo('Rank,Club,Country,Level,Elo,From,To\n1,Liverpool,ENG,1,2000.95,2025-01-23,2025-01-23\n5,Man City,ENG,1,1932.33,x,y\nNone,Bodoe Glimt,NOR,1,1582.45,x,y\nNone,Ham-Kam,NOR,1,1309.38,x,y\nNone,Tromso,NOR,1,1372.6,x,y\n');
+  assert.deepEqual(clubs, { Liverpool: 2001, 'Man City': 1932, 'Bodoe Glimt': 1582, 'Ham-Kam': 1309, Tromso: 1373 });
+  for (const [espn, elo] of [['Manchester City', 1932], ['Bodo/Glimt', 1582], ['Bodø/Glimt', 1582], ['Hamarkameratene', 1309], ['Tromsø', 1373], ['Liverpool', 2001], ['Vålerenga', null]]) {
+    assert.equal(clubElo(clubs, espn), elo, espn);
+  }
+  const nations = parseWorldElo('1\t1\tES\t2287\t2290\n12\t12\tNO\t1900\t1950\n38\t38\tTR\t1800\t1850\n', 'ES\tSpain\nNO\tNorway\tNorge\nTR\tTurkey\tTürkiye\nXX\tNowhere\n');
+  assert.deepEqual(nations, { Spain: 2287, Norway: 1900, Norge: 1900, Turkey: 1800, 'Türkiye': 1800 });
+  assert.equal(nationElo(nations, 'Türkiye'), 1800);
+  // National teams: the world scale, 1400 = 0 to 2100 = 1.
+  const n = strengthOf({ nations }, 'uefa.nations', 'Spain', 'Norway');
+  assert.equal(n.home, 1);
+  assert.ok(Math.abs(n.away - 500 / 700) < 1e-9);
+  assert.equal(strengthOf({ nations }, 'uefa.nations', 'Spain', 'Atlantis'), null, 'an unknown team: no big-match line');
+  // Clubs: against their own league; a club the list doesn't know counts as the league's weakest.
+  const leagues = { 'nor.1': { 'Bodø/Glimt': 1582, 'SK Brann': 1496, Molde: 1498, Tromso: 1373, Vålerenga: null } };
+  const s = strengthOf({ leagues }, 'nor.1', 'Bodø/Glimt', 'Vålerenga');
+  assert.equal(s.home, 1, 'the strongest in the league');
+  assert.equal(s.away, 0.125, 'unknown = level with the weakest (Tromso)');
+  assert.equal(strengthOf({ leagues }, 'nor.1', 'Molde', 'SK Brann').home, 0.75);
+  assert.equal(strengthOf({ leagues }, 'eng.1', 'Molde', 'SK Brann'), null, 'no field for that league');
+  // Both sites down: the seeds are used and nothing throws.
+  const state = {};
+  const tablesFor = async (key) => (key === 'nor.1' ? [{ name: 'Eliteserien', rows: [{ team: 'Bodø/Glimt' }, { team: 'SK Brann' }, { team: 'Viking FK' }, { team: 'Molde' }, { team: 'KFUM Oslo' }] }] : null);
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: false, status: 404, statusText: 'Not Found' }); // 404 on purpose: a 5xx is retried after a sleep
+  try {
+    await updateRatings(state, new Date('2026-10-09T12:00:00Z'), tablesFor);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+  assert.equal(state.ratings.clubsDate, undefined, 'no good list yet');
+  assert.equal(state.ratings.clubsTried, '2026-10-09', 'so it is tried again tomorrow, not at every build');
+  assert.equal(state.ratings.leagues['nor.1']['Bodø/Glimt'], 1582, 'the seed fills the league');
+  assert.ok(strengthOf(state.ratings, 'nor.1', 'Bodø/Glimt', 'KFUM Oslo').home === 1);
+  assert.ok(strengthOf(state.ratings, 'uefa.nations', 'England', 'Spain').home > 0.9, 'the national seed works too');
+  // Still down next season: the field follows the new table (a promoted club joins, a relegated one leaves).
+  const nextSeason = async () => [{ name: 'Eliteserien', rows: ['Bodø/Glimt', 'SK Brann', 'Viking FK', 'Molde', 'Ham-Kam'].map((team) => ({ team })) }];
+  globalThis.fetch = async () => ({ ok: false, status: 404, statusText: 'Not Found' });
+  try {
+    await updateRatings(state, new Date('2027-04-01T12:00:00Z'), nextSeason);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+  assert.deepEqual(Object.keys(state.ratings.leagues['nor.1']).sort(), ['Bodø/Glimt', 'Ham-Kam', 'Molde', 'SK Brann', 'Viking FK']);
+  assert.equal(state.ratings.leagues['nor.1']['Ham-Kam'], 1309, 'the newcomer gets the seed rating');
+  assert.equal(parseWorldElo('1\t1\tUS\t1800\n', 'US\tUnited States\tUSA\n').USA, 1800, 'other spellings count too');
+  // The page's list: one number per football team, from its league field or the world list.
+  const { eloList } = await import('../src/sources/ratings.mjs');
+  const list = eloList({ leagues, nations }, [
+    { sport: 'football', comp: 'nor.1', teams: ['Bodø/Glimt', 'Vålerenga'] },
+    { sport: 'football', comp: 'uefa.nations', teams: ['Spain', 'Atlantis'] },
+    { sport: 'tennis', players: ['A', 'B'] },
+  ]);
+  assert.deepEqual(list, { 'Bodø/Glimt': 1582, Spain: 2287 }, 'unknown ratings are left out');
+  // A good list is kept for a week: no requests in between, and a failed site waits a day.
+  let calls = 0;
+  globalThis.fetch = async () => { calls++; return { ok: false, status: 404, statusText: 'Not Found' }; };
+  try {
+    const fresh = { ratings: { clubsDate: '2027-04-01', nationsDate: '2027-04-01', leagues: {} } };
+    await updateRatings(fresh, new Date('2027-04-07T12:00:00Z'), async () => null);
+    assert.equal(calls, 0, 'six days old: no fetch');
+    await updateRatings(fresh, new Date('2027-04-08T12:00:00Z'), async () => null);
+    assert.equal(calls, 2, 'a week old: Club Elo and eloratings (its second file is skipped when the first fails)');
+    await updateRatings(fresh, new Date('2027-04-08T18:00:00Z'), async () => null);
+    assert.equal(calls, 2, 'failed today: not again until tomorrow');
+  } finally {
+    globalThis.fetch = realFetch;
+  }
 });
 
 test('direct links: TV 2 dates, NRK races, and only safe links get out', async () => {

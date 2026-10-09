@@ -67,6 +67,7 @@ function checkHints(e) {
   if ('stakes' in e) assert.ok(e.stakes in STAKES, `${e.id}: stakes ${e.stakes}`);
   if ('forecast' in e) assert.ok(FORECASTS.includes(e.forecast), `${e.id}: forecast ${e.forecast}`);
   if ('outlook' in e) assert.ok(OUTLOOKS.includes(e.outlook), `${e.id}: outlook ${e.outlook}`);
+  if ('chances' in e) assert.ok(e.chances.length === 3 && e.chances.every((x) => Number.isInteger(x) && x >= 0 && x <= 100), `${e.id}: chances ${e.chances}`);
   assert.doesNotMatch(JSON.stringify(e), /moneyline|overUnder|odds|%/i, `${e.id}: odds leaked`);
 }
 
@@ -76,6 +77,7 @@ export function checkEvent(e) {
   checkHints(e);
   assert.ok(!('forecast' in e), `${e.id}: a forecast on a replay could hint at an upset`);
   assert.ok(!('outlook' in e), `${e.id}: an outlook on a replay could hint at an upset`);
+  assert.ok(!('chances' in e), `${e.id}: win chances on a replay could hint at an upset`);
   const quali = e.session === 'qualifying' || e.session === 'sprint-qualifying';
   if (quali) { // unrated: no score, strip or tips, since they gave the grid away
     assert.ok(e.score === null && e.advice === null && e.segments.length === 0, `${e.id}: qualifying must be unrated`);
@@ -182,15 +184,19 @@ test('line-ups: only the starters, and only once both teams have 11', () => {
 test('pre-match hints: codes only; the forecast never reaches a replay', () => {
   const comp = { key: 'nor.1', name: 'Eliteserien' };
   const match = { espnId: '401843455', start: '2026-10-09T17:00Z', home: 'SK Brann', away: 'Viking FK', state: 'pre' };
-  const soon = upcomingFootball(comp, match, { stakes: 'title', forecast: 'lively', outlook: 'promising' });
+  const soon = upcomingFootball(comp, match, { stakes: 'title', forecast: 'lively', outlook: 'promising', chances: { home: 0.5, draw: 0.3, away: 0.2 } });
   checkUpcoming(soon);
+  assert.deepEqual(soon.chances, [50, 30, 20]);
   assert.equal(soon.outlook, 'promising');
   assert.equal(soon.stakes, 'title');
   assert.equal(soon.forecast, 'lively');
   const odd = upcomingFootball(comp, match, { stakes: 'Title race 2-1', forecast: 0.42 });
   assert.ok(!('stakes' in odd) && !('forecast' in odd), 'unknown values are dropped');
-  const replay = publishFootball(comp, match, scoreFootball({ ...factsFromSummary(fixture('football/760516.json')), stakes: 'title' }), { stakes: 'title', forecast: 'lively', outlook: 'promising' });
+  assert.deepEqual(upcomingFootball(comp, match, { chances: { home: 0.453, draw: 0.268, away: 0.279 } }).chances, [45, 27, 28], 'win chances as whole percentages');
+  assert.ok(!('chances' in upcomingFootball(comp, match, { chances: { home: 0.5, draw: null, away: 0.2 } })), 'incomplete chances are dropped');
+  const replay = publishFootball(comp, match, scoreFootball({ ...factsFromSummary(fixture('football/760516.json')), stakes: 'title' }), { stakes: 'title', forecast: 'lively', outlook: 'promising', chances: { home: 0.5, draw: 0.3, away: 0.2 } });
   checkEvent(replay);
+  assert.ok(!('chances' in replay), 'no win chances on a replay');
   assert.equal(replay.stakes, 'title');
   assert.ok(!('forecast' in replay));
 });
@@ -202,7 +208,7 @@ test('tennis players are listed alphabetically, not winner-last', () => {
 });
 
 export function checkUpcoming(e) {
-  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', 'links', ...ALLOWED[e.sport], ...(e.sport === 'football' ? ['forecast', 'outlook'] : [])];
+  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', 'links', ...ALLOWED[e.sport], ...(e.sport === 'football' ? ['forecast', 'outlook', 'chances'] : [])];
   for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}" on an upcoming event`);
   assert.ok(['upcoming', 'live'].includes(e.status));
   checkLineups(e);
@@ -223,7 +229,13 @@ test('upcoming events carry no score, only when and where', () => {
 
 test('the real docs/data/events.json is spoiler-free', { skip: !existsSync(new URL('../docs/data/events.json', import.meta.url)) }, () => {
   const data = JSON.parse(readFileSync(new URL('../docs/data/events.json', import.meta.url)));
-  assert.deepEqual(Object.keys(data).sort(), ['events', 'generated', 'upcoming']);
+  assert.deepEqual(Object.keys(data).filter((k) => k !== 'elo').sort(), ['events', 'generated', 'upcoming']); // elo: since football 16
+  // Elo: one whole number per football team on the page, nothing else.
+  const teams = new Set([...data.events, ...data.upcoming].flatMap((e) => (e.sport === 'football' ? e.teams : [])));
+  for (const [team, elo] of Object.entries(data.elo ?? {})) {
+    assert.ok(teams.has(team), `elo for ${team}, who isn't on the page`);
+    assert.ok(Number.isInteger(elo) && elo > 500 && elo < 2500, `elo ${team}: ${elo}`);
+  }
   for (const e of data.events) checkEvent(e);
   for (const e of data.upcoming) checkUpcoming(e);
   const scored = new Set(data.events.map((e) => e.id));

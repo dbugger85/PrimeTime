@@ -1,4 +1,4 @@
-import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, teamSlug } from './logic.js';
+import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug } from './logic.js';
 
 const SERVICES = {
   viaplay: { name: 'Viaplay', url: 'https://viaplay.no/sport' },
@@ -10,7 +10,7 @@ const SERVICES = {
 
 const DEFAULTS = {
   view: 'replays', sport: 'all', services: [], comp: 'all', days: 30, minScore: 0, sort: 'date',
-  round: '', draw: '', f1Session: '', hideTennis: true, hideFootball: false, hints: true, preHints: true, hideWatched: false,
+  round: '', draw: '', f1Session: '', hideTennis: true, hideFootball: false, hints: true, preHints: true, showElo: false, showChances: false, hideWatched: false,
   favsOnly: false, favs: { teams: [], players: [], f1: false, winter: [] }, gender: '',
 };
 
@@ -37,6 +37,7 @@ const benchOpen = new Set(); // benches opened this visit only, as "<event id>:<
 let resultsFile = null; // loaded only after the second warning is accepted
 let events = [];
 let upcoming = [];
+let eloRatings = {}; // the latest Elo per football team, for "Show Elo ratings"
 const PAGE = 40;
 let limit = PAGE; // cards shown; grows with "Show more"
 
@@ -155,6 +156,8 @@ function renderControls() {
   $('#f-hide-fb').checked = prefs.hideFootball;
   $('#f-hints').checked = prefs.hints;
   $('#f-prehints').checked = prefs.preHints;
+  $('#f-elo').checked = prefs.showElo;
+  $('#f-chances').checked = prefs.showChances;
   $('#f-watched').checked = prefs.hideWatched;
 
   const active = activeFilters(prefs, view);
@@ -288,10 +291,14 @@ function fillTitle(title, e) {
     const span = Object.assign(document.createElement('span'), { className: 'name' });
     span.dataset.name = name;
     const s = star(kind, name, name);
-    if (s) { // keep the last word and the star together, so the star never ends up alone on a line
+    // "Show Elo ratings": the team's latest Elo, the same on all its cards.
+    const elo = kind === 'teams' && prefs.showElo && Number.isFinite(eloRatings[name])
+      ? Object.assign(document.createElement('small'), { className: 'elo', textContent: ` (${eloRatings[name]})`, title: 'Elo rating: team strength, higher is stronger' })
+      : null;
+    if (s || elo) { // keep the last word, the rating and the star together, so neither ends up alone on a line
       const cut = name.lastIndexOf(' ') + 1;
       span.append(name.slice(0, cut), Object.assign(document.createElement('span'), { className: 'keep' }));
-      span.lastChild.append(name.slice(cut), s);
+      span.lastChild.append(name.slice(cut), ...[elo, s].filter(Boolean));
     } else {
       span.append(name);
     }
@@ -468,6 +475,9 @@ function soonCard(e) {
   const sub = e.sport === 'tennis' ? subtitleOf(e) : e.sport === 'football' && prefs.preHints ? prematchLine(e) : '';
   li.querySelector('.sub').textContent = sub;
   li.querySelector('.sub').hidden = !sub;
+  const chances = prefs.showChances ? chancesLine(e) : '';
+  li.querySelector('.chances').textContent = chances;
+  li.querySelector('.chances').hidden = !chances;
   li.querySelector('.svc').append(...servicePills(e));
   fillLineups(li, e);
   return li;
@@ -604,6 +614,8 @@ function bind() {
   $('#share-btn').onclick = shareSettings;
   on('#f-hints', 'hints');
   on('#f-prehints', 'preHints');
+  on('#f-elo', 'showElo');
+  on('#f-chances', 'showChances');
   on('#f-watched', 'hideWatched');
 }
 
@@ -630,6 +642,7 @@ async function fetchData({ quiet = false } = {}) {
     if (quiet && data.generated === $('#updated').dataset.generated) return;
     events = data.events ?? [];
     upcoming = data.upcoming ?? [];
+    eloRatings = data.elo ?? {};
     keepScroll(render); // keeps filters, "Show more" and open panels as they were
     $('#updated').dataset.generated = data.generated;
     $('#updated').textContent = `Updated ${fmt.format(new Date(data.generated))}.`;

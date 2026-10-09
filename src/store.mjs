@@ -8,6 +8,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { writeCalendars } from './calendar.mjs';
 import { linkFields } from './publish.mjs';
+import { eloList } from './sources/ratings.mjs';
 import { SCORING_VERSIONS } from './scoring/common.mjs';
 
 const root = new URL('..', import.meta.url);
@@ -68,7 +69,8 @@ export function saveData({ events, upcoming, reasons, results, state }, now = ne
     .sort((a, b) => a.start.localeCompare(b.start));
   mkdirSync(new URL('docs/data/', root), { recursive: true });
   mkdirSync(new URL('data/', root), { recursive: true });
-  writeFileSync(EVENTS, JSON.stringify({ generated: now.toISOString(), events: list, upcoming: soon }) + '\n');
+  const elo = eloList(state.ratings, [...soon, ...list]); // the latest rating per team, for the "Show Elo ratings" setting
+  writeFileSync(EVENTS, JSON.stringify({ generated: now.toISOString(), events: list, upcoming: soon, elo }) + '\n');
   const pick = (map) => JSON.stringify(Object.fromEntries(list.filter((e) => map.has(e.id)).map((e) => [e.id, map.get(e.id)]))) + '\n';
   writeFileSync(REASONS, pick(reasons));
   writeFileSync(RESULTS, pick(results));

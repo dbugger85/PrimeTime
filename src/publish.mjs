@@ -72,6 +72,15 @@ const forecastField = (forecast) => (FORECASTS.includes(forecast) ? { forecast }
 // The outlook ('promising', 'quiet') is for upcoming matches only too: "predicted quiet" next to a
 // high score would give away an upset.
 const outlookField = (outlook) => (OUTLOOKS.includes(outlook) ? { outlook } : {});
+// The win chances from the odds before kick-off, as whole percentages [home, draw, away], for
+// the "Show win chances" setting (the owner asked for them). Upcoming only, like the forecast,
+// and frozen at kick-off (the live odds follow the score).
+// A published entry's chances back into { home, draw, away }, to copy them after kick-off.
+export const chancesOf = (e) => (e?.chances ? { home: e.chances[0] / 100, draw: e.chances[1] / 100, away: e.chances[2] / 100 } : null);
+function chancesField(c) {
+  if (![c?.home, c?.draw, c?.away].every((x) => Number.isFinite(x) && x >= 0 && x <= 1)) return {};
+  return { chances: [c.home, c.draw, c.away].map((x) => Math.round(100 * x)) };
+}
 
 // `limited: true` when the score had no xG to go on (FotMob had none or was down): the card says so.
 export const publishFootball = (comp, match, scored, { lineups, stakes } = {}) => ({
@@ -158,13 +167,14 @@ export const upcomingWinter = (race, compName) => ({
   ...winterFields(race),
 });
 
-export const upcomingFootball = (comp, match, { lineups, stakes, forecast, outlook } = {}) => ({
+export const upcomingFootball = (comp, match, { lineups, stakes, forecast, outlook, chances } = {}) => ({
   ...upcomingBase(`fb-${match.espnId}`, 'football', comp.key, comp.name, match.start, match.state === 'in', comp.key),
   teams: [match.home, match.away],
   ...lineupFields(lineups),
   ...stakesField(stakes),
   ...forecastField(forecast),
   ...outlookField(outlook),
+  ...chancesField(chances),
 });
 
 export const upcomingTennis = (match) => ({

@@ -277,13 +277,22 @@ export function teamSlug(name) {
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'team';
 }
 
+// "Show win chances": the chances from the odds before kick-off, upcoming football only.
+//   "Win chance: Brann 45% · draw 27% · Viking 28%"
+export function chancesLine(event) {
+  const c = event.chances;
+  if (event.sport !== 'football' || !Array.isArray(c) || c.length !== 3) return '';
+  return `Win chance: ${event.teams[0]} ${c[0]}% · draw ${c[1]}% · ${event.teams[1]} ${c[2]}%`;
+}
+
 export function hiddenTitleOf(event) {
   return event.sport === 'tennis' ? 'Players hidden' : 'Teams hidden';
 }
 
-// The lines shown by "Why this score?": [points, label] pairs, biggest first, except that
-// "Points above 7 count less" always comes last: it's worked out from all the others.
-const LAST = (label) => /^Points above \d+ count less/.test(label);
+// The lines shown by "Why this score?": [points, label] pairs, biggest first, except the
+// lines worked out from all the others, which come last in the order they were applied:
+// the big-match factor (×1.15), then the curve at the top.
+const LAST = (label) => (/^Higher scores are harder to reach|^Points above \d+ count less/.test(label) ? 2 : /^(Big match|Slightly (above|below)-average teams|Two weaker teams)\b.* \(×\d/.test(label) ? 1 : 0);
 export function reasonLines(reasons) {
   const lines = [...reasons].sort((a, b) => LAST(a[1]) - LAST(b[1]) || Math.abs(b[0]) - Math.abs(a[0]))
     .map(([pts, label]) => ({ pts: `${pts > 0 ? '+' : ''}${pts.toFixed(1)}`, label, negative: pts < 0 }));

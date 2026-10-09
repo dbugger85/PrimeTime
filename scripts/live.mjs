@@ -8,13 +8,14 @@
 
 import { FOOTBALL } from '../src/competitions.mjs';
 import { scoreFootball } from '../src/scoring/football.mjs';
+import { strengthOf } from '../src/sources/ratings.mjs';
 import { scoreTennis } from '../src/scoring/tennis.mjs';
 import { scoreF1, scoreQuali } from '../src/scoring/f1.mjs';
 import * as football from '../src/sources/espn-football.mjs';
 import * as tennis from '../src/sources/espn-tennis.mjs';
 import * as f1 from '../src/sources/openf1.mjs';
 import * as fotmob from '../src/sources/fotmob.mjs';
-import { publishFootball, publishTennis, publishF1, upcomingFootball, upcomingTennis, lineupFields } from '../src/publish.mjs';
+import { chancesOf, publishFootball, publishTennis, publishF1, upcomingFootball, upcomingTennis, lineupFields } from '../src/publish.mjs';
 import { loadData, saveData, warn, saver } from '../src/store.mjs';
 
 const now = process.env.NOW ? new Date(process.env.NOW) : new Date(); // NOW=... pretends it's another time (for testing)
@@ -71,7 +72,7 @@ async function liveFootball() {
         try {
           const summary = await football.fetchSummary(compKey, m.espnId);
           const xg = await fotmob.xgFor(m); // optional; the full build tries again later if it's missing
-          const scored = scoreFootball({ ...football.factsFromSummary(summary), stakes: old.stakes, xg });
+          const scored = scoreFootball({ ...football.factsFromSummary(summary), stakes: old.stakes, xg, strength: strengthOf(data.state.ratings, compKey, m.home, m.away) }); // ratings from the last full build, no fetch
           save(publishFootball(comp, m, scored, { lineups: football.lineupsFromSummary(summary) ?? old.lineups, stakes: old.stakes }), scored);
           upcoming = upcoming.filter((e) => e.id !== id);
           console.log(`scored ${m.home} – ${m.away}`);
@@ -80,7 +81,7 @@ async function liveFootball() {
         }
       } else if (m.state === 'pre' || m.state === 'in') {
         // Live flag and new kick-off time; the pre-match hints stay as the full build froze them.
-        upcoming = upcoming.map((e) => (e.id === id ? upcomingFootball(comp, m, { lineups: old.lineups, stakes: old.stakes, forecast: old.forecast, outlook: old.outlook }) : e));
+        upcoming = upcoming.map((e) => (e.id === id ? upcomingFootball(comp, m, { lineups: old.lineups, stakes: old.stakes, forecast: old.forecast, outlook: old.outlook, chances: chancesOf(old) }) : e));
       } else {
         upcoming = upcoming.filter((e) => e.id !== id); // postponed or cancelled
       }

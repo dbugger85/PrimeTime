@@ -78,6 +78,7 @@ h1 { font: 700 32px/1 'Barlow Condensed', system-ui, sans-serif; letter-spacing:
 /* Two ways filters hide themselves: .replay-only by view (not under Coming up),
    and data-for="tennis all" by sport (app.js sets hidden). */
 body[data-view="upcoming"] .replay-only { display: none; }
+body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .day { list-style: none; font-weight: 700; font-size: 14px; color: var(--muted); margin: 10px 2px 0; text-transform: uppercase; letter-spacing: 0.04em; }
 .soon .badge { border-style: dashed; }
 .soon .time { font: 700 26px/1 'Barlow Condensed', system-ui, sans-serif; }
@@ -132,6 +133,7 @@ body[data-view="upcoming"] .replay-only { display: none; }
 .star::after { content: ''; position: absolute; inset: -10px -8px; }
 .title .name { display: inline; }
 .title .keep { white-space: nowrap; } /* a followed name's last word and its star */
+.title .elo { font-weight: 400; color: var(--muted); font-size: 0.8em; }
 
 .filters { margin: 16px 0 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .filters summary { padding: 12px 14px; cursor: pointer; font-weight: 600; min-height: 44px; }

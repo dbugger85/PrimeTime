@@ -123,8 +123,21 @@ export function scoreFootball(f) {
   if (f.extraTime) t.add(W.extraTime, 'Went to extra time');
   if (f.shootout) t.add(W.shootout, 'Decided on penalties');
 
-  // The top end: each point above 7 counts less, so only a rare thriller reaches 10.
-  if (t.total > 7) t.add(-(t.total - 7) * (1 - W.aboveSevenCounts), 'Points above 7 count less');
+  // Big match: a thriller between two strong teams is worth more than the same match between
+  // two weaker ones. `f.strength` is each team's strength from 0 to 1 (clubs against their own
+  // league, national teams on the world scale; see src/sources/ratings.mjs), or null.
+  const st = f.strength;
+  if (st && Number.isFinite(st.home) && Number.isFinite(st.away)) {
+    const factor = 1 + W.bigMatch * (st.home + st.away - 1); // the mean strength, 0.5 = ×1
+    const mean = (st.home + st.away) / 2;
+    const label = mean >= 0.75 ? 'Big match: two strong teams' : mean >= 0.5 ? 'Slightly above-average teams' : mean > 0.25 ? 'Slightly below-average teams' : 'Two weaker teams';
+    t.add(Math.max(0, t.total) * (factor - 1), `${label} (×${factor.toFixed(2)})`);
+  }
+
+  // The top end: from `curveFrom` up, each point is worth a bit less than the one before, so
+  // the score bends smoothly towards 10 and only a truly extraordinary match gets near it.
+  const a = Math.min(W.curveFrom, 9); // 10 or more would divide by zero
+  if (t.total > a) t.add(a + (10 - a) * (1 - Math.exp(-(t.total - a) / (10 - a))) - t.total, 'Higher scores are harder to reach');
   const score = finalScore(t.total);
 
   // How much happened in each 5-minute slot (extra time folds into the last one).
