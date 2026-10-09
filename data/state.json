@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-09T14:25:30.872Z",
+ "lastFull": "2026-10-09T17:15:36.138Z",
  "versions": {
   "football": "15.2d5b0660",
   "tennis": "9.c615cf94",
@@ -1854,6 +1854,12 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/leeds-man-united/s26100813468056807",
     "until": "2026-10-20T16:30:00.000Z"
+   }
+  },
+  "fb-401915411": {
+   "start": "2026-10-13T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/viking-bayern-c45qmfys"
    }
   }
  }
