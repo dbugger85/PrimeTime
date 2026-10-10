@@ -209,7 +209,7 @@ test('result lines (only ever shown behind the second spoiler warning)', () => {
 test('weights.mjs: every weight is a number from 0 to 5', () => {
   for (const [sport, weights] of Object.entries(WEIGHTS)) {
     for (const [name, w] of Object.entries(weights)) {
-      const max = name === 'curveFrom' ? 9 : 5; // where the curve starts, on the 0–10 scale
+      const max = name === 'curveFrom' || name === 'typicalMatch' ? 9 : name === 'settleMinutes' ? 90 : 5; // points on the 0–10 scale; minutes of play
       assert.ok(typeof w === 'number' && Number.isFinite(w) && w >= 0 && w <= max, `${sport}.${name} is ${w}: use a number from 0 to ${max}`);
     }
   }

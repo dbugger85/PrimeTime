@@ -71,7 +71,7 @@ function matchesCommon(e, prefs) {
 }
 
 // favs: { teams: [], players: [], f1: false, winter: ['biathlon:women', …] }.
-// Tennis players only count under "Coming up": in replays, seeing a player's
+// Tennis players only count under "Coming up/ongoing": in replays, seeing a player's
 // later-round match would tell you they won the earlier ones. F1 is followed as
 // a whole, since every driver races. Winter sports are followed per sport and
 // gender (athletes would spoil: start lists show who qualified); mixed races
@@ -216,7 +216,7 @@ export function facets(pool, prefs, view, watched = new Set(), now = Date.now())
   return { comps, services, minCounts };
 }
 
-// How many filters differ from the defaults (shown on "More filters").
+// How many filters differ from the defaults (shown on "More filters/settings").
 export function activeFilters(prefs, view) {
   let n = 0;
   if (prefs.comp && prefs.comp !== 'all') n++;

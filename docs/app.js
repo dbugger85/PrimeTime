@@ -1,4 +1,5 @@
 import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug } from './logic.js';
+import { ESPN, clockOf, liveClockText, espnDays, liveFacts, scoreLivePace, LIVE_FROM, elapsedText } from './live.js';
 
 const SERVICES = {
   viaplay: { name: 'Viaplay', url: 'https://viaplay.no/sport' },
@@ -10,7 +11,7 @@ const SERVICES = {
 
 const DEFAULTS = {
   view: 'replays', sport: 'all', services: [], comp: 'all', days: 30, minScore: 0, sort: 'date',
-  round: '', draw: '', f1Session: '', hideTennis: true, hideFootball: false, hints: true, preHints: true, showElo: false, showChances: false, hideWatched: false,
+  round: '', draw: '', f1Session: '', hideTennis: true, hideFootball: false, hints: true, preHints: true, showElo: false, showChances: false, hideWatched: false, glass: true,
   favsOnly: false, favs: { teams: [], players: [], f1: false, winter: [] }, gender: '',
 };
 
@@ -32,12 +33,18 @@ let reasonsFile = null; // loaded only after the spoiler warning is accepted
 const resultShown = new Set(); // results revealed this visit only (after a second warning)
 const lineupsOpen = new Set(); // football line-ups opened this visit only
 const subsOpen = new Set(); // substitution lists opened (inside a shown result) this visit only
-let calOpen = false; // "Add to calendar" opened this visit
+let calOpen = false; // "Add favorites to calendar" opened this visit
 const benchOpen = new Set(); // benches opened this visit only, as "<event id>:<team index>"
 let resultsFile = null; // loaded only after the second warning is accepted
 let events = [];
 let upcoming = [];
 let eloRatings = {}; // the latest Elo per football team, for "Show Elo ratings"
+let liveWeights = null; // the weights for "Excitement so far" (from events.json)
+const paceOpen = new Set(); // "Excitement so far" opened this visit only
+const paceNow = new Map(); // id -> { pace, rough } | { early: true } | { failed: true }, worked out here from ESPN
+const freshClock = new Map(); // id -> the clock as the page last read it from ESPN, plus `seen` (this device's time)
+const finished = new Set(); // live matches ESPN says are over, until the bot moves them to Replays
+const redrawn = new Set(); // finished matches already redrawn without their button
 const PAGE = 40;
 let limit = PAGE; // cards shown; grows with "Show more"
 
@@ -159,6 +166,8 @@ function renderControls() {
   $('#f-elo').checked = prefs.showElo;
   $('#f-chances').checked = prefs.showChances;
   $('#f-watched').checked = prefs.hideWatched;
+  $('#f-glass').checked = prefs.glass;
+  document.body.classList.toggle('glass', prefs.glass); // the frosted look (style.css, end); some prefer it plain
 
   const active = activeFilters(prefs, view);
   $('#filter-count').hidden = !active;
@@ -184,7 +193,7 @@ function setFav(kind, name) {
 function renderCalendar(teams) {
   $('#cal').hidden = !teams.length;
   const btn = $('#cal-btn');
-  btn.textContent = calOpen ? '▾ Add to calendar' : '▸ Add to calendar';
+  btn.textContent = calOpen ? '▾ Add favorites to calendar' : '▸ Add favorites to calendar';
   btn.setAttribute('aria-expanded', String(calOpen));
   btn.onclick = () => { calOpen = !calOpen; renderCalendar(prefs.favs.teams); };
   $('#cal-body').hidden = !calOpen;
@@ -231,7 +240,7 @@ function renderFavs() {
   $('#favs-hint').textContent = !n
     ? 'Search below for a team, player, F1 or a winter sport. Its cards then get a ★.'
     : prefs.favsOnly && favs.players.length && prefs.view === 'replays' && ['all', 'tennis'].includes(prefs.sport)
-      ? 'Tennis players only count under Coming up, so replays don\'t spoil who went through.'
+      ? 'Tennis players only count under Coming up/ongoing, so replays don\'t spoil who went through.'
       : 'Tap one to remove it.';
   renderFavHits();
 }
@@ -272,7 +281,7 @@ function star(kind, name, label) {
 function fillTitle(title, e) {
   if (namesHidden(e, prefs) && !revealed.has(e.id)) {
     const b = Object.assign(document.createElement('button'), { type: 'button', className: 'reveal' });
-    b.textContent = `${hiddenTitleOf(e)} — tap to show`;
+    b.textContent = `${hiddenTitleOf(e)} · tap to show`;
     b.onclick = () => { revealed.add(e.id); render(); };
     title.append(b);
     return;
@@ -374,6 +383,17 @@ function fillWhy(box, e) {
   box.replaceChildren();
   if (e.score != null) fillReasons(box, e); // unrated events (F1 qualifying) only have the result
   else if (resultShown.has(e.id)) box.append(resultBox(e));
+  // ✕ in the corner hides the spoilers again (both levels); they come back only through the warnings.
+  const close = Object.assign(document.createElement('button'), { type: 'button', className: 'why-close', textContent: '✕' });
+  close.setAttribute('aria-label', 'Hide the spoilers');
+  close.onclick = () => {
+    whyShown.delete(e.id);
+    resultShown.delete(e.id);
+    subsOpen.delete(e.id);
+    render();
+    document.querySelector(`.card[data-id="${CSS.escape(e.id)}"] .why-btn`)?.focus({ preventScroll: true });
+  };
+  box.prepend(close);
 }
 
 function fillReasons(box, e) {
@@ -461,15 +481,40 @@ async function askSpoiler(id, level) {
 
 const timeFmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Oslo', hour: '2-digit', minute: '2-digit' });
 
+// The small text under LIVE: the match minute for football ("67'", "HT", "FT"), the time since
+// the start for F1 and winter sports, and "now" for tennis (ESPN's tennis times are the court's
+// slot, not the real start; a set number would give the score away).
+function liveTier(e, now = Date.now()) {
+  if (e.sport === 'football') {
+    if (finished.has(e.id)) return 'FT';
+    // The page's own reading wins while it's recent (by this device's clock, which may differ from the bot's).
+    const mine = freshClock.get(e.id);
+    const clock = mine && now - mine.seen < 3 * 60e3 ? mine : e.clock;
+    return liveClockText(clock, now) || 'now';
+  }
+  if (e.sport === 'tennis') return 'now';
+  return elapsedText(e.start, now) || 'now';
+}
+
+// Rewrites the minute on live cards (every 30 seconds), without redrawing anything else.
+function updateClocks() {
+  for (const li of document.querySelectorAll('#cards > .card.soon.live')) {
+    const e = upcoming.find((x) => x.id === li.dataset.id);
+    if (e) li.querySelector('.tier').textContent = liveTier(e);
+  }
+}
+
 function soonCard(e) {
   const li = $('#soon-tpl').content.firstElementChild.cloneNode(true);
   li.dataset.id = e.id;
-  li.classList.toggle('live', e.status === 'live');
-  li.querySelector('.time').textContent = e.status === 'live' ? 'LIVE' : timeFmt.format(new Date(e.start));
-  li.querySelector('.tier').textContent = e.status === 'live' ? 'now' : '';
+  const live = e.status === 'live';
+  li.classList.toggle('live', live);
+  li.querySelector('.time').textContent = finished.has(e.id) ? 'ENDED' : live ? 'LIVE' : timeFmt.format(new Date(e.start));
+  li.querySelector('.tier').textContent = live ? liveTier(e) : '';
   li.querySelector('.sport').textContent = e.sport === 'winter' ? e.compName : SPORTS[e.sport];
-  li.querySelector('.comp').textContent = e.sport === 'f1' ? `${f1SessionName(e)} · ${e.circuit}`
-    : e.sport === 'winter' ? e.place : e.compName;
+  const where = e.sport === 'f1' ? `${f1SessionName(e)} · ${e.circuit}` : e.sport === 'winter' ? e.place : e.compName;
+  const began = live ? ` · ${e.sport === 'tennis' ? 'listed' : 'started'} ${timeFmt.format(new Date(e.start))}` : '';
+  li.querySelector('.comp').textContent = where + began;
   fillTitle(li.querySelector('.title'), e);
   // Tennis: draw and round. Football: the pre-match hints, if any. Otherwise the meta line says it all.
   const sub = e.sport === 'tennis' ? subtitleOf(e) : e.sport === 'football' && prefs.preHints ? prematchLine(e) : '';
@@ -479,8 +524,105 @@ function soonCard(e) {
   li.querySelector('.chances').textContent = chances;
   li.querySelector('.chances').hidden = !chances;
   li.querySelector('.svc').append(...servicePills(e));
+  fillPace(li, e);
   fillLineups(li, e);
   return li;
+}
+
+// "Excitement so far" on live football cards, behind a button (it says a lot about the match).
+// The page works it out itself from ESPN's match summary, and keeps only the number: never the
+// score or the scorers. If ESPN refuses, it shows the bot's number from the last few minutes.
+function fillPace(li, e) {
+  if (e.sport !== 'football' || e.status !== 'live' || finished.has(e.id)) return;
+  const btn = li.querySelector('.pace-btn');
+  const open = paceOpen.has(e.id);
+  btn.hidden = false;
+  btn.textContent = open ? '▾ Excitement so far' : '👁 Excitement so far';
+  btn.setAttribute('aria-expanded', String(open));
+  btn.onclick = () => {
+    if (open) paceOpen.delete(e.id);
+    else { paceOpen.add(e.id); if (!paceNow.has(e.id)) loadPace(e); }
+    render();
+  };
+  if (!open) return;
+  const line = li.querySelector('.pace');
+  line.hidden = false;
+  line.textContent = paceText(e);
+}
+
+function paceText(e) {
+  const mine = paceNow.get(e.id);
+  const fmt = (p, note) => `≈ ${p.pace.toFixed(1)} out of 10${p.rough ? ', early and rough' : ''}${note}`;
+  if (mine?.pace != null) return fmt(mine, '');
+  if (mine?.early) return `Too early to tell: check back after ${LIVE_FROM}'.`;
+  if (!mine) return 'Working it out…';
+  if (e.pace != null) return fmt(e, ' (a few minutes old)');
+  return 'Couldn\'t work it out right now. Try again in a minute.';
+}
+
+// Fetches the match summary from ESPN and works out the number. Only the number is kept.
+async function loadPace(e) {
+  try {
+    const res = await fetch(`${ESPN}/${e.comp}/summary?event=${e.id.slice(3)}`, { signal: AbortSignal.timeout(20e3) });
+    if (!res.ok) throw new Error(res.status);
+    const summary = await res.json();
+    if (summary.header?.competitions?.[0]?.status?.type?.state === 'post') { // ended since the last look
+      finished.add(e.id);
+      paceOpen.delete(e.id);
+      keepScroll(render);
+      return;
+    }
+    const facts = liveFacts(summary);
+    const p = facts && scoreLivePace(facts, { w: liveWeights, factor: e.factor ?? 1, stakes: e.stakes });
+    paceNow.set(e.id, p ?? (facts && facts.played < LIVE_FROM ? { early: true } : { failed: true }));
+  } catch {
+    paceNow.set(e.id, { failed: true });
+  }
+  const line = document.querySelector(`#cards > .card[data-id="${CSS.escape(e.id)}"] .pace`);
+  if (line && !line.hidden) line.textContent = paceText(e);
+}
+
+// While live football is on screen, ask ESPN's scoreboard for the minute once a minute (one
+// request per competition and day; ESPN keeps the answer for 27 seconds anyway), and refresh any
+// open "Excitement so far". Only the clock is read; the rest of the answer (with every score
+// that day) is thrown away. If ESPN refuses, the bot's clock from the last few minutes is used.
+const LIVE_POLL_MS = 60e3;
+let polling = false; // one round at a time, even if ESPN is slow
+async function pollLive() {
+  if (polling || prefs.view !== 'upcoming' || document.visibilityState !== 'visible') return;
+  polling = true;
+  try { await pollLiveNow(); } finally { polling = false; }
+}
+async function pollLiveNow() {
+  const shown = new Set([...document.querySelectorAll('#cards > .card.soon.live')].map((li) => li.dataset.id));
+  const live = upcoming.filter((e) => e.sport === 'football' && e.status === 'live' && shown.has(e.id));
+  if (!live.length) return;
+  const days = new Set(live.flatMap((e) => espnDays(e.start).map((d) => `${e.comp}|${d}`)));
+  const ids = new Set(live.map((e) => e.id.slice(3)));
+  await Promise.all([...days].map(async (key) => {
+    const [comp, day] = key.split('|');
+    try {
+      const res = await fetch(`${ESPN}/${comp}/scoreboard?dates=${day}`, { signal: AbortSignal.timeout(20e3) });
+      if (!res.ok) return;
+      for (const ev of (await res.json()).events ?? []) {
+        if (!ids.has(ev.id)) continue;
+        const id = `fb-${ev.id}`;
+        if (ev.status?.type?.state === 'post') { finished.add(id); paceOpen.delete(id); continue; }
+        const clock = clockOf(ev.status);
+        if (clock) freshClock.set(id, { ...clock, at: new Date().toISOString(), seen: Date.now() });
+      }
+    } catch { /* keep the bot's clock */ }
+  }));
+  for (const e of live) if (paceOpen.has(e.id) && !finished.has(e.id)) await loadPace(e);
+  updateClocks();
+  // A match that just ended: redraw it once (no more "Excitement so far"), and look for the
+  // bot's replay every minute instead of every 5.
+  const over = live.filter((e) => finished.has(e.id));
+  if (over.some((e) => !redrawn.has(e.id))) {
+    over.forEach((e) => redrawn.add(e.id));
+    keepScroll(render);
+  }
+  if (over.length) fetchData({ quiet: true });
 }
 
 // Football starting line-ups, behind a button. ESPN publishes them about 75 minutes
@@ -546,7 +688,7 @@ function renderUpcoming() {
   $('#cards').replaceChildren(...items);
   moreButton(list.length);
   $('#status').textContent = list.length
-    ? `${list.length} coming up. No scores here: they appear under Replays once the event has finished.`
+    ? `${list.length} coming up or ongoing. No final scores here: they appear under Replays once the event has finished.`
     : prefs.favsOnly ? 'None of your favorites are coming up. Turn off “Only favorites” to see everything.' : 'Nothing coming up that matches these filters.';
 }
 
@@ -617,6 +759,7 @@ function bind() {
   on('#f-elo', 'showElo');
   on('#f-chances', 'showChances');
   on('#f-watched', 'hideWatched');
+  on('#f-glass', 'glass');
 }
 
 // Re-renders without the card you're looking at jumping when a card above it comes or goes:
@@ -643,6 +786,8 @@ async function fetchData({ quiet = false } = {}) {
     events = data.events ?? [];
     upcoming = data.upcoming ?? [];
     eloRatings = data.elo ?? {};
+    liveWeights = data.liveWeights ?? null;
+    for (const id of finished) if (!upcoming.some((e) => e.id === id)) finished.delete(id);
     keepScroll(render); // keeps filters, "Show more" and open panels as they were
     $('#updated').dataset.generated = data.generated;
     $('#updated').textContent = `Updated ${fmt.format(new Date(data.generated))}.`;
@@ -740,8 +885,11 @@ function load() {
   importSettings();
   addEventListener('hashchange', importSettings); // a link opened while the page is already open
   setInterval(() => document.visibilityState === 'visible' && fetchData({ quiet: true }), REFRESH_MS);
+  setInterval(updateClocks, 30e3);
+  setInterval(pollLive, LIVE_POLL_MS);
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && Date.now() - lastFetch > REFRESH_MS) fetchData({ quiet: true });
+    if (document.visibilityState === 'visible') { updateClocks(); pollLive(); } // back to the tab: catch up on the minute
   });
 }
 

@@ -83,6 +83,7 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .soon .badge { border-style: dashed; }
 .soon .time { font: 700 26px/1 'Barlow Condensed', system-ui, sans-serif; }
 .soon.live .badge { border: 0; background: var(--live); color: #fff; }
+.soon.live .tier { font-size: 13px; text-transform: none; letter-spacing: 0; font-variant-numeric: tabular-nums; }
 .sports {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
   margin: 14px 0; padding: 4px; border-radius: 12px; background: var(--chip);
@@ -214,12 +215,13 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .watched[aria-pressed="true"] { color: var(--ink); }
 .why-btn {
   justify-self: start; margin-top: 4px; border: 0; background: none; padding: 6px 0; min-height: 36px;
-  color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline dotted;
+  color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer;
 }
-.lineup-btn {
+.lineup-btn, .pace-btn {
   justify-self: start; margin-top: 4px; border: 0; background: none; padding: 6px 0; min-height: 36px;
   color: var(--ink); font-size: 13.5px; font-weight: 600; cursor: pointer;
 }
+.pace { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .lineups {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px 16px;
   padding: 10px 12px; border-radius: 10px; background: var(--chip); font-size: 14px;
@@ -246,7 +248,14 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .cal-links li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .cal-team { font-weight: 600; margin-right: auto; }
 .cal-links .pill { border: 0; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 600; }
-.why { margin-top: 6px; padding: 10px 12px; border-radius: 10px; background: var(--chip); font-size: 14px; }
+.why { position: relative; margin-top: 6px; padding: 10px 12px; border-radius: 10px; background: var(--chip); font-size: 14px; }
+.why-close {
+  position: absolute; top: 2px; right: 2px; width: 36px; height: 36px; border: 0; border-radius: 999px;
+  background: none; color: var(--muted); font-size: 15px; cursor: pointer;
+}
+.why-close:hover { background: var(--chip); color: var(--ink); }
+/* Room for the ✕ on the first row only (the reasons' first line, or an F1 qualifying result). */
+.why > ul > li:first-child, .why > .result:nth-child(2) { margin-right: 30px; }
 .why ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .why li { display: grid; grid-template-columns: 3.4em 1fr; }
 .why .pts { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
@@ -299,3 +308,141 @@ dialog p { margin-bottom: 8px; color: var(--muted); }
   .card { grid-template-columns: 64px 1fr; gap: 10px; }
   .filters .grid { grid-template-columns: 1fr; }
 }
+
+/* ─── Glass look (2026-10-10, the owner asked for "iOS glass, like ProQuiz") ───────────────────
+   Only with the "Glass look" setting on (body.glass, the default). Frosted, see-through panels (the owner kept the original, smaller corner rounding) over a soft glow that drifts slowly behind everything.
+   Real blur (backdrop-filter) only on a few big panels and dialogs; the many cards fake it with a
+   translucent fill, a top highlight and a rim, so long lists still scroll smoothly on phones.
+   The glow is two fixed layers moved with transform only; prefers-reduced-motion stops it. */
+body.glass{
+  --glass: rgb(255 255 255 / 0.62); /* the panels' own colour */
+  --glass-strong: rgb(255 255 255 / 0.8); /* dialogs and selected controls */
+  --glass-edge: rgb(255 255 255 / 0.9); /* rim light around an edge */
+  --glass-line: rgb(20 24 33 / 0.08); /* the outer hairline, so white glass shows on a light page */
+  --glass-shine: rgb(255 255 255 / 0.95); /* the bright line along the top */
+  --glass-shadow: 0 1px 1px rgb(20 24 33 / 0.04), 0 10px 30px rgb(20 24 33 / 0.08);
+  --glass-blur: 20px;
+  --glow-a: rgb(255 122 47 / 0.32); /* orange, the accent */
+  --glow-b: rgb(240 69 127 / 0.22); /* pink, the LIVE colour */
+  --glow-c: rgb(56 140 255 / 0.2); /* blue */
+  --bg: #f1eee8;
+  --chip: rgb(20 24 33 / 0.06);
+  --line: rgb(20 24 33 / 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  body.glass{
+    --glass: rgb(30 40 64 / 0.5);
+    --glass-strong: rgb(34 45 72 / 0.82);
+    --glass-edge: rgb(255 255 255 / 0.1);
+    --glass-line: rgb(255 255 255 / 0.06);
+    --glass-shine: rgb(255 255 255 / 0.16);
+    --glass-shadow: 0 12px 34px rgb(0 0 0 / 0.35);
+    --glow-a: rgb(255 122 47 / 0.26);
+    --glow-b: rgb(240 69 127 / 0.2);
+    --glow-c: rgb(56 140 255 / 0.24);
+    --bg: #0a0f1c;
+    --chip: rgb(255 255 255 / 0.07);
+    --line: rgb(255 255 255 / 0.1);
+  }
+}
+
+/* The glow: drawn at 70% of the screen and scaled up, so the GPU keeps two small pictures. */
+body.glass::before,
+body.glass::after {
+  content: ''; position: fixed; left: 15%; top: 15%; width: 70%; height: 70%;
+  z-index: -1; pointer-events: none; will-change: transform;
+}
+body.glass::before {
+  background:
+    radial-gradient(30% 34% at 28% 30%, var(--glow-a), transparent 72%),
+    radial-gradient(24% 28% at 78% 74%, var(--glow-c), transparent 72%);
+  animation: glow-a 52s ease-in-out infinite alternate;
+}
+body.glass::after {
+  background:
+    radial-gradient(26% 30% at 72% 22%, var(--glow-b), transparent 72%),
+    radial-gradient(22% 26% at 22% 82%, var(--glow-c), transparent 72%);
+  animation: glow-b 67s ease-in-out infinite alternate;
+}
+@keyframes glow-a {
+  from { transform: translate3d(-6%, -4%, 0) scale(2.2); }
+  50% { transform: translate3d(4%, 5%, 0) scale(2.45); }
+  to { transform: translate3d(7%, -5%, 0) scale(2.25); }
+}
+@keyframes glow-b {
+  from { transform: translate3d(5%, 4%, 0) scale(2.3); }
+  50% { transform: translate3d(-5%, -3%, 0) scale(2.2); }
+  to { transform: translate3d(-3%, 6%, 0) scale(2.5); }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.glass::before, body.glass::after { animation: none; transform: scale(2.3); }
+}
+
+/* Glass surfaces. Cards: faked (no blur). */
+body.glass .card,
+body.glass .views button,
+body.glass .chip,
+body.glass .share button,
+body.glass .more,
+body.glass #fav-q {
+  background-color: var(--glass);
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.12), transparent 60%);
+  border-color: var(--glass-line);
+  box-shadow: inset 0 1px 0 var(--glass-shine), inset 0 0 0 1px var(--glass-edge), var(--glass-shadow);
+}
+body.glass .card.soon.live { box-shadow: inset 0 1px 0 var(--glass-shine), inset 0 0 0 1px var(--glass-edge), 0 0 0 1.5px color-mix(in srgb, var(--live) 45%, transparent), var(--glass-shadow); }
+body.glass .chip, body.glass .share button { box-shadow: inset 0 1px 0 var(--glass-shine), inset 0 0 0 1px var(--glass-edge); }
+
+/* Real blur: the big panels and the dialogs. */
+body.glass .filters,
+body.glass .sports,
+body.glass dialog {
+  background-color: var(--glass);
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0.03) 40%, transparent 75%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+  border: 1px solid var(--glass-line);
+  box-shadow: inset 0 1px 0 var(--glass-shine), inset 0 0 0 1px var(--glass-edge), var(--glass-shadow);
+}
+body.glass dialog { background-color: var(--glass-strong); }
+body.glass dialog::backdrop { background: rgb(0 0 0 / 0.35); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+
+/* Selected controls: a raised glass "thumb", like iOS segmented controls. */
+body.glass .sports button[aria-pressed="true"] {
+  background: var(--glass-strong);
+  box-shadow: inset 0 1px 0 var(--glass-shine), 0 2px 8px rgb(20 24 33 / 0.12);
+}
+body.glass .views button[aria-pressed="true"] {
+  background-color: var(--ink); color: var(--bg); border-color: transparent;
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.16), transparent 55%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 8px 22px rgb(20 24 33 / 0.22);
+}
+body.glass .chip[aria-pressed="true"] { border-color: var(--accent); }
+body.glass .chip[aria-pressed="true"], body.glass .pill.mine, body.glass .install button, body.glass .dlg-buttons .danger {
+  background-color: var(--accent);
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.22), transparent 60%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* The score badge: a glossy tile. */
+body.glass .badge {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.18), transparent 60%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+body.glass .card[data-tier="must"] .badge, body.glass .soon.live .badge { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 6px 18px color-mix(in srgb, var(--c, var(--live)) 35%, transparent); }
+body.glass .soon.live .badge { --c: var(--live); }
+
+/* Inner panels (line-ups, "Why this score?", filters' dropdowns): a lighter frosted tint. */
+body.glass .lineups, body.glass .why, body.glass .reveal, body.glass .pill { background-color: var(--chip); }
+/* Dropdowns stay solid: the browser draws the open list with the select's colour, and a
+   see-through one made it unreadable in dark mode. */
+body.glass .filters select, body.glass .filters select option { background-color: var(--surface); color: var(--ink); }
+body.glass .pill { box-shadow: inset 0 0 0 1px var(--glass-line); }
+/* Dashed outlines (search suggestions, hidden names) keep a visible dash: no glass rim on top of them. */
+body.glass #fav-hits .chip, body.glass .reveal {
+  border-color: color-mix(in srgb, var(--muted) 55%, transparent);
+  box-shadow: none;
+}
+body.glass .soon:not(.live) .badge { background-image: none; box-shadow: none; } /* the gloss would fill the gaps in the dashed outline */
+/* The league row scrolls sideways, which clips anything outside it: room for the selected chip's glow to fade out. */
+body.glass .comps { padding-top: 6px; padding-bottom: 18px; margin-top: -8px; margin-bottom: 0; }

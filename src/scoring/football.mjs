@@ -4,6 +4,7 @@
 import { finalScore, heat, quietRuns, tally, plural, times, clamp } from './common.mjs';
 import { FOOTBALL as W } from './weights.mjs';
 import { STAKES } from '../prematch.mjs';
+import { curve, bigMatchFactor } from '../../docs/live.js';
 
 const SEGMENTS = 6; // 15-minute blocks; extra time counts toward the last one
 
@@ -128,7 +129,7 @@ export function scoreFootball(f) {
   // league, national teams on the world scale; see src/sources/ratings.mjs), or null.
   const st = f.strength;
   if (st && Number.isFinite(st.home) && Number.isFinite(st.away)) {
-    const factor = 1 + W.bigMatch * (st.home + st.away - 1); // the mean strength, 0.5 = ×1
+    const factor = bigMatchFactor(st, W.bigMatch); // the mean strength, 0.5 = ×1
     const mean = (st.home + st.away) / 2;
     const label = mean >= 0.75 ? 'Big match: two strong teams' : mean >= 0.5 ? 'Slightly above-average teams' : mean > 0.25 ? 'Slightly below-average teams' : 'Two weaker teams';
     t.add(Math.max(0, t.total) * (factor - 1), `${label} (×${factor.toFixed(2)})`);
@@ -136,8 +137,7 @@ export function scoreFootball(f) {
 
   // The top end: from `curveFrom` up, each point is worth a bit less than the one before, so
   // the score bends smoothly towards 10 and only a truly extraordinary match gets near it.
-  const a = Math.min(W.curveFrom, 9); // 10 or more would divide by zero
-  if (t.total > a) t.add(a + (10 - a) * (1 - Math.exp(-(t.total - a) / (10 - a))) - t.total, 'Higher scores are harder to reach');
+  if (t.total > Math.min(W.curveFrom, 9)) t.add(curve(t.total, W.curveFrom) - t.total, 'Higher scores are harder to reach');
   const score = finalScore(t.total);
 
   // How much happened in each 5-minute slot (extra time folds into the last one).

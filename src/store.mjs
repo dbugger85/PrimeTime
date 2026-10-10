@@ -9,6 +9,8 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { writeCalendars } from './calendar.mjs';
 import { linkFields } from './publish.mjs';
 import { eloList } from './sources/ratings.mjs';
+import { FOOTBALL as FOOTBALL_W, FOOTBALL_LIVE } from './scoring/weights.mjs';
+import { liveWeightsFrom } from '../docs/live.js';
 import { SCORING_VERSIONS } from './scoring/common.mjs';
 
 const root = new URL('..', import.meta.url);
@@ -70,7 +72,10 @@ export function saveData({ events, upcoming, reasons, results, state }, now = ne
   mkdirSync(new URL('docs/data/', root), { recursive: true });
   mkdirSync(new URL('data/', root), { recursive: true });
   const elo = eloList(state.ratings, [...soon, ...list]); // the latest rating per team, for the "Show Elo ratings" setting
-  writeFileSync(EVENTS, JSON.stringify({ generated: now.toISOString(), events: list, upcoming: soon, elo }) + '\n');
+  // The weights for "Excitement so far", which the page works out itself on live football cards
+  // (docs/live.js). Published so weights.mjs stays the only place they're set.
+  const liveWeights = liveWeightsFrom(FOOTBALL_W, FOOTBALL_LIVE);
+  writeFileSync(EVENTS, JSON.stringify({ generated: now.toISOString(), events: list, upcoming: soon, elo, liveWeights }) + '\n');
   const pick = (map) => JSON.stringify(Object.fromEntries(list.filter((e) => map.has(e.id)).map((e) => [e.id, map.get(e.id)]))) + '\n';
   writeFileSync(REASONS, pick(reasons));
   writeFileSync(RESULTS, pick(results));

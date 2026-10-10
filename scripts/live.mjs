@@ -1,7 +1,7 @@
 // The light, frequent check (every 5 minutes). It only looks at events that are
 // live or about to start, according to the upcoming list the full build made:
 //   - adds football line-ups once ESPN has them (about 75 minutes before kick-off),
-//   - marks them LIVE when they start,
+//   - marks them LIVE when they start, with the football clock and "Excitement so far",
 //   - scores them as soon as they have finished, and moves them to the replays.
 // When nothing is on it makes no requests at all and changes nothing.
 //   npm run live
@@ -17,6 +17,8 @@ import * as f1 from '../src/sources/openf1.mjs';
 import * as fotmob from '../src/sources/fotmob.mjs';
 import { chancesOf, publishFootball, publishTennis, publishF1, upcomingFootball, upcomingTennis, lineupFields } from '../src/publish.mjs';
 import { loadData, saveData, warn, saver } from '../src/store.mjs';
+import { FOOTBALL as FOOTBALL_W, FOOTBALL_LIVE } from '../src/scoring/weights.mjs';
+import { liveFacts, scoreLivePace, liveWeightsFrom, bigMatchFactor, espnDays } from '../docs/live.js';
 
 const now = process.env.NOW ? new Date(process.env.NOW) : new Date(); // NOW=... pretends it's another time (for testing)
 const data = loadData();
@@ -38,7 +40,8 @@ const ymd = (iso) => iso.slice(0, 10).replaceAll('-', '');
 const { LINEUP_MINUTES } = football;
 
 async function lineupsFootball() {
-  for (const e of upcoming.filter((x) => x.sport === 'football' && !x.lineups && inWindow(x, 4, LINEUP_MINUTES))) {
+  // Live matches are left to the live loop below, which fetches the summary anyway.
+  for (const e of upcoming.filter((x) => x.sport === 'football' && x.status !== 'live' && !x.lineups && inWindow(x, 4, LINEUP_MINUTES))) {
     try {
       const lineups = football.lineupsFromSummary(await football.fetchSummary(e.comp, e.id.slice(3)));
       if (!lineups) continue; // not announced yet
@@ -55,11 +58,7 @@ async function liveFootball() {
   const active = upcoming.filter((e) => e.sport === 'football' && inWindow(e, 4));
   // One scoreboard request per competition and day covers all its matches. ESPN's days are
   // US Eastern days, so a kick-off before 06:00 UTC is also looked for under the day before.
-  const days = new Set(active.flatMap((e) => {
-    const keys = [`${e.comp}|${ymd(e.start)}`];
-    if (new Date(e.start).getUTCHours() < 6) keys.push(`${e.comp}|${ymd(new Date(Date.parse(e.start) - 864e5).toISOString())}`);
-    return keys;
-  }));
+  const days = new Set(active.flatMap((e) => espnDays(e.start).map((d) => `${e.comp}|${d}`)));
   for (const key of days) {
     const [compKey, day] = key.split('|');
     const comp = FOOTBALL.find((c) => c.key === compKey);
@@ -81,7 +80,25 @@ async function liveFootball() {
         }
       } else if (m.state === 'pre' || m.state === 'in') {
         // Live flag and new kick-off time; the pre-match hints stay as the full build froze them.
-        upcoming = upcoming.map((e) => (e.id === id ? upcomingFootball(comp, m, { lineups: old.lineups, stakes: old.stakes, forecast: old.forecast, outlook: old.outlook, chances: chancesOf(old) }) : e));
+        // While it's on: the clock, and the "Excitement so far" number (the page works it out
+        // itself from ESPN; this one is the fallback, so a failure here just keeps the old one).
+        let live;
+        if (m.state === 'in') {
+          const factor = bigMatchFactor(strengthOf(data.state.ratings, compKey, m.home, m.away), FOOTBALL_W.bigMatch);
+          let pace = old.pace != null ? { pace: old.pace, rough: old.rough } : null;
+          try {
+            const summary = await football.fetchSummary(compKey, m.espnId);
+            pace = scoreLivePace(liveFacts(summary), { w: liveWeightsFrom(FOOTBALL_W, FOOTBALL_LIVE), factor, stakes: old.stakes }) ?? pace;
+            old.lineups ??= football.lineupsFromSummary(summary) ?? undefined;
+          } catch (err) {
+            warn(`live football ${compKey} ${m.espnId}: ${err.message}`);
+          }
+          // During a break nothing moves: keep the old clock and its time, so half-time doesn't publish
+          // (and deploy) a new file every run for nothing.
+          const same = m.clock?.paused && old.clock?.paused && old.clock.period === m.clock.period && old.clock.min === m.clock.min;
+          live = same ? { clock: old.clock, at: old.clock.at, pace, factor } : { clock: m.clock, at: process.env.NOW ? now.toISOString() : m.clockAt, pace, factor };
+        }
+        upcoming = upcoming.map((e) => (e.id === id ? upcomingFootball(comp, m, { lineups: old.lineups, stakes: old.stakes, forecast: old.forecast, outlook: old.outlook, chances: chancesOf(old), live }) : e));
       } else {
         upcoming = upcoming.filter((e) => e.id !== id); // postponed or cancelled
       }

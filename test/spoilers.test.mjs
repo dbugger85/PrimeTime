@@ -14,6 +14,8 @@ import { factsFromRace as biathlonFacts } from '../src/sources/ibu.mjs';
 import * as fis from '../src/sources/fis.mjs';
 import { scoreBiathlon, scoreAlpine, scoreCrossCountry } from '../src/scoring/winter.mjs';
 import { STAKES, FORECASTS, OUTLOOKS } from '../src/prematch.mjs';
+import * as WEIGHTS from '../src/scoring/weights.mjs';
+import { liveFacts, liveWeightsFrom } from '../docs/live.js';
 import { icsForTeam } from '../src/calendar.mjs';
 import { readdirSync } from 'node:fs';
 
@@ -207,16 +209,51 @@ test('tennis players are listed alphabetically, not winner-last', () => {
   assert.ok(published.every((e) => e.players[0].localeCompare(e.players[1]) <= 0));
 });
 
+// The live fields (clock, "Excitement so far", big-match factor): live football matches only,
+// numbers only. `at` is a time, which looks like a score to the text scan below, so it's checked here.
+const LIVE_FIELDS = ['clock', 'pace', 'rough', 'factor'];
+function checkLive(e) {
+  if (!LIVE_FIELDS.some((k) => k in e)) return;
+  assert.ok(e.sport === 'football' && e.status === 'live', `${e.id}: live fields on an event that isn't a live football match`);
+  if (e.clock) {
+    assert.deepEqual(Object.keys(e.clock).sort(), ['at', 'min', 'paused', 'period', 'plus'], `${e.id}: clock fields`);
+    assert.ok(Number.isInteger(e.clock.min) && e.clock.min >= 0 && e.clock.min <= 130, `${e.id}: clock min`);
+    assert.ok(Number.isInteger(e.clock.plus) && [1, 2, 3, 4, 5].includes(e.clock.period) && typeof e.clock.paused === 'boolean', `${e.id}: clock`);
+    assert.match(e.clock.at, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/, `${e.id}: clock time`);
+  }
+  if ('pace' in e) assert.ok(Number.isFinite(e.pace) && e.pace >= 0 && e.pace <= 10, `${e.id}: pace ${e.pace}`);
+  if ('rough' in e) assert.equal(e.rough, true);
+  if ('factor' in e) assert.ok(Number.isFinite(e.factor) && e.factor >= 0.5 && e.factor <= 1.5, `${e.id}: factor ${e.factor}`);
+}
+
 export function checkUpcoming(e) {
-  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', 'links', ...ALLOWED[e.sport], ...(e.sport === 'football' ? ['forecast', 'outlook', 'chances'] : [])];
+  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', 'links', ...ALLOWED[e.sport], ...(e.sport === 'football' ? ['forecast', 'outlook', 'chances', ...LIVE_FIELDS] : [])];
   for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}" on an upcoming event`);
   assert.ok(['upcoming', 'live'].includes(e.status));
   checkLineups(e);
   checkLinks(e);
   checkHints(e);
-  const text = JSON.stringify({ ...e, id: '', start: '', lineups: '', links: '' });
+  checkLive(e);
+  const text = JSON.stringify({ ...e, id: '', start: '', lineups: '', links: '', clock: '' });
   assert.doesNotMatch(text, /\d+\s*[-–:]\s*\d+/, `${e.id}: looks like a score`);
 }
+
+test('live fields: only on live football matches, and never a score', () => {
+  const comp = { key: 'eng.1', name: 'Premier League' };
+  const live = { clock: { min: 67, plus: 0, period: 2, paused: false }, at: '2026-10-10T15:10:00Z', pace: { pace: 6.34, rough: false }, factor: 1.171 };
+  const on = upcomingFootball(comp, { espnId: '1', start: '2026-10-10T14:00Z', home: 'A', away: 'B', state: 'in' }, { live });
+  checkUpcoming(on);
+  assert.equal(on.pace, 6.3);
+  assert.equal(on.factor, 1.17);
+  assert.equal(on.clock.min, 67);
+  const pre = upcomingFootball(comp, { espnId: '1', start: '2026-10-10T14:00Z', home: 'A', away: 'B', state: 'pre' }, { live });
+  for (const k of LIVE_FIELDS) assert.ok(!(k in pre), `${k} on a match that hasn't started`);
+  assert.throws(() => checkEvent({ ...publishFootball(comp, { espnId: '1', start: '2026-10-10T14:00Z', home: 'A', away: 'B' }, scoreFootball(factsFromSummary(fixture('football/760516.json')))), pace: 5 }));
+  // Live facts from a match summary hold no score, names or result.
+  const s = fixture('football/760516.json');
+  const facts = JSON.stringify(liveFacts(s));
+  assert.doesNotMatch(facts, /England|France|Kane|Mbapp|result|score/i);
+});
 
 test('upcoming events carry no score, only when and where', () => {
   const comp = { key: 'eng.1', name: 'Premier League' };
@@ -229,7 +266,12 @@ test('upcoming events carry no score, only when and where', () => {
 
 test('the real docs/data/events.json is spoiler-free', { skip: !existsSync(new URL('../docs/data/events.json', import.meta.url)) }, () => {
   const data = JSON.parse(readFileSync(new URL('../docs/data/events.json', import.meta.url)));
-  assert.deepEqual(Object.keys(data).filter((k) => k !== 'elo').sort(), ['events', 'generated', 'upcoming']); // elo: since football 16
+  assert.deepEqual(Object.keys(data).filter((k) => k !== 'elo' && k !== 'liveWeights').sort(), ['events', 'generated', 'upcoming']); // elo: since football 16; liveWeights: since 2026-10-10
+  // The weights for "Excitement so far": exactly the football weights the page needs, numbers only.
+  if (data.liveWeights) {
+    assert.deepEqual(Object.keys(data.liveWeights).sort(), Object.keys(liveWeightsFrom(WEIGHTS.FOOTBALL, WEIGHTS.FOOTBALL_LIVE)).sort());
+    assert.ok(Object.values(data.liveWeights).every(Number.isFinite));
+  }
   // Elo: one whole number per football team on the page, nothing else.
   const teams = new Set([...data.events, ...data.upcoming].flatMap((e) => (e.sport === 'football' ? e.teams : [])));
   for (const [team, elo] of Object.entries(data.elo ?? {})) {

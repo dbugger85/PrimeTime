@@ -10,7 +10,7 @@ export function stamp(html, js, v) {
   return {
     html: html
       .replace(/(href|src)="\.\/(style\.css|app\.js)"/g, `$1="./$2?v=${v}"`),
-    js: js.replace(/from '\.\/logic\.js'/g, `from './logic.js?v=${v}'`),
+    js: js.replace(/from '\.\/(logic|live)\.js'/g, `from './$1.js?v=${v}'`),
   };
 }
 

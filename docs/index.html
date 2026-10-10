@@ -19,18 +19,22 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="./style.css">
 </head>
-<body>
+<body class="glass">
+  <script>
+    // The glass look is on by default; turn it off before anything is drawn if it was switched off.
+    try { if (JSON.parse(localStorage.getItem('pt-prefs'))?.glass === false) document.body.classList.remove('glass'); } catch {}
+  </script>
   <header class="top">
     <div class="brand">
       <span class="logo" aria-hidden="true">▶</span>
       <h1>PrimeTime</h1>
     </div>
-    <p class="tagline">What's worth watching — no spoilers.</p>
+    <p class="tagline">What's worth watching, without spoilers.</p>
   </header>
 
   <nav class="views" id="views" aria-label="View">
     <button data-view="replays">Replays</button>
-    <button data-view="upcoming">Coming up</button>
+    <button data-view="upcoming">Coming up/ongoing</button>
   </nav>
 
   <nav class="sports" id="sports" aria-label="Sport">
@@ -59,7 +63,7 @@
       <p class="small" id="favs-hint"></p>
       <div class="chips" id="favs"></div>
       <div class="cal" id="cal" hidden>
-        <button type="button" class="cal-btn" id="cal-btn" aria-expanded="false" aria-controls="cal-body">▸ Add to calendar</button>
+        <button type="button" class="cal-btn" id="cal-btn" aria-expanded="false" aria-controls="cal-body">▸ Add favorites to calendar</button>
         <div id="cal-body" hidden>
           <ul class="cal-links" id="cal-links" aria-live="polite"></ul>
           <p class="small">Your teams' matches with kick-off and where to watch, kept up to date. iPhone: tap Subscribe. Android: tap Copy link, then in Google Calendar on a computer choose Other calendars → From URL and paste it (Google updates it about once a day).</p>
@@ -71,7 +75,7 @@
   </section>
 
   <details class="filters" id="filters">
-    <summary><span>More filters</span> <span class="count" id="filter-count" hidden></span></summary>
+    <summary><span>More filters/settings</span> <span class="count" id="filter-count" hidden></span></summary>
     <div class="grid">
       <label class="replay-only">Period <select id="f-days"></select></label>
       <label class="replay-only">Minimum rating <select id="f-min"></select></label>
@@ -118,6 +122,7 @@
       <label class="check" data-for="football all"><input type="checkbox" id="f-elo"> Show Elo ratings</label>
       <label class="check upcoming-only" data-for="football all"><input type="checkbox" id="f-chances"> Show win chances (from the odds)</label>
       <label class="check replay-only"><input type="checkbox" id="f-watched"> Hide watched</label>
+      <label class="check"><input type="checkbox" id="f-glass"> Glass look</label>
     </div>
     <p class="small" data-for="tennis football all">Why hide names? In a tournament, just seeing who plays a later round tells you who won earlier. Tap a hidden name to reveal it.</p>
     <button type="button" class="reset" id="f-reset" hidden>Reset filters</button>
@@ -171,6 +176,8 @@
         <p class="sub"></p>
         <p class="sub chances" hidden></p>
         <div class="row"><div class="svc"></div></div>
+        <button class="pace-btn" type="button" aria-expanded="false" hidden>Excitement so far</button>
+        <p class="pace" aria-live="polite" hidden></p>
         <button class="lineup-btn" type="button" aria-expanded="false" hidden>Line-ups</button>
         <div class="lineups" hidden></div>
       </div>

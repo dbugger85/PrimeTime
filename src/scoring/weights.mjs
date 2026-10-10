@@ -170,3 +170,13 @@ export const FOOTBALL_OUTLOOK = {
   expectedGoals: 0.4, //      per goal the bookmakers expect above 2.8 (or below: then taken off)
   mismatch: 1.8, //           taken off: times how much likelier the favorite is to win (0–1)
 };
+
+// "Excitement so far" on live football cards (tap to reveal; see docs/live.js). It reuses the
+// goal, equaliser, card, VAR, woodwork, close-match, stakes and curve weights from FOOTBALL above,
+// plus these. Nothing here changes a replay score, so editing them doesn't re-score anything.
+export const FOOTBALL_LIVE = {
+  shotOnTarget: 0.08, //      each shot on target so far
+  shotOffTarget: 0.025, //    each shot off target or blocked so far
+  typicalMatch: 5.5, //       early on, the number is pulled towards this (a typical match, before the curve; from 0 to 9)
+  settleMinutes: 45, //       how many minutes of play the "typical match" counts for at kick-off (it fades to nothing at 90'; from 0 to 90)
+};

@@ -3,8 +3,9 @@
 //   summary?event=ID           -> goals, cards, shots etc. for one match
 
 import { getJson } from '../http.mjs';
+import { ESPN, minuteOf, clockOf } from '../../docs/live.js';
 
-const BASE = 'https://site.api.espn.com/apis/site/v2/sports/soccer';
+const BASE = ESPN;
 
 // Each day is fetched once per run: the full build looks at today and yesterday twice
 // (for replays and for "Coming up"), and the second look can use the first answer.
@@ -27,6 +28,8 @@ async function fetchDayNow(compKey, yyyymmdd) {
       away: team('away'),
       finished: Boolean(e.status?.type?.completed),
       state: e.status?.type?.state, // 'pre' (not started), 'in' (playing now) or 'post'
+      clock: clockOf(e.status), // the match minute while it's on (see docs/live.js), else null
+      clockAt: new Date().toISOString(), // when that minute was read (days are cached for the whole run)
       odds: scoreboardOdds(c.odds?.[0]), // for the pre-match forecast; never published as such
     };
   });
@@ -37,12 +40,8 @@ export const LINEUP_MINUTES = 90;
 
 export const fetchSummary = (compKey, espnId) => getJson(`${BASE}/${compKey}/summary?event=${espnId}`);
 
-// Match minute, with stoppage time kept inside its own half (45+3' counts as 44.9, not 48).
-const PERIOD_SPAN = { 1: [0, 45], 2: [45, 90], 3: [90, 105], 4: [105, 120] };
-const minuteOf = (e) => {
-  const [lo, hi] = PERIOD_SPAN[e.period?.number] ?? [0, 120];
-  return Math.min(Math.max((e.clock?.value ?? 0) / 60, lo), hi - 0.1);
-};
+// minuteOf (the match minute of an event, with stoppage time kept inside its own half) is
+// shared with the page, in docs/live.js.
 
 // Pre-match win chances from the betting odds ESPN shows (American "moneyline"
 // odds: +250 pays 250 on 100, -340 means stake 340 to win 100). The bookmaker's

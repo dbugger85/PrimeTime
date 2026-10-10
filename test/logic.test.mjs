@@ -125,6 +125,8 @@ test('publishing stamps a version on the page files', async () => {
   assert.match(out.html, /href="\.\/style\.css\?v=abc1234"/);
   assert.match(out.js, /from '\.\/logic\.js\?v=abc1234'/);
   assert.doesNotMatch(out.js, /from '\.\/logic\.js'/);
+  assert.match(out.js, /from '\.\/live\.js\?v=abc1234'/);
+  assert.doesNotMatch(out.js, /from '\.\/live\.js'/);
 });
 
 test('favorites: football teams, tennis players only under Coming up, F1 as a whole', () => {

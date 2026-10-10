@@ -24,6 +24,8 @@ import { updateLinks } from '../src/sources/links.mjs';
 import { forecastOf, outlookOf, stakesFor, STAKES_COMPS } from '../src/prematch.mjs';
 import { chancesOf, publishFootball, publishTennis, publishF1, publishWinter, upcomingFootball, upcomingTennis, upcomingF1, upcomingWinter, expiringRights } from '../src/publish.mjs';
 import { loadData, saveData, warn, saver } from '../src/store.mjs';
+import { FOOTBALL as FOOTBALL_W } from '../src/scoring/weights.mjs';
+import { bigMatchFactor } from '../docs/live.js';
 
 const now = new Date();
 const only = process.argv[2];
@@ -134,7 +136,12 @@ async function tablesFor(compKey) {
 async function upcomingEntry(comp, m) {
   const old = previous.get(`fb-${m.espnId}`);
   const lineups = await lineupsFor(comp, m);
-  if (m.state !== 'pre') return upcomingFootball(comp, m, { lineups, stakes: old?.stakes, forecast: old?.forecast, outlook: old?.outlook, chances: chancesOf(old) });
+  if (m.state !== 'pre') {
+    // Live: the clock from the scoreboard; "Excitement so far" stays as the live check last worked it out.
+    const live = { clock: m.clock, at: m.clockAt, pace: old?.pace != null ? { pace: old.pace, rough: old.rough } : null,
+      factor: bigMatchFactor(strengthOf(state.ratings, comp.key, m.home, m.away), FOOTBALL_W.bigMatch) };
+    return upcomingFootball(comp, m, { lineups, stakes: old?.stakes, forecast: old?.forecast, outlook: old?.outlook, chances: chancesOf(old), live });
+  }
   const table = await tablesFor(comp.key);
   const stakes = table ? stakesFor(table, m.home, m.away, comp.key) : old?.stakes; // keep the old one if ESPN failed
   // Also remembered in state, in case the match finishes but can't be scored at once

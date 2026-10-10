@@ -7,10 +7,12 @@
 // Screenshots go to test/screenshots/ (ignored by git).
 
 import { spawn } from 'node:child_process';
-import { mkdirSync, existsSync } from 'node:fs';
+import { mkdirSync, existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
+import { liveWeightsFrom } from '../docs/live.js';
+import * as WEIGHTS from '../src/scoring/weights.mjs';
 
 const docs = fileURLToPath(new URL('../docs', import.meta.url));
 const shots = fileURLToPath(new URL('./screenshots', import.meta.url));
@@ -217,6 +219,14 @@ try {
       await page.$eval('.why .result', (e) => e.scrollIntoView());
       await page.screenshot({ path: `${shots}/result-subs.png` });
     }
+    // ✕ hides the spoilers again, and they come back only through the warning.
+    const shownId = await page.$eval('.why:not([hidden])', (e) => e.closest('.card').dataset.id);
+    await page.click('.why:not([hidden]) .why-close');
+    assert.equal(await page.$$eval('.why:not([hidden])', (els) => els.length), 0, 'spoilers still shown after ✕');
+    await page.click(`.card[data-id="${shownId}"] .why-btn`);
+    await page.waitForSelector('#spoiler-dlg[open]');
+    await page.click('#spoiler-dlg button[value="ok"]');
+    assert.equal(await page.$$eval('.why .result', (els) => els.length), 0, 'the result came back without its own warning');
 
     // Coming up: no scores, just times (or LIVE) and services, grouped by day.
     await page.click('#views [data-view="upcoming"]');
@@ -395,6 +405,91 @@ try {
     assert.match(await other.$eval('#import-dlg h2', (e) => e.textContent), /broken/);
     await other.close();
     await ctx.close();
+  }
+
+  // "Glass look": on by default, can be switched off, and stays off after a reload (no flash of glass).
+  {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+    await page.goto(base);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.waitForSelector('.card');
+    assert.ok(await page.$eval('body', (b) => b.classList.contains('glass')), 'glass is on by default');
+    await page.click('.filters summary');
+    assert.ok(await page.$eval('#f-glass', (e) => e.checked));
+    await page.click('#f-glass');
+    assert.ok(!(await page.$eval('body', (b) => b.classList.contains('glass'))), 'glass still on after switching it off');
+    await page.reload();
+    assert.ok(!(await page.$eval('body', (b) => b.classList.contains('glass'))), 'glass came back after a reload');
+    await page.waitForSelector('.card');
+    await page.screenshot({ path: `${shots}/glass-off.png` });
+    await page.close();
+  }
+
+  // Live cards, with a made-up live match: the minute counts up and is refreshed from ESPN (routed
+  // to test data here), "Excitement so far" only shows after a tap, and no score ever shows.
+  {
+    const now = Date.parse('2026-10-10T15:10:00Z');
+    const real = JSON.parse(readFileSync(`${docs}/data/events.json`, 'utf8'));
+    const liveMatch = {
+      id: 'fb-999001', sport: 'football', comp: 'eng.1', compName: 'Premier League', start: '2026-10-10T14:00:00Z', status: 'live',
+      services: ['viaplay'], teams: ['Testford United', 'Mockham City'], stakes: 'title', factor: 1.1,
+      clock: { min: 67, plus: 0, period: 2, paused: false, at: new Date(now).toISOString() }, pace: 5.2,
+    };
+    const liveRace = { id: 'f1-999002', sport: 'f1', comp: 'f1', compName: 'Test Grand Prix', start: '2026-10-10T13:47:00Z', status: 'live', services: ['viaplay'], circuit: 'Testville' };
+    const fake = { ...real, liveWeights: liveWeightsFrom(WEIGHTS.FOOTBALL, WEIGHTS.FOOTBALL_LIVE), upcoming: [liveMatch, liveRace, ...real.upcoming.filter((e) => e.status !== 'live')] };
+    const status = (state, name, clock, displayClock, period) => ({ type: { state, name, completed: state === 'post' }, clock, displayClock, period });
+    // The summary of a real thriller (France 4–6 England), pretending it's still on at 70'.
+    const summary = JSON.parse(readFileSync(new URL('./fixtures/football/760516.json', import.meta.url), 'utf8'));
+    summary.header.competitions[0].status = status('in', 'STATUS_SECOND_HALF', 4200, "70'", 2);
+    const scoreboard = { events: [
+      { id: '999001', date: liveMatch.start, status: status('in', 'STATUS_SECOND_HALF', 4200, "70'", 2), competitions: [{ competitors: [{ homeAway: 'home', score: '3' }, { homeAway: 'away', score: '2' }] }] },
+    ] };
+    const openLive = async (espn) => {
+      const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+      page.errors = [];
+      page.on('pageerror', (e) => page.errors.push(e.message));
+      await page.clock.install({ time: now });
+      await page.route('**/data/events.json', (r) => r.fulfill({ json: fake }));
+      await page.route('https://site.api.espn.com/**', espn);
+      await page.goto(base);
+      await page.evaluate(() => localStorage.clear());
+      await page.reload();
+      await page.click('#views [data-view="upcoming"]');
+      return page;
+    };
+    const paceOf = (page) => page.waitForFunction(() => {
+      const t = document.querySelector('.card[data-id="fb-999001"] .pace')?.textContent ?? '';
+      return /≈ \d+\.\d out of 10/.test(t) && t;
+    }).then((h) => h.jsonValue());
+
+    const page = await openLive((r) => r.fulfill({ json: r.request().url().includes('/summary') ? summary : scoreboard, headers: { 'access-control-allow-origin': '*' } }));
+    assert.equal(await page.$eval('#views [data-view="upcoming"]', (e) => e.textContent), 'Coming up/ongoing');
+    const card = page.locator('.card.soon.live[data-id="fb-999001"]');
+    await card.waitFor();
+    assert.equal(await card.locator('.tier').textContent(), "67'", 'the bot\'s minute');
+    assert.match(await card.locator('.comp').textContent(), /started \d\d:\d\d/);
+    assert.equal(await page.locator('.card.soon.live[data-id="f1-999002"] .tier').textContent(), '1 h 23');
+    assert.ok(await card.locator('.pace').isHidden(), 'excitement shown before the tap');
+    await page.clock.fastForward(61e3); // the page asks ESPN once a minute
+    await page.waitForFunction(() => document.querySelector('.card[data-id="fb-999001"] .tier').textContent === "70'");
+    await card.locator('.pace-btn').click();
+    const pace = await paceOf(page);
+    assert.doesNotMatch(pace, /few minutes old/, 'worked out from ESPN, not the bot\'s number');
+    const text = await page.$eval('#cards', (e) => e.innerText);
+    assert.doesNotMatch(text, /\b\d+\s*[-–]\s*\d+\b/, 'a score-like text on the page');
+    for (const leak of ['Kane', 'Mbapp', 'France', 'England']) assert.ok(!text.includes(leak), `"${leak}" from the summary on the page`);
+    await card.screenshot({ path: `${shots}/live-card.png` });
+    await page.close();
+    assert.deepEqual(page.errors, []);
+
+    // ESPN refuses: the bot's minute and number (marked as a few minutes old).
+    const off = await openLive((r) => r.abort());
+    await off.locator('.card[data-id="fb-999001"] .pace-btn').click();
+    assert.match(await paceOf(off), /≈ 5\.2 out of 10 \(a few minutes old\)/);
+    await off.clock.fastForward(61e3);
+    assert.equal(await off.locator('.card[data-id="fb-999001"] .tier').textContent(), "68'", 'the bot\'s minute, counted up');
+    await off.close();
   }
 
   // iPhone Safari has no install button, so it gets the "Add to Home Screen" tip.

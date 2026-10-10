@@ -1,6 +1,6 @@
 # PrimeTime
 
-**What's worth watching — no spoilers.**
+**What's worth watching, without spoilers.**
 
 PrimeTime rates finished football matches, tennis Grand Slam matches and F1 races from 0 to 10 for how exciting they were, without ever showing a result. Each event gets:
 

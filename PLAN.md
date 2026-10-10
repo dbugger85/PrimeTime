@@ -73,3 +73,10 @@ The alpine season starts in Sölden in late October. Each sport keeps about a ye
 - **"Show Elo ratings"** setting, **off by default**: the latest number in brackets after each team name, the same on every card (so two cards can't reveal a result).
 - **"Show win chances"** setting, **off by default**: "Win chance: Arsenal 69% · draw 19% · Leeds United 12%" from the odds, Coming up only, frozen at kick-off. This replaces "raw odds stay private" for the percentages only; the odds themselves stay private.
 - Fable reviewed the plan before the build and the code after it.
+
+## Later decisions (2026-10-10): live clock and excitement so far
+- **Live cards** show when the event started and how far in it is: the match minute for football, the time since the start for F1 and winter, and only "listed 14:00" for tennis (the owner agreed: ESPN's tennis times are the court's slot, and a set number would spoil).
+- **"Excitement so far"** on live football: **tap to reveal**, and a **pace** (how much has happened per minute, scaled up to a full match), not "as if it ended now". Nothing before 15', "early and rough" before 30'. Fable tuned the starting weights against the test matches (the owner's choice).
+- **Fresher updates:** the page asks ESPN itself while a live match is on screen: the minute once a minute, and the match details when "Excitement so far" is open, worked out on the phone (the owner chose this, "version 2"). The bot's number every 5 minutes is the fallback ("version 1"). The bot's own rhythm stays at 5 minutes (Fable advised against more Pages deploys).
+- **Extra time:** fine that a live "105'" or "Pens" shows a knockout match was level after 90.
+- The "Coming up" tab is now **"Coming up/ongoing"**.

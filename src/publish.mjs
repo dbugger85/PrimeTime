@@ -167,7 +167,24 @@ export const upcomingWinter = (race, compName) => ({
   ...winterFields(race),
 });
 
-export const upcomingFootball = (comp, match, { lineups, stakes, forecast, outlook, chances } = {}) => ({
+// While a match is on: the clock as the bot read it (`at`: when), the "Excitement so far" number
+// (the fallback for when the page can't ask ESPN itself; see docs/live.js) and the big-match
+// factor the page needs to work that number out. No score, no leader. Live matches only.
+export function liveFields({ clock, at, pace, factor } = {}) {
+  const out = {};
+  if (clock && Number.isInteger(clock.min) && clock.min >= 0 && clock.min <= 130 && [1, 2, 3, 4, 5].includes(clock.period)
+    && typeof clock.paused === 'boolean' && Number.isFinite(Date.parse(at))) {
+    out.clock = { min: clock.min, plus: Number.isInteger(clock.plus) && clock.plus >= 0 && clock.plus <= 30 ? clock.plus : 0, period: clock.period, paused: clock.paused, at: new Date(at).toISOString() };
+  }
+  if (Number.isFinite(pace?.pace) && pace.pace >= 0 && pace.pace <= 10) {
+    out.pace = Math.round(pace.pace * 10) / 10;
+    if (pace.rough) out.rough = true;
+  }
+  if (Number.isFinite(factor) && factor >= 0.5 && factor <= 1.5) out.factor = Math.round(factor * 100) / 100;
+  return out;
+}
+
+export const upcomingFootball = (comp, match, { lineups, stakes, forecast, outlook, chances, live } = {}) => ({
   ...upcomingBase(`fb-${match.espnId}`, 'football', comp.key, comp.name, match.start, match.state === 'in', comp.key),
   teams: [match.home, match.away],
   ...lineupFields(lineups),
@@ -175,6 +192,7 @@ export const upcomingFootball = (comp, match, { lineups, stakes, forecast, outlo
   ...forecastField(forecast),
   ...outlookField(outlook),
   ...chancesField(chances),
+  ...(match.state === 'in' ? liveFields(live) : {}),
 });
 
 export const upcomingTennis = (match) => ({
