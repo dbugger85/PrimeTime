@@ -104,9 +104,13 @@ export function curve(x, from) {
   return x > a ? a + (10 - a) * (1 - Math.exp(-(x - a) / (10 - a))) : x;
 }
 
-// Big match: ×1.2 for the two strongest teams, ×0.8 for the two weakest (strength 0–1 each).
-export const bigMatchFactor = (st, bigMatch) =>
-  (st && Number.isFinite(st.home) && Number.isFinite(st.away) ? 1 + bigMatch * (st.home + st.away - 1) : 1);
+// Big match: ×(1 + bigMatch) for the two strongest teams, ×(1 − smallMatch) for the two weakest
+// (strength 0–1 each; an average pair ×1). `smallMatch` defaults to `bigMatch`.
+export const bigMatchFactor = (st, bigMatch, smallMatch = bigMatch) => {
+  if (!st || !Number.isFinite(st.home) || !Number.isFinite(st.away)) return 1;
+  const x = st.home + st.away - 1; // −1 for the two weakest, 0 for an average pair, 1 for the two strongest
+  return 1 + (x >= 0 ? bigMatch : smallMatch) * x;
+};
 
 export const LIVE_FROM = 15; // no number before this minute: too little to go on
 export const ROUGH_UNTIL = 30; // "early, rough" until this minute

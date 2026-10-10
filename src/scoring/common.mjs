@@ -12,8 +12,11 @@ import * as WEIGHTS from './weights.mjs';
 // Football 13: xG (optional, from FotMob), and points above 7 count less. 14: "xG" in the reasons.
 // Football 15: the one-sided penalty no longer grows with the margin.
 // Football 16: big match (team Elo ratings, `strength`), and a smooth curve instead of "points above 7 count less".
+// Football 17: FotMob team stats (touches in the box, big chances, xG on target), a lighter one-sided
+//   penalty, and the big-match factor cuts weak pairs more than it lifts strong ones (`smallMatch`).
+//   Also "end to end" (shots per team), late goals that change the result, and a stricter curve.
 // F1 11: qualifying unrated; lead changes count like other top-3 passes, and not at the start.
-const FORMULA_VERSIONS = { football: 16, tennis: 9, f1: 11, winter: 2 };
+const FORMULA_VERSIONS = { football: 17, tennis: 9, f1: 11, winter: 2 };
 const SPORT_WEIGHTS = {
   football: WEIGHTS.FOOTBALL,
   tennis: WEIGHTS.TENNIS,

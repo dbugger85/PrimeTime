@@ -4,18 +4,23 @@
 // Both are optional: when a site is down, the last good list (in state) or the committed seed
 // in src/ratings/ is used. The ratings are never published; they only nudge the score.
 //
-// Clubs are rated against their own league (the owner's choice): the strongest team in
-// Eliteserien counts as much as the strongest in the Premier League. National teams use
+// Clubs are rated half against their own league and half on the worldwide Elo scale (the
+// owner's choice, `FOOTBALL.leagueLevel`): the strongest team in Eliteserien counts for more
+// than a mid-table one, but a Premier League pair still outranks it. National teams use
 // the world scale, so England–Spain is a bigger match than Malta–Andorra.
 
 import { readFileSync } from 'node:fs';
 import { getText } from '../http.mjs';
 import { FOOTBALL } from '../competitions.mjs';
+import { FOOTBALL as W } from '../scoring/weights.mjs';
 
 const seed = (file) => JSON.parse(readFileSync(new URL(`../ratings/${file}`, import.meta.url), 'utf8'));
-// Club Elo was down (502, "site overloaded") when this was built; the newest full copy was
-// from 23 January 2025 (via web.archive.org). It's only used until Club Elo answers again.
-const CLUB_SEED = seed('clubelo-2025-01-23.json');
+// Club Elo's API has been down (502, "site overloaded") since this was built. The seed is the
+// ranking page clubelo.com/Ranking as web.archive.org saved it on 27 September 2026: every club
+// from 1500 Elo up (736 clubs; the lower half of Eliteserien is under the cutoff, see `ppg`).
+// It's only used until Club Elo answers again.
+export const CLUB_SEED_DATE = '2026-09-27';
+const CLUB_SEED = seed(`clubelo-${CLUB_SEED_DATE}.json`);
 const NATION_SEED = seed('world-2026-10-09.json');
 
 // ESPN's name -> the rating list's name, where a loose match isn't enough.
@@ -25,10 +30,10 @@ const CLUB_ALIASES = {
   'Ipswich Town': 'Ipswich', 'Coventry City': 'Coventry', 'West Ham United': 'West Ham', 'Wolverhampton Wanderers': 'Wolves',
   'Leicester City': 'Leicester', 'Norwich City': 'Norwich', 'Sheffield United': 'Sheffield United',
   'Hamarkameratene': 'Ham-Kam', 'Bodo/Glimt': 'Bodoe Glimt', 'Bodø/Glimt': 'Bodoe Glimt',
-  'Paris Saint-Germain': 'Paris SG', 'Atlético Madrid': 'Atletico', 'AS Roma': 'Roma', 'Bayern Munich': 'Bayern',
+  'Paris Saint-Germain': 'Paris SG', 'Atlético Madrid': 'Atlético', 'AS Roma': 'Roma', 'Bayern Munich': 'Bayern München',
   'PSV Eindhoven': 'PSV', 'Feyenoord Rotterdam': 'Feyenoord', 'Shakhtar Donetsk': 'Shakhtar', 'Sporting CP': 'Sporting',
   'Slavia Prague': 'Slavia Praha', 'Real Betis': 'Betis', 'Borussia Dortmund': 'Dortmund', 'AEK Athens': 'AEK',
-  'Club Brugge': 'Brugge', 'Internazionale': 'Inter', 'LASK Linz': 'LASK', 'Bayer Leverkusen': 'Leverkusen',
+  'Club Brugge': 'Brugge', 'Internazionale': 'Internazionale', 'LASK Linz': 'LASK', 'Bayer Leverkusen': 'Leverkusen',
   'Eintracht Frankfurt': 'Frankfurt', 'Borussia Mönchengladbach': 'Gladbach', 'Olympique de Marseille': 'Marseille',
   'Olympique Lyonnais': 'Lyon', 'AC Milan': 'Milan', 'Red Bull Salzburg': 'Salzburg', 'Sparta Prague': 'Sparta Praha',
   'Dinamo Zagreb': 'Dinamo Zagreb', 'Crvena Zvezda': 'Crvena Zvezda', 'FC Copenhagen': 'FC Kobenhavn',
@@ -50,6 +55,7 @@ const looseKeys = (s) => [...new Set([normName(s), normName(s.replace(/ø/gi, 'o
 function lookup(list, aliases, name) {
   const target = aliases[name] ?? name;
   if (list[target] != null) return list[target];
+  if (list[name] != null) return list[name]; // the list spells it like ESPN after all
   const keys = looseKeys(target);
   for (const [k, v] of Object.entries(list)) if (looseKeys(k).some((x) => keys.includes(x))) return v;
   return null;
@@ -124,14 +130,20 @@ export async function updateRatings(state, now, tablesFor) {
   // already in the field keep their last good rating, newcomers get the seed's. A league whose
   // table failed keeps its old field.
   r.leagues ??= {};
+  // A newer seed than the saved ratings (and no fresh Club Elo list): take every club from the seed
+  // once, or the saved fields would keep the older seed's numbers forever.
+  const reseed = !clubs && r.clubSeed !== CLUB_SEED_DATE && !(r.clubsDate >= CLUB_SEED_DATE);
   for (const comp of FOOTBALL.filter((c) => c.teams === 'clubs')) {
     const tables = await tablesFor(comp.key);
     const teams = tables?.flatMap((t) => t.rows.map((row) => row.team)) ?? [];
     if (!teams.length) continue;
     const old = r.leagues[comp.key] ?? {};
-    if (!clubs && teams.length === Object.keys(old).length && teams.every((t) => t in old)) continue;
-    r.leagues[comp.key] = Object.fromEntries(teams.map((t) => [t, clubs ? clubElo(clubs, t) : (old[t] ?? clubElo(CLUB_SEED, t))]));
+    // Points per game from the table, to order the clubs Club Elo doesn't list (see strengthOf).
+    (r.ppg ??= {})[comp.key] = Object.fromEntries(tables.flatMap((t) => t.rows.map((row) => [row.team, row.played > 0 ? row.points / row.played : 0])));
+    if (!clubs && !reseed && teams.length === Object.keys(old).length && teams.every((t) => t in old)) continue;
+    r.leagues[comp.key] = Object.fromEntries(teams.map((t) => [t, clubs ? clubElo(clubs, t) : reseed ? clubElo(CLUB_SEED, t) : (old[t] ?? clubElo(CLUB_SEED, t))]));
   }
+  if (reseed) r.clubSeed = CLUB_SEED_DATE;
 }
 
 // The latest Elo of every football team in `events`, for the page's "Show Elo ratings"
@@ -152,9 +164,13 @@ export function eloList(ratings, events) {
 }
 
 // Each team's strength from 0 (weak) to 1 (strong), or null when it isn't known.
-// Clubs: the share of their league's field they're stronger than (a club Club Elo doesn't
-// list, usually just promoted, counts as the league's weakest). National teams: the world
-// scale, Elo 1400 (Kazakhstan, the Faroes) = 0 to 2100 (Spain, England, France) = 1.
+// National teams: the world scale, Elo 1400 (Kazakhstan, the Faroes) = 0 to 2100 (Spain,
+// England, France) = 1. Clubs: a mix (`leagueLevel`, 0.5 = half and half) of the share of
+// their league's field they out-rate, and the worldwide Club Elo scale, 1450 (the weakest
+// clubs in the leagues followed) = 0 to 2050 (Bayern, Arsenal, Man City) = 1. A club Club Elo
+// doesn't list (under the seed's 1500 cutoff, or just promoted) ranks below every listed club,
+// and among the unlisted by points per game in the table (`ratings.ppg`).
+const CUTOFF = 1500; // the seed (clubelo.com's ranking page) lists clubs from 1500 Elo up
 export function strengthOf(ratings, compKey, home, away) {
   const comp = FOOTBALL.find((c) => c.key === compKey);
   if (comp?.teams === 'nations') {
@@ -167,11 +183,16 @@ export function strengthOf(ratings, compKey, home, away) {
   if (!field || !(home in field) || !(away in field)) return null;
   const known = Object.values(field).filter(Number.isFinite);
   if (known.length < 4) return null;
-  const floor = Math.min(...known);
-  const all = Object.values(field).map((e) => e ?? floor);
+  const ppg = ratings.ppg?.[compKey] ?? {};
+  const floor = Math.min(...known, CUTOFF) - 4; // the unlisted sit under the listed, 0–3 points per game apart
+  const rate = (t) => field[t] ?? floor + (ppg[t] ?? 0);
+  const all = Object.keys(field).map(rate);
   const share = (t) => {
-    const e = field[t] ?? floor;
+    const e = rate(t);
     return (all.filter((x) => x < e).length + (all.filter((x) => x === e).length - 1) / 2) / (all.length - 1);
   };
-  return { home: share(home), away: share(away) };
+  const world = (t) => Math.min(1, Math.max(0, (rate(t) - 1450) / 600));
+  const level = Math.min(1, Math.max(0, W.leagueLevel));
+  const mix = (t) => (1 - level) * share(t) + level * world(t);
+  return { home: mix(home), away: mix(away) };
 }

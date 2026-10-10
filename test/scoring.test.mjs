@@ -30,8 +30,8 @@ test('football: thrillers score high, routine wins score low', () => {
   const norwayEnglandAet = fb(760512); // extra-time winner
   const bournemouthLiverpool01 = fb(401879276);
   const franceSweden30 = fb(760492);
-  assert.ok(franceEngland64.score >= 9, `4-6 got ${franceEngland64.score}`);
-  assert.ok(mexicoEngland23.score >= 8);
+  assert.ok(franceEngland64.score >= 8.5, `4-6 got ${franceEngland64.score}`); // 9+ is very rare since football 17
+  assert.ok(mexicoEngland23.score >= 7); // 7.3 since football 17 (lower overall level)
   assert.ok(norwayEnglandAet.score >= 8);
   assert.ok(bournemouthLiverpool01.score < 5);
   assert.ok(franceSweden30.score < 6);
@@ -45,7 +45,7 @@ test('football: team strength from the odds, blowouts score below thrillers', ()
   const franceSweden30 = fb(760492); // a plain 3-0
   // The owner found a goal-fest blowout (Poland 6-0 Romania at 5.4) too low: lots of goals are still fun.
   assert.ok(viking81.score >= 5.5 && viking81.score < 7, `8-1 got ${viking81.score}`);
-  assert.ok(bayernBodo50.score < 6, `5-0 got ${bayernBodo50.score}`);
+  assert.ok(bayernBodo50.score < 6.5, `5-0 got ${bayernBodo50.score}`); // football 17: the one-sided penalty was halved
   assert.ok(viking81.score > franceSweden30.score, 'nine goals beat a plain 3-0');
   assert.ok(spursVilla23.score >= viking81.score + 2, `even 2-3 got ${spursVilla23.score}`);
   assert.ok(viking81.reasons.some(([, l]) => /favorite/.test(l)), 'the breakdown mentions the favorite');
@@ -246,12 +246,27 @@ test('F1: the score does not depend on whether the leader stayed in front', () =
   assert.deepEqual(scoreF1(lead).segments, scoreF1(second).segments);
 });
 
+test('football 17: end to end, and late goals that change the result', () => {
+  const facts = factsFromSummary(fixture('football/401879276.json')); // Bournemouth 0–1 Liverpool
+  const even = scoreFootball({ ...facts, shotsBy: { home: 12, away: 12 } });
+  const oneWay = scoreFootball({ ...facts, shotsBy: { home: 25, away: 4 } });
+  assert.ok(even.score > oneWay.score, `end to end ${even.score} vs one-way ${oneWay.score}`);
+  assert.ok(even.reasons.some(([, l]) => /^End to end: 12 shots against 12$/.test(l)));
+  assert.ok(!oneWay.reasons.some(([, l]) => /End to end/.test(l)), 'nothing for one-way traffic');
+  // A 90th-minute equaliser counts extra; the same goal at 2–0 down doesn't.
+  const base = { ...facts, shotsBy: null, goals: [{ min: 30, side: 'home' }] };
+  const equaliser = scoreFootball({ ...base, goals: [...base.goals, { min: 89.9, side: 'away' }] });
+  const consolation = scoreFootball({ ...base, goals: [{ min: 20, side: 'home' }, ...base.goals, { min: 89.9, side: 'away' }] });
+  assert.ok(equaliser.reasons.some(([, l]) => /from 85' that changed the result/.test(l)));
+  assert.ok(!consolation.reasons.some(([, l]) => /changed the result/.test(l)));
+});
+
 test('football: an underdog winning big is a shock, not a blowout', () => {
   const facts = factsFromSummary(fixture('football/760492.json')); // France 3-0 Sweden
   const expected = scoreFootball({ ...facts, odds: { home: 0.74, draw: 0.17, away: 0.09 } });
   const shock = scoreFootball({ ...facts, odds: { home: 0.09, draw: 0.17, away: 0.74 } });
   assert.ok(!shock.reasons.some(([, l]) => /One-sided/.test(l)), 'no blowout penalty for the underdog');
-  assert.ok(shock.score >= expected.score + 3, `shock ${shock.score}, expected ${expected.score}`);
+  assert.ok(shock.score >= expected.score + 2, `shock ${shock.score}, expected ${expected.score}`); // the gap shrank with the lighter blowout penalty and the stricter curve
 });
 
 test('F1 sprints: a third of the distance, so overtakes count three times', () => {
@@ -442,6 +457,16 @@ test('FotMob xG: shots, sides and minutes; team names matched loosely', async ()
   assert.ok(xg.shots.every((s) => s.min >= 0 && s.min < 90 && ['home', 'away'].includes(s.side)));
   assert.ok(xg.shots.some((s) => s.min === 89.9), 'stoppage time stays inside the second half');
   assert.equal(fm.xgFromDetails({ general: { homeTeam: { id: 1 } }, content: {} }), null, 'no shot map: no xG');
+  // Team stats: Greece 0–2 Germany, Nations League 2026 (content.stats.Periods.All).
+  const stats = fm.statsFromDetails(fixture('football/fotmob-stats-greece-germany.json'));
+  assert.deepEqual(stats, { touchesInBox: { home: 8, away: 43 }, bigChances: { home: 2, away: 1 }, xgot: { home: 0.64, away: 0.57 } });
+  assert.equal(fm.statsFromDetails({ general: {}, content: {} }), null, 'no stats section: null, and the score is as without FotMob');
+  const oneNil = factsFromSummary(fixture('football/401879276.json')); // Bournemouth 0–1 Liverpool
+  const plain = scoreFootball({ ...oneNil, xg: null, stats: null });
+  const busy = scoreFootball({ ...oneNil, xg: null, stats: { touchesInBox: { home: 50, away: 40 }, bigChances: { home: 5, away: 4 }, xgot: { home: 2.5, away: 2 } } });
+  assert.ok(busy.score > plain.score + 1, `busy ${busy.score} vs plain ${plain.score}`);
+  assert.ok(busy.reasons.some(([, l]) => l === '9 big chances') && busy.reasons.some(([, l]) => /xGOT$/.test(l)) && busy.reasons.some(([, l]) => /touches in the opposition box$/.test(l)));
+  assert.equal(scoreFootball({ ...oneNil, xg: null, stats: { touchesInBox: null, bigChances: null, xgot: null } }).score, plain.score, 'stats FotMob does not show are left out');
   for (const [a, b] of [['SK Brann', 'Brann'], ['Bodo/Glimt', 'Bodø/Glimt'], ['Tromso', 'Tromsø'], ['Republic of Ireland', 'Ireland'], ['Viking FK', 'Viking'], ['Internazionale', 'Inter'], ['Leeds United', 'Leeds'], ['Bosnia-Herzegovina', 'Bosnia and Herzegovina']]) {
     assert.ok(fm.sameTeam(a, b), `${a} = ${b}`);
   }
@@ -473,13 +498,14 @@ test('football with and without xG; higher scores are harder to reach', () => {
   const open = scoreFootball({ ...oneNil, xg: { home: 2.5, away: 1.5, shots: [] } }).score;
   const closed = scoreFootball({ ...oneNil, xg: { home: 0.6, away: 0.5, shots: [] } }).score;
   assert.ok(open > closed, `chances ${open} vs potshots ${closed}`);
-  // The curve: above 5 each point counts a bit less, bending towards 10, with a line saying so.
+  // The curve: above curveFrom each point counts a bit less, bending towards 10, with a line saying so.
   const CURVE = 'Higher scores are harder to reach';
   assert.ok(noXg.reasons.some(([, l]) => l === CURVE));
   const raw = noXg.reasons.filter(([, l]) => l !== CURVE).reduce((a, [p]) => a + p, 0);
-  const curve = (x) => (x <= 5 ? x : 5 + 5 * (1 - Math.exp(-(x - 5) / 5)));
+  const a = WEIGHTS.FOOTBALL.curveFrom;
+  const curve = (x) => (x <= a ? x : a + (10 - a) * (1 - Math.exp(-(x - a) / (10 - a))));
   assert.ok(Math.abs(noXg.score - curve(raw)) <= 0.15, `score ${noXg.score} vs curve ${curve(raw)}`);
-  assert.ok(curve(30) < 10 && curve(5) === 5 && curve(8) > 7, 'smooth, and never quite 10');
+  assert.ok(curve(30) < 10 && curve(a) === a && curve(8) > 6, 'smooth, and never quite 10');
 });
 
 test('big match: the same match scores higher between two strong teams', async () => {
@@ -492,14 +518,17 @@ test('big match: the same match scores higher between two strong teams', async (
   assert.ok(strong.score > average.score && average.score > weak.score, `${strong.score} > ${average.score} > ${weak.score}`);
   assert.equal(average.score, unknown.score, 'an average pair, or unknown teams: no change');
   assert.ok(!unknown.reasons.some(([, l]) => /×/.test(l)), 'no big-match line without ratings');
-  assert.ok(strong.reasons.some(([, l]) => /^Big match: two strong teams \(×1\.17\)$/.test(l)), strong.reasons.join(' | '));
-  assert.ok(weak.reasons.some(([, l]) => /^Two weaker teams \(×0\.83\)$/.test(l)));
-  const before = W.bigMatch;
+  assert.ok(strong.reasons.some(([, l]) => /^Big match: two strong teams \(×1\.21\)$/.test(l)), strong.reasons.join(' | '));
+  assert.ok(weak.reasons.some(([, l]) => /^Two weaker teams \(×0\.66\)$/.test(l)), 'a weak pair loses more (smallMatch) than a strong pair gains (bigMatch)');
+  const before = W.bigMatch, beforeSmall = W.smallMatch;
   try {
-    W.bigMatch = 0; // the off switch
+    W.bigMatch = 0; // the off switches
+    W.smallMatch = 0;
     assert.equal(scoreFootball({ ...facts, strength: { home: 1, away: 1 } }).score, unknown.score);
+    assert.equal(scoreFootball({ ...facts, strength: { home: 0, away: 0 } }).score, unknown.score);
   } finally {
     W.bigMatch = before;
+    W.smallMatch = beforeSmall;
   }
 });
 
@@ -518,12 +547,26 @@ test('team ratings: parsing, names and each team\'s strength', async () => {
   assert.equal(n.home, 1);
   assert.ok(Math.abs(n.away - 500 / 700) < 1e-9);
   assert.equal(strengthOf({ nations }, 'uefa.nations', 'Spain', 'Atlantis'), null, 'an unknown team: no big-match line');
-  // Clubs: against their own league; a club the list doesn't know counts as the league's weakest.
+  // Clubs: half against their own league, half on the world scale (1450 = 0, 2050 = 1).
   const leagues = { 'nor.1': { 'Bodø/Glimt': 1582, 'SK Brann': 1496, Molde: 1498, Tromso: 1373, Vålerenga: null } };
+  const W = WEIGHTS.FOOTBALL;
+  const mixed = strengthOf({ leagues }, 'nor.1', 'Bodø/Glimt', 'Vålerenga');
+  assert.ok(Math.abs(mixed.home - (0.5 * 1 + 0.5 * (1582 - 1450) / 600)) < 1e-9, `half rank, half world: ${mixed.home}`);
+  assert.equal(mixed.away, 0, 'unlisted, under 1450 on the world scale too');
+  const pl = strengthOf({ leagues: { 'eng.1': { A: 2040, B: 1900, C: 1800, D: 1700 } } }, 'eng.1', 'C', 'D');
+  assert.ok(Math.abs(pl.away - 0.5 * (1700 - 1450) / 600) < 1e-9, `the weakest of a strong league keeps its world half: ${pl.away}`);
+  const levelBefore = W.leagueLevel;
+  W.leagueLevel = 0; // the rest checks the league rank alone
   const s = strengthOf({ leagues }, 'nor.1', 'Bodø/Glimt', 'Vålerenga');
   assert.equal(s.home, 1, 'the strongest in the league');
-  assert.equal(s.away, 0.125, 'unknown = level with the weakest (Tromso)');
+  assert.equal(s.away, 0, 'unknown = under the weakest listed club (Tromso)');
   assert.equal(strengthOf({ leagues }, 'nor.1', 'Molde', 'SK Brann').home, 0.75);
+  // Two unlisted clubs: the one with more points per game ranks higher, both under every listed club.
+  const two = { 'nor.1': { ...leagues['nor.1'], Sandefjord: null } };
+  const ppg = { 'nor.1': { Vålerenga: 1.1, Sandefjord: 1.8 } };
+  const u = strengthOf({ leagues: two, ppg }, 'nor.1', 'Vålerenga', 'Sandefjord');
+  assert.ok(u.home === 0 && u.away === 0.2 && u.away < strengthOf({ leagues: two, ppg }, 'nor.1', 'Tromso', 'Molde').home, JSON.stringify(u));
+  W.leagueLevel = levelBefore;
   assert.equal(strengthOf({ leagues }, 'eng.1', 'Molde', 'SK Brann'), null, 'no field for that league');
   // Both sites down: the seeds are used and nothing throws.
   const state = {};
@@ -537,8 +580,8 @@ test('team ratings: parsing, names and each team\'s strength', async () => {
   }
   assert.equal(state.ratings.clubsDate, undefined, 'no good list yet');
   assert.equal(state.ratings.clubsTried, '2026-10-09', 'so it is tried again tomorrow, not at every build');
-  assert.equal(state.ratings.leagues['nor.1']['Bodø/Glimt'], 1582, 'the seed fills the league');
-  assert.ok(strengthOf(state.ratings, 'nor.1', 'Bodø/Glimt', 'KFUM Oslo').home === 1);
+  assert.equal(state.ratings.leagues['nor.1']['Bodø/Glimt'], 1779, 'the seed fills the league');
+  assert.ok(strengthOf(state.ratings, 'nor.1', 'Bodø/Glimt', 'KFUM Oslo').home > 0.7, 'the best of the league, on the world scale a bit above the middle');
   assert.ok(strengthOf(state.ratings, 'uefa.nations', 'England', 'Spain').home > 0.9, 'the national seed works too');
   // Still down next season: the field follows the new table (a promoted club joins, a relegated one leaves).
   const nextSeason = async () => [{ name: 'Eliteserien', rows: ['Bodø/Glimt', 'SK Brann', 'Viking FK', 'Molde', 'Ham-Kam'].map((team) => ({ team })) }];
@@ -549,7 +592,21 @@ test('team ratings: parsing, names and each team\'s strength', async () => {
     globalThis.fetch = realFetch;
   }
   assert.deepEqual(Object.keys(state.ratings.leagues['nor.1']).sort(), ['Bodø/Glimt', 'Ham-Kam', 'Molde', 'SK Brann', 'Viking FK']);
-  assert.equal(state.ratings.leagues['nor.1']['Ham-Kam'], 1309, 'the newcomer gets the seed rating');
+  assert.equal(state.ratings.leagues['nor.1']['Ham-Kam'], null, 'the newcomer is under the seed\'s 1500 cutoff: unlisted, ranked by points per game');
+  assert.equal(state.ratings.leagues['nor.1']['Viking FK'], 1693, 'a listed newcomer gets the seed rating');
+  // Saved ratings from an older seed (football 16 used January 2025): replaced by the new seed once, then kept.
+  const older = { ratings: { clubsTried: '2026-10-09', nationsTried: '2026-10-09', leagues: { 'nor.1': { 'Bodø/Glimt': 1582, 'SK Brann': 1500, 'Viking FK': 1450, Molde: 1600, 'KFUM Oslo': 1300 } } } };
+  globalThis.fetch = async () => ({ ok: false, status: 404, statusText: 'Not Found' });
+  try {
+    await updateRatings(older, new Date('2026-10-09T13:00:00Z'), tablesFor);
+    assert.equal(older.ratings.leagues['nor.1']['Bodø/Glimt'], 1779, 'the newer seed replaces the old numbers');
+    assert.equal(older.ratings.clubSeed, '2026-09-27');
+    older.ratings.leagues['nor.1']['Bodø/Glimt'] = 1800; // as if a later good list had set it
+    await updateRatings(older, new Date('2026-10-09T14:00:00Z'), tablesFor);
+    assert.equal(older.ratings.leagues['nor.1']['Bodø/Glimt'], 1800, 'only once');
+  } finally {
+    globalThis.fetch = realFetch;
+  }
   assert.equal(parseWorldElo('1\t1\tUS\t1800\n', 'US\tUnited States\tUSA\n').USA, 1800, 'other spellings count too');
   // The page's list: one number per football team, from its league field or the world list.
   const { eloList } = await import('../src/sources/ratings.mjs');

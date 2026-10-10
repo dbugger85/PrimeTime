@@ -1,0 +1,179 @@
+{
+ "general": {
+  "homeTeam": {
+   "name": "Greece",
+   "id": 6383
+  },
+  "awayTeam": {
+   "name": "Germany",
+   "id": 8570
+  },
+  "finished": true
+ },
+ "content": {
+  "stats": {
+   "Periods": {
+    "All": {
+     "stats": [
+      {
+       "title": "Top stats",
+       "key": "top_stats",
+       "stats": [
+        {
+         "title": "Ball possession",
+         "key": "BallPossesion",
+         "stats": [
+          30,
+          70
+         ],
+         "type": "graph"
+        },
+        {
+         "title": "Expected goals (xG)",
+         "key": "expected_goals",
+         "stats": [
+          "0.72",
+          "1.38"
+         ],
+         "type": "text"
+        },
+        {
+         "title": "Total shots",
+         "key": "total_shots",
+         "stats": [
+          5,
+          21
+         ],
+         "type": "text"
+        },
+        {
+         "title": "Shots on target",
+         "key": "ShotsOnTarget",
+         "stats": [
+          2,
+          4
+         ],
+         "type": "text"
+        },
+        {
+         "title": "Touches in opposition box",
+         "key": "touches_opp_box",
+         "stats": [
+          8,
+          43
+         ],
+         "type": "text"
+        },
+        {
+         "title": "Big chances",
+         "key": "big_chance",
+         "stats": [
+          2,
+          1
+         ],
+         "type": "text"
+        },
+        {
+         "title": "Big chances missed",
+         "key": "big_chance_missed_title",
+         "stats": [
+          2,
+          1
+         ],
+         "type": "text"
+        },
+        {
+         "title": "Accurate passes",
+         "key": "accurate_passes",
+         "stats": [
+          "183 (70%)",
+          "569 (89%)"
+         ],
+         "type": "text"
+        },
+        {
+         "title": "Yellow cards",
+         "key": "yellow_cards",
+         "stats": [
+          3,
+          3
+         ],
+         "type": "text"
+        },
+        {
+         "title": "Corners",
+         "key": "corners",
+         "stats": [
+          2,
+          3
+         ],
+         "type": "text"
+        }
+       ]
+      },
+      {
+       "title": "Expected goals (xG)",
+       "key": "expected_goals",
+       "stats": [
+        {
+         "title": "Expected goals (xG)",
+         "key": "expected_goals",
+         "stats": [
+          null,
+          null
+         ],
+         "type": "title"
+        },
+        {
+         "title": "Expected goals (xG)",
+         "key": "expected_goals",
+         "stats": [
+          "0.72",
+          "1.38"
+         ],
+         "type": "text"
+        },
+        {
+         "title": "xG open play",
+         "key": "expected_goals_open_play",
+         "stats": [
+          "0.19",
+          "1.10"
+         ],
+         "type": "text"
+        },
+        {
+         "title": "xG set play",
+         "key": "expected_goals_set_play",
+         "stats": [
+          "0.53",
+          "0.28"
+         ],
+         "type": "text"
+        },
+        {
+         "title": "xG non-penalty",
+         "key": "expected_goals_non_penalty",
+         "stats": [
+          "0.72",
+          "1.38"
+         ],
+         "type": "text"
+        },
+        {
+         "title": "xG on target (xGOT)",
+         "key": "expected_goals_on_target",
+         "stats": [
+          "0.64",
+          "0.57"
+         ],
+         "type": "text"
+        }
+       ]
+      }
+     ]
+    }
+   }
+  }
+ }
+}

@@ -1,6 +1,7 @@
-// Expected goals (xG) from FotMob's public (unofficial) web API. No key needed.
+// Expected goals (xG) and team stats from FotMob's public (unofficial) web API. No key needed.
 //   matches?date=YYYYMMDD     -> every match of a day, all competitions (to find FotMob's id)
-//   matchDetails?matchId=ID   -> the shot map: every shot with its minute and its xG
+//   matchDetails?matchId=ID   -> the shot map (every shot with its minute and its xG) and the
+//                                match stats (touches in the box, big chances, xG on target)
 // This is an OPTIONAL extra: FotMob doesn't like scrapers and could block us any day.
 // Every function here returns null instead of failing, and the football score then
 // falls back to shot counts and marks the card "limited info".
@@ -81,22 +82,54 @@ export function xgFromDetails(details) {
   return out;
 }
 
-// xG facts for a finished ESPN match, or null (not found, no xG, FotMob down or blocking).
-export async function xgFor(match) {
+// The team stats from a matchDetails answer (content.stats.Periods.All.stats: groups of
+// { key, title, stats: [home, away] }), or null when there are none. Totals for the whole match,
+// no minutes, so they only affect the score, not the strip or the skip tips. Each one is null when
+// FotMob doesn't show it for that match. "Big chances" already includes the ones missed.
+//   { touchesInBox: { home: 37, away: 32 }, bigChances: { home: 3, away: 3 }, xgot: { home: 2.47, away: 0.59 } }
+const KEYS = { touchesInBox: 'touches_opp_box', bigChances: 'big_chance', xgot: 'expected_goals_on_target' };
+export function statsFromDetails(details) {
+  const groups = details?.content?.stats?.Periods?.All?.stats;
+  if (!Array.isArray(groups)) return null;
+  const num = (v) => (typeof v === 'string' ? Number(v.replace(/\s.*$/, '')) : Number(v)); // "183 (70%)" -> 183
+  const pair = (key) => {
+    for (const g of groups) {
+      for (const s of g.stats ?? []) {
+        if (s.key !== key || !Array.isArray(s.stats) || s.stats.length !== 2) continue;
+        const [home, away] = s.stats.map(num);
+        return Number.isFinite(home) && Number.isFinite(away) ? { home, away } : null;
+      }
+    }
+    return null;
+  };
+  const out = Object.fromEntries(Object.entries(KEYS).map(([name, key]) => [name, pair(key)]));
+  return Object.values(out).some(Boolean) ? out : null;
+}
+
+// xG and team stats for a finished ESPN match: { xg, stats }, each null when FotMob doesn't have it,
+// or null as a whole (not found, FotMob down or blocking).
+export async function fotmobFor(match) {
   try {
     const id = await findMatchId(match);
     if (!id) return null;
     const details = await get(`matchDetails?matchId=${id}`);
     if (!details?.general?.finished) return null;
     const xg = xgFromDetails(details);
+    const stats = statsFromDetails(details);
     // At a neutral ground the two sources can disagree about who's "home": follow ESPN.
     const fmHome = details.general.homeTeam?.name ?? '';
-    if (xg && sameTeam(fmHome, match.away) && !sameTeam(fmHome, match.home)) {
-      [xg.home, xg.away] = [xg.away, xg.home];
-      for (const s of xg.shots) s.side = s.side === 'home' ? 'away' : 'home';
+    if (sameTeam(fmHome, match.away) && !sameTeam(fmHome, match.home)) {
+      if (xg) {
+        [xg.home, xg.away] = [xg.away, xg.home];
+        for (const s of xg.shots) s.side = s.side === 'home' ? 'away' : 'home';
+      }
+      for (const k of Object.keys(stats ?? {})) if (stats[k]) stats[k] = { home: stats[k].away, away: stats[k].home };
     }
-    return xg;
+    return { xg, stats };
   } catch {
     return null;
   }
 }
+
+// xG facts alone, or null (kept for callers that only want the shot map).
+export const xgFor = async (match) => (await fotmobFor(match))?.xg ?? null;

@@ -85,6 +85,9 @@ export function scoreFootball(f) {
   const lateGoals = goals.filter((g, i) => g.min >= 75 && Math.min(Math.abs(margins[i][0]), Math.abs(margins[i][1])) <= 1);
   const late = lateGoals.reduce((a, g) => a + (g.min >= 85 ? W.veryLateGoal : W.lateGoal), 0);
   t.add(Math.min(late, W.lateGoalsMax), `${plural(lateGoals.length, 'goal')} after 75'`);
+  // A goal from 85' that changes the result: an equaliser, or a winner from level.
+  const deciders = goals.filter((g, i) => g.min >= 85 && (margins[i][1] === 0 || margins[i][0] === 0)).length;
+  t.add(W.lateDecider * Math.min(deciders, 2), `${plural(deciders, 'goal')} from 85' that changed the result`);
 
   // Intensity. With xG (from FotMob, optional) the quality of the chances replaces the shot
   // counts: 30 long shots are less exciting than a few big chances.
@@ -104,6 +107,21 @@ export function scoreFootball(f) {
       t.add(W.againstTheRun * Math.min(1, 0.5 + 0.5 * (xgGap - 1)), `The ${winner === fav ? 'favorite' : 'winner'} won despite ${xgGap.toFixed(1)} less xG`);
     }
   }
+  // End to end: both teams attacking about as much as each other (shots, from ESPN), rather than
+  // one-way traffic. Nothing when one team had under 40% of the other's shots, the full amount from 90%.
+  const sb = f.shotsBy;
+  if (sb && Number.isFinite(sb.home) && Number.isFinite(sb.away) && Math.max(sb.home, sb.away) >= 6) {
+    const balance = Math.min(sb.home, sb.away) / Math.max(sb.home, sb.away);
+    t.add(W.endToEnd * clamp((balance - 0.4) / 0.5, 0, 1), `End to end: ${sb.home} shots against ${sb.away}`);
+  }
+  // FotMob's team stats (optional, like xG): big chances (scored or missed), how much the keepers
+  // were tested (xG on target) and how much play there was in the boxes. Totals only, no minutes.
+  const stats = f.stats;
+  const total = (p) => (p && Number.isFinite(p.home) && Number.isFinite(p.away) ? p.home + p.away : null);
+  const big = total(stats?.bigChances), xgot = total(stats?.xgot), touches = total(stats?.touchesInBox);
+  if (big != null) t.add(W.bigChances * clamp((big - 3) / 6, 0, 1), plural(big, 'big chance'));
+  if (xgot != null) t.add(W.shotQuality * clamp((xgot - 2) / 2.5, 0, 1), `Shots on target worth ${xgot.toFixed(1)} xGOT`);
+  if (touches != null) t.add(W.boxTouches * clamp((touches - 40) / 50, 0, 1), `${touches} touches in the opposition box`);
   if (n === 0 && (xg ? xgTotal < 1.5 : f.shotsOnTarget <= 4)) {
     t.add(-W.dullGoalless, xg ? `Goalless with chances worth only ${xgTotal.toFixed(1)} xG` : `Goalless with only ${plural(f.shotsOnTarget, 'shot')} on target`);
   }
@@ -127,9 +145,10 @@ export function scoreFootball(f) {
   // Big match: a thriller between two strong teams is worth more than the same match between
   // two weaker ones. `f.strength` is each team's strength from 0 to 1 (clubs against their own
   // league, national teams on the world scale; see src/sources/ratings.mjs), or null.
+  // Two weak teams lose more (`smallMatch`) than two strong ones gain (`bigMatch`).
   const st = f.strength;
   if (st && Number.isFinite(st.home) && Number.isFinite(st.away)) {
-    const factor = bigMatchFactor(st, W.bigMatch); // the mean strength, 0.5 = ×1
+    const factor = bigMatchFactor(st, W.bigMatch, W.smallMatch); // from the mean strength, 0.5 = ×1
     const mean = (st.home + st.away) / 2;
     const label = mean >= 0.75 ? 'Big match: two strong teams' : mean >= 0.5 ? 'Slightly above-average teams' : mean > 0.25 ? 'Slightly below-average teams' : 'Two weaker teams';
     t.add(Math.max(0, t.total) * (factor - 1), `${label} (×${factor.toFixed(2)})`);

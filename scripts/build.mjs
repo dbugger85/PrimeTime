@@ -88,8 +88,9 @@ async function buildFootball() {
         try {
           const summary = await football.fetchSummary(comp.key, m.espnId);
           const stakes = events.get(id)?.stakes ?? previous.get(id)?.stakes ?? state.stakes[id]?.code; // frozen before kick-off
-          const xg = await fotmob.xgFor(m); // optional: null when FotMob has none or is down
-          const scored = scoreFootball({ ...football.factsFromSummary(summary), stakes, xg, strength: strengthOf(state.ratings, comp.key, m.home, m.away) });
+          const fm = await fotmob.fotmobFor(m); // optional: null when FotMob has none or is down
+          const scored = scoreFootball({ ...football.factsFromSummary(summary), stakes, xg: fm?.xg ?? null, stats: fm?.stats ?? null,
+            strength: strengthOf(state.ratings, comp.key, m.home, m.away) });
           save(publishFootball(comp, m, scored, { lineups: football.lineupsFromSummary(summary), stakes }), scored);
         } catch (err) {
           complete = false;
@@ -139,7 +140,7 @@ async function upcomingEntry(comp, m) {
   if (m.state !== 'pre') {
     // Live: the clock from the scoreboard; "Excitement so far" stays as the live check last worked it out.
     const live = { clock: m.clock, at: m.clockAt, pace: old?.pace != null ? { pace: old.pace, rough: old.rough } : null,
-      factor: bigMatchFactor(strengthOf(state.ratings, comp.key, m.home, m.away), FOOTBALL_W.bigMatch) };
+      factor: bigMatchFactor(strengthOf(state.ratings, comp.key, m.home, m.away), FOOTBALL_W.bigMatch, FOOTBALL_W.smallMatch) };
     return upcomingFootball(comp, m, { lineups, stakes: old?.stakes, forecast: old?.forecast, outlook: old?.outlook, chances: chancesOf(old), live });
   }
   const table = await tablesFor(comp.key);

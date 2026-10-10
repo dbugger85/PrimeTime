@@ -23,12 +23,13 @@ export const FOOTBALL = {
   leadChange: 1.0, //         each time the lead changed hands (up to 3 times)
   lateGoal: 0.5, //           each goal from 75' to 85', while the result was still open
   veryLateGoal: 1.0, //       each goal from 85', while the result was still open
+  lateDecider: 0.6, //        extra for each goal from 85' that changed the result: an equaliser, or a winner from level (up to 2)
   lateGoalsMax: 2.5, //       at most this much for late goals in total
 
   // One-sided matches
-  alreadyDecided: 0.35, //    taken off: share of a goal's points when the team was already 3+ up (0.5 = half)
-  nearlyDecided: 0.14, //     taken off: the same, when the team was 2 up
-  blowout: 1.5, //            taken off: won by 3 or more goals, whatever the margin (not when the underdog won: that's a shock, not a mismatch)
+  alreadyDecided: 0.25, //    taken off: share of a goal's points when the team was already 3+ up (0.5 = half)
+  nearlyDecided: 0.1, //      taken off: the same, when the team was 2 up
+  blowout: 0.75, //           taken off: won by 3 or more goals, whatever the margin (not when the underdog won: that's a shock, not a mismatch)
 
   // Team strength, from the pre-match betting odds
   teamStrength: 1.0, //       master dial for everything below: 0 = ignore team strength, 1 = normal, 2 = double
@@ -40,7 +41,11 @@ export const FOOTBALL = {
   evenMatch: 0.5, //          the teams were evenly matched on paper
 
   // Intensity and drama
-  chances: 1.5, //            with xG: an open match full of good chances (nothing under 1.5 expected goals in total, the full amount at 4.0)
+  chances: 1.25, //           with xG: an open match full of good chances (nothing under 1.5 expected goals in total, the full amount at 4.0)
+  endToEnd: 1.0, //           both teams attacking about equally (by shots), not one-way traffic (nothing under 40%, the full amount from 90%)
+  bigChances: 0.8, //         with FotMob's stats: lots of big chances, scored or missed (nothing for 3 or fewer in total, the full amount at 9)
+  shotQuality: 0.8, //        with FotMob's stats: shots that tested the keeper, by xG on target (nothing under 2.0 xGOT in total, the full amount at 4.5)
+  boxTouches: 0.75, //        with FotMob's stats: play in the penalty boxes, by touches in the opposition box (nothing for 40 or fewer, the full amount at 90)
   againstTheRun: 1.0, //      with xG: the winner created the worse chances (half at 1 expected goal less, the full amount at 2)
   shotsOnTarget7: 0.5, //     without xG only: 7–9 shots on target
   shotsOnTarget10: 1.0, //    without xG only: 10 or more shots on target
@@ -64,10 +69,12 @@ export const FOOTBALL = {
 
   // Big match, from the teams' Elo ratings (not the odds): clubs are compared with the rest of
   // their own league, national teams with the whole world
-  bigMatch: 0.2, //           two of the strongest teams: all points ×1.2; two of the weakest: ×0.8; an average pair: ×1 (0 = off)
+  bigMatch: 0.25, //          two of the strongest teams: all points ×1.25; an average pair: ×1 (0 = off)
+  smallMatch: 0.4, //         two of the weakest teams: all points ×0.6 (0 = off); a weak pair loses more than a strong pair gains
+  leagueLevel: 0.5, //        how much the league's level counts in a club's strength: 0 = clubs only against their own league (the best of Eliteserien = the best of the Premier League), 1 = only the worldwide Elo scale (from 0 to 1)
 
   // The top end
-  curveFrom: 5, //            above this, each point counts a bit less than the one before, so scores bend towards 10 and a 10 is almost impossible (lower = stricter; from 0 to 9)
+  curveFrom: 2.5, //          above this, each point counts a bit less than the one before, so scores bend towards 10 and a 10 is almost impossible (lower = stricter; from 0 to 9)
 };
 
 export const TENNIS = {

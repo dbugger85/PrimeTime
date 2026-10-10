@@ -84,7 +84,7 @@ async function liveFootball() {
         // itself from ESPN; this one is the fallback, so a failure here just keeps the old one).
         let live;
         if (m.state === 'in') {
-          const factor = bigMatchFactor(strengthOf(data.state.ratings, compKey, m.home, m.away), FOOTBALL_W.bigMatch);
+          const factor = bigMatchFactor(strengthOf(data.state.ratings, compKey, m.home, m.away), FOOTBALL_W.bigMatch, FOOTBALL_W.smallMatch);
           let pace = old.pace != null ? { pace: old.pace, rough: old.rough } : null;
           try {
             const summary = await football.fetchSummary(compKey, m.espnId);

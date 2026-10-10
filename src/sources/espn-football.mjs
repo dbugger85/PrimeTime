@@ -153,6 +153,8 @@ export function factsFromSummary(summary) {
     shotsOn: typed(/shot on target/i),
     shotsOff: typed(/shot off target|shot blocked/i),
     totalShots: stat('totalShots'),
+    shotsBy: Object.fromEntries((summary.boxscore?.teams ?? []).map((t) => [sides[t.team?.id] ?? t.homeAway,
+      Number(t.statistics?.find((s) => s.name === 'totalShots')?.displayValue ?? NaN)])), // { home, away }, for "end to end"
     shotsOnTarget: stat('shotsOnTarget'),
     extraTime: status === 'STATUS_FINAL_AET' || status === 'STATUS_FINAL_PEN' || events.some((e) => e.period?.number >= 3),
     shootout: status === 'STATUS_FINAL_PEN' || comp.competitors.some((t) => t.shootoutScore != null),
