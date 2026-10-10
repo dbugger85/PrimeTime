@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-10T12:01:02.827Z",
+ "lastFull": "2026-10-10T14:55:30.346Z",
  "versions": {
   "football": "16.92dfab07",
   "tennis": "9.c615cf94",
@@ -1886,6 +1886,24 @@
    "start": "2026-10-13T19:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/villarreal-napoli-q2hmmthe"
+   }
+  },
+  "fb-401915416": {
+   "start": "2026-10-14T16:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/feyenoord-como-z65eezpe"
+   }
+  },
+  "fb-401915415": {
+   "start": "2026-10-14T16:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/lask-liverpool-4fm2eqc4"
+   }
+  },
+  "fb-401915409": {
+   "start": "2026-10-14T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/aston-villa-fenerbahce-3p35v6mc"
    }
   }
  },
