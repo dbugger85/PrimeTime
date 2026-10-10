@@ -367,7 +367,7 @@ try {
     for (const icon of manifest.icons) {
       assert.ok((await fetch(new URL(icon.src, base))).ok, `icon ${icon.src} is missing`);
     }
-    assert.ok(await page.$eval('#install-ios', (e) => e.hidden), 'the iPhone tip shows on Android/desktop');
+    assert.ok(await page.$eval('#install-card', (e) => e.hidden), 'the install card shows without an install offer (not iPhone, no beforeinstallprompt)');
 
     assert.deepEqual(errors, []);
     await page.close();
@@ -492,17 +492,24 @@ try {
     await off.close();
   }
 
-  // iPhone Safari has no install button, so it gets the "Add to Home Screen" tip.
+  // iPhone Safari has no install popup, so the card's Install button shows the steps; ✕ hides it for good.
   const iphone = await browser.newPage({
     viewport: { width: 390, height: 844 },
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
   });
   await iphone.goto(base);
   await iphone.waitForSelector('.card');
-  assert.ok(await iphone.$eval('#install-ios', (e) => !e.hidden), 'no install tip on iPhone');
-  assert.ok(await iphone.$eval('#install-btn', (e) => e.hidden));
-  await iphone.evaluate(() => document.querySelector('.foot').scrollIntoView());
-  await iphone.screenshot({ path: `${shots}/install-tip-iphone.png` });
+  assert.ok(await iphone.$eval('#install-card', (e) => !e.hidden), 'no install card on iPhone');
+  await iphone.locator('#install-card').screenshot({ path: `${shots}/install-card.png` });
+  await iphone.click('#install-btn');
+  await iphone.waitForSelector('#ios-install-dlg[open]');
+  await iphone.screenshot({ path: `${shots}/install-steps-iphone.png` });
+  await iphone.click('#ios-install-close');
+  await iphone.click('#install-hide');
+  assert.ok(await iphone.$eval('#install-card', (e) => e.hidden));
+  await iphone.reload();
+  await iphone.waitForSelector('.card');
+  assert.ok(await iphone.$eval('#install-card', (e) => e.hidden), '"Not now" is remembered');
   await iphone.close();
 
   console.log('e2e passed');

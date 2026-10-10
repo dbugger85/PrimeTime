@@ -30,6 +30,15 @@
       <h1>PrimeTime</h1>
     </div>
     <p class="tagline">What's worth watching, without spoilers.</p>
+    <div id="install-card" class="install-card" hidden>
+      <img src="./icons/icon-192.png" alt="" width="44" height="44">
+      <div class="grow">
+        <strong>Install the app</strong>
+        <div class="small">One tap from your home screen, full screen.</div>
+      </div>
+      <button id="install-btn" type="button" class="install-go">Install</button>
+      <button id="install-hide" type="button" class="install-hide" aria-label="Not now">✕</button>
+    </div>
   </header>
 
   <nav class="views" id="views" aria-label="View">
@@ -140,10 +149,6 @@
       <button type="button" id="share-btn">Share my settings</button>
       <span class="small" id="share-note">Moves your favorites, services and filters to another phone or computer.</span>
     </p>
-    <p class="install" id="install" hidden>
-      <button type="button" id="install-btn" hidden>Install app</button>
-      <span id="install-ios" hidden>Tip: install PrimeTime as an app. Tap Share, then “Add to Home Screen”.</span>
-    </p>
   </footer>
 
   <template id="card-tpl">
@@ -183,6 +188,17 @@
       </div>
     </li>
   </template>
+
+  <!-- How to install on iPhone and iPad (Safari has no install button) -->
+  <dialog id="ios-install-dlg">
+    <h2>Install on iPhone</h2>
+    <ol class="steps">
+      <li>Tap the <strong>Share</strong> button <span class="share-icon" aria-hidden="true"></span> in Safari's toolbar.</li>
+      <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
+      <li>Tap <strong>Add</strong>. PrimeTime is now on your home screen.</li>
+    </ol>
+    <div class="dlg-buttons"><button type="button" id="ios-install-close" class="danger">Got it</button></div>
+  </dialog>
 
   <dialog id="spoiler-dlg">
     <form method="dialog">

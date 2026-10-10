@@ -796,29 +796,38 @@ async function fetchData({ quiet = false } = {}) {
   }
 }
 
-// "Install app": Chrome/Android fires beforeinstallprompt when the page can be
-// installed, and we show a button for it. iPhones have no such event, so Safari
-// gets a tip instead. Nothing shows once it's running as the installed app.
+// The install card under the title (like the Substitutor app's). Chrome and Edge fire
+// beforeinstallprompt, so "Install" opens their install popup; iPhones and iPads can only
+// install from Safari's Share menu, so there it shows the steps. Hidden inside the installed
+// app, and for good after ✕ ("Not now", `pt-install-hidden`).
 function setupInstall() {
   const installed = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-  if (installed) return;
-  const box = $('#install'), btn = $('#install-btn');
+  if (installed || store.load('pt-install-hidden', false)) return;
+  const card = $('#install-card');
   let prompt = null;
   addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     prompt = e;
-    box.hidden = btn.hidden = false;
+    card.hidden = false;
   });
-  btn.addEventListener('click', async () => {
-    if (!prompt) return;
-    prompt.prompt();
-    await prompt.userChoice;
-    prompt = null;
-    box.hidden = btn.hidden = true;
-  });
-  addEventListener('appinstalled', () => { box.hidden = true; });
+  addEventListener('appinstalled', () => { card.hidden = true; });
   const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (ios) box.hidden = $('#install-ios').hidden = false;
+  if (ios) card.hidden = false;
+  $('#install-btn').addEventListener('click', async () => {
+    if (prompt) {
+      prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      prompt = null;
+      if (outcome === 'accepted') card.hidden = true;
+    } else if (ios) {
+      $('#ios-install-dlg').showModal();
+    }
+  });
+  $('#install-hide').addEventListener('click', () => {
+    card.hidden = true;
+    store.save('pt-install-hidden', true);
+  });
+  $('#ios-install-close').addEventListener('click', () => $('#ios-install-dlg').close());
 }
 
 // "Share my settings": the phone's share sheet where there is one, otherwise copy the link.
