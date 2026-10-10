@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-10T14:55:30.346Z",
+ "lastFull": "2026-10-10T17:45:33.804Z",
  "versions": {
   "football": "16.92dfab07",
   "tennis": "9.c615cf94",
@@ -1667,18 +1667,6 @@
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/real-madrid-inter-2m60c8y7"
    }
   },
-  "fb-401915452": {
-   "start": "2026-09-08T16:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/aek-lask-rwrq9fbj"
-   }
-  },
-  "fb-401915426": {
-   "start": "2026-09-08T16:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/club-brugge-aston-villa-z2yc527p"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -1904,6 +1892,24 @@
    "start": "2026-10-14T19:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/aston-villa-fenerbahce-3p35v6mc"
+   }
+  },
+  "fb-401915393": {
+   "start": "2026-10-14T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/bodoe-glimt-dortmund-5dg87d9e"
+   }
+  },
+  "fb-401915408": {
+   "start": "2026-10-14T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/real-betis-porto-t0a4sdh6"
+   }
+  },
+  "fb-401915414": {
+   "start": "2026-10-14T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/roma-real-madrid-bx906mfh"
    }
   }
  },
