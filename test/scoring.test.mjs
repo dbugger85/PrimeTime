@@ -705,11 +705,11 @@ test('custom scoring: sliders, boosts and the clean-up of saved settings', async
   const f = factsFromSummary(fixture('football/760516.json')); // France 4-6 England
   assert.equal(scoreFootball(f, applyTweaks(W, std)).score, scoreFootball(f).score);
 
-  const noGoals = cleanTweaks({ sliders: { goals: 0 } });
+  const noGoals = cleanTweaks({ v: 2, sliders: { goals: 0 } });
   const s0 = scoreFootball(f, applyTweaks(W, noGoals));
   assert.ok(!s0.reasons.some(([, l]) => /^10 goals$/.test(l)), 'Goals off: no goal line');
   assert.ok(s0.score < scoreFootball(f).score);
-  const tw = applyTweaks(W, cleanTweaks({ sliders: { oneSided: 2, bigMatch: 2 } }));
+  const tw = applyTweaks(W, cleanTweaks({ v: 2, sliders: { oneSided: 2, bigMatch: 2 } }));
   assert.ok(tw.alreadyDecided <= 1 && tw.nearlyDecided <= 1 && tw.smallMatch <= 1, 'shares stay parts of 1');
   assert.equal(tw.blowout, W.blowout * 2);
   assert.equal(applyTweaks(W, cleanTweaks({ curveFrom: 6 })).curveFrom, 6);
@@ -722,9 +722,11 @@ test('custom scoring: sliders, boosts and the clean-up of saved settings', async
   assert.ok(scoreFootball(dull, W, { boost: -2 }).score >= 0);
 
   // Junk in, defaults out; numbers snap to the slider steps.
-  assert.deepEqual(cleanTweaks({ on: 'yes', sliders: { goals: 70, tight: -1, late: 'x', nope: 1 }, curveFrom: 99, comps: { 'eng.1': 1.3, 'nor.1': 0, bad: 'x' } }),
+  assert.deepEqual(cleanTweaks({ v: 2, on: 'yes', sliders: { goals: 70, tight: -1, late: 'x', nope: 1 }, curveFrom: 99, comps: { 'eng.1': 1.3, 'nor.1': 0, bad: 'x' } }),
     { ...DEFAULT_TWEAKS, sliders: { ...DEFAULT_TWEAKS.sliders, goals: 50, tight: 0 }, curveFrom: 9, comps: { 'eng.1': 1.5 } });
-  assert.equal(cleanTweaks({ sliders: { goals: 1.13456 } }).sliders.goals, 1.135, 'multipliers behind the points, not snapped');
+  assert.equal(cleanTweaks({ v: 2, sliders: { goals: 1.13456 } }).sliders.goals, 1.135, 'multipliers behind the points, not snapped');
+  assert.equal(cleanTweaks({ on: true, sliders: { goals: 2 }, comps: { 'eng.1': 1 } }).sliders.goals, 1, 'sliders saved before the points scale go back to standard');
+  assert.deepEqual(cleanTweaks({ on: true, sliders: { goals: 2 }, comps: { 'eng.1': 1 } }).comps, { 'eng.1': 1 }, 'boosts are kept');
 
   // The scale: each slider's typical points with the standard weights, from the fixtures.
   const { sliderScale } = await import('../docs/scoring.js');

@@ -302,6 +302,7 @@ export const CURVE_STEP = 0.5;
 export const BOOST_STEP = 0.5;
 export const BOOST_MAX = 2;
 export const DEFAULT_TWEAKS = {
+  v: 2, // 2: sliders in points (2026-10-11). Older saved sliders (0× to 2× each) go back to standard once
   on: false,
   sliders: Object.fromEntries(Object.keys(TWEAK_GROUPS).map((k) => [k, 1])),
   curveFrom: null, // null: the standard top end from the weights
@@ -316,7 +317,7 @@ export function cleanTweaks(x) {
   const out = structuredClone(DEFAULT_TWEAKS);
   if (!x || typeof x !== 'object') return out;
   out.on = x.on === true;
-  for (const k of Object.keys(out.sliders)) {
+  if (x.v === out.v) for (const k of Object.keys(out.sliders)) {
     const v = x.sliders?.[k];
     if (typeof v === 'number' && Number.isFinite(v)) out.sliders[k] = Math.round(clamp(v, 0, MULT_MAX) * 1000) / 1000;
   }

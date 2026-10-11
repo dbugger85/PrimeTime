@@ -453,7 +453,7 @@ try {
     await page.waitForSelector('.card.custom');
     assert.equal(factRequests.length, 1);
     // Standard sliders: every re-scored card shows the same number as the standard one.
-    const pairs = () => page.$$eval('.card.custom', (els) => els.map((c) => [Number(c.querySelector('.num').textContent), Number(c.querySelector('.meta .std').textContent.match(/[\d.]+$/)[0])]));
+    const pairs = () => page.$$eval('.card.custom', (els) => els.map((c) => [Number(c.querySelector('.num').textContent), Number(c.dataset.std)]));
     assert.ok((await pairs()).every(([mine, std]) => mine === std), 'standard sliders give the standard scores');
     await page.locator('#tuning').screenshot({ path: `${shots}/custom-scoring.png` });
     const setSlider = (key, v) => page.$eval(`#t-s-${key}`, (e, x) => { e.value = String(x); e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); }, v);
@@ -471,7 +471,6 @@ try {
     await page.waitForSelector(`.card[data-id="${first}"] .why li`);
     const whyText = await page.$eval(`.card[data-id="${first}"] .why`, (e) => e.textContent);
     assert.match(whyText, /: your boost/);
-    assert.match(whyText, /Your own scoring/);
     await page.screenshot({ path: `${shots}/custom-cards.png` });
     // Best first follows your scores.
     await page.click('#filters summary');
@@ -567,13 +566,12 @@ try {
     // Custom scoring changes the live number too (Goals doubled, a boost for the Premier League).
     await page.evaluate(() => {
       const p = JSON.parse(localStorage.getItem('pt-prefs') ?? '{}');
-      p.tweaks = { on: true, sliders: { goals: 2 }, curveFrom: null, comps: { 'eng.1': 1 } };
+      p.tweaks = { v: 2, on: true, sliders: { goals: 2 }, curveFrom: null, comps: { 'eng.1': 1 } };
       localStorage.setItem('pt-prefs', JSON.stringify(p));
     });
     await page.reload();
     await page.locator('.card[data-id="fb-999001"] .pace-btn').click();
     const mine = await paceOf(page);
-    assert.match(mine, /your scoring/);
     assert.ok(Number(mine.match(/[\d.]+/)[0]) > Number(pace.match(/[\d.]+/)[0]), 'more for goals and the boost');
     // Calibration mode shows the live score from ESPN.
     assert.equal(await page.$$eval('.calib-result:not([hidden])', (els) => els.length), 0, 'a live score before calibration mode');

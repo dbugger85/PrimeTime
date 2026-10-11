@@ -339,11 +339,9 @@ function card(e) {
   li.querySelector('.tier').textContent = tier.label;
   li.querySelector('.sport').textContent = e.sport === 'winter' ? e.compName : SPORTS[e.sport];
   li.querySelector('.when').textContent = fmt.format(new Date(e.start));
-  if (e.custom) { // re-scored on this device with your own settings
+  if (e.custom) { // re-scored on this device with your own settings: looks just like a standard card (the owner's choice)
     li.classList.add('custom');
-    li.querySelector('.yours').hidden = false;
-    li.querySelector('.badge').title = `Your own scoring. Standard score: ${e.std.toFixed(1)}`;
-    li.querySelector('.meta').append(Object.assign(document.createElement('span'), { className: 'std', textContent: ` · standard score ${e.std.toFixed(1)}` }));
+    li.dataset.std = e.std;
   }
   if (e.limited) { // football scored from shot counts only: FotMob had no xG for it
     const tag = Object.assign(document.createElement('span'), { className: 'limited', textContent: ' · limited info: no xG' });
@@ -435,7 +433,6 @@ function fillReasons(box, e) {
   }
   box.replaceChildren(ul);
   if (note) box.append(Object.assign(document.createElement('p'), { className: 'small', textContent: note }));
-  if (e.custom) box.append(Object.assign(document.createElement('p'), { className: 'small', textContent: `Your own scoring. The standard score is ${e.std.toFixed(1)}.` }));
 
   // Second level: the actual result, behind another warning.
   if (resultShown.has(e.id)) box.append(resultBox(e));
@@ -596,12 +593,11 @@ function livePace(e, facts) {
 function paceText(e) {
   const mine = paceNow.get(e.id);
   const fmt = (p, note) => `≈ ${p.pace.toFixed(1)} out of 10${p.rough ? ', early and rough' : ''}${note}`;
-  const yours = prefs.tweaks.on && !isStandard(prefs.tweaks);
   const p = mine?.facts && livePace(e, mine.facts); // worked out again, so a slider change shows at once
-  if (p) return fmt(p, yours ? ' (your scoring)' : '');
+  if (p) return fmt(p, '');
   if (mine?.facts && mine.facts.played < LIVE_FROM) return `Too early to tell: check back after ${LIVE_FROM}'.`;
   if (!mine) return 'Working it out…';
-  if (e.pace != null) return fmt(e, yours ? ' (a few minutes old, standard scoring)' : ' (a few minutes old)');
+  if (e.pace != null) return fmt(e, ' (a few minutes old)');
   return 'Couldn\'t work it out right now. Try again in a minute.';
 }
 
@@ -755,8 +751,7 @@ function render() {
   const list = filterEvents(viewEvents(), prefs, watched);
   $('#cards').replaceChildren(...list.slice(0, limit).map(card));
   moreButton(list.length);
-  const yours = prefs.tweaks.on && custom.size ? ', football with your own scoring' : '';
-  const shown = (list.length === 1 ? '1 event' : `${list.length} events`) + yours + (calibrating ? '. Calibration mode: all results shown' : '');
+  const shown = (list.length === 1 ? '1 event' : `${list.length} events`) + (calibrating ? '. Calibration mode: all results shown' : '');
   $('#status').textContent = events.length
     ? (list.length ? shown : prefs.favsOnly
       ? 'None of your favorites match these filters. Turn off “Only favorites” to see everything.'
@@ -875,14 +870,14 @@ function fillCalc(box, e, f) {
   if (f.odds) facts.push(['Win chances', ...pair(f.odds, (x) => `${Math.round(100 * x)}%`)]); // the draw is what's left
   if (f.strength) facts.push(['Strength (0 to 1)', ...pair(f.strength)]);
   if (f.stakes) facts.push(['At stake before kick-off', STAKES[f.stakes] ?? f.stakes]);
-  facts.push(f.xg ? ['xG', ...pair(f.xg)] : ['xG', 'not available']);
+  facts.push(f.xg ? ['xG', ...pair(f.xg)] : ['xG', 'n/a', 'n/a']);
   if (f.stats?.bigChances) facts.push(['Big chances', ...pair(f.stats.bigChances)]);
   if (f.stats?.xgot) facts.push(['xG on target', ...pair(f.stats.xgot)]);
   if (f.stats?.touchesInBox) facts.push(['Touches in the box', ...pair(f.stats.touchesInBox)]);
   if (f.shotsBy) facts.push(['Shots', ...pair(f.shotsBy)]);
-  if (f.shotsOnTarget != null) facts.push(['On target (total)', String(f.shotsOnTarget)]);
-  if (f.corners != null) facts.push(['Corners (total)', String(f.corners)]);
-  if (f.yellows != null) facts.push(['Yellow cards (total)', String(f.yellows)]);
+  if (f.shotsOnTarget != null) facts.push(['Shots on target', String(f.shotsOnTarget)]);
+  if (f.corners != null) facts.push(['Corners', String(f.corners)]);
+  if (f.yellows != null) facts.push(['Yellow cards', String(f.yellows)]);
   facts.push(['Red cards', mins(f.reds)], ['Penalties', mins(f.pens)], ['Ruled out by VAR', mins(f.disallowed)], ['Woodwork', mins(f.woodwork)]);
   if (f.extraTime) facts.push(['Extra time', 'yes']);
   if (f.shootout) facts.push(['Penalty shootout', f.shootoutWinner ? `won by ${f.shootoutWinner === 'home' ? home : away}` : 'yes']);
@@ -892,11 +887,11 @@ function fillCalc(box, e, f) {
   dl.append(el('colgroup', {}, el('col', { className: 'label' }), el('col'), el('col')));
   dl.append(el('thead', {}, el('tr', {}, el('th', { scope: 'col' }), ...[home, away].map((t) => el('th', { scope: 'col', textContent: t })))));
   const rows = el('tbody');
-  for (const [k, ...v] of facts) {
-    rows.append(el('tr', {}, el('th', { scope: 'row', textContent: k }), ...(v.length === 2
-      ? v.map((x) => el('td', { textContent: x }))
-      : [el('td', { colSpan: 2, className: 'one', textContent: v[0] })])));
-  }
+  // Team numbers first, then the totals and minutes under their own "Both teams" heading.
+  const teamRows = facts.filter((r) => r.length === 3), bothRows = facts.filter((r) => r.length === 2);
+  for (const [k, ...v] of teamRows) rows.append(el('tr', {}, el('th', { scope: 'row', textContent: k }), ...v.map((x) => el('td', { textContent: x }))));
+  if (bothRows.length) rows.append(el('tr', { className: 'both' }, el('td'), el('th', { scope: 'colgroup', colSpan: 2, textContent: 'Both teams' })));
+  for (const [k, v] of bothRows) rows.append(el('tr', {}, el('th', { scope: 'row', textContent: k }), el('td', { colSpan: 2, textContent: v })));
   dl.append(rows);
 
   // The calculation, line by line in the order it's worked out: points, what for, the running
