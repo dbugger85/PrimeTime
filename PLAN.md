@@ -89,3 +89,9 @@ The alpine season starts in Sölden in late October. Each sport keeps about a ye
 - **Club Elo seed:** the API is still down; the ranking page saved by web.archive.org on 2026-09-27 replaces the January 2025 copy. Clubs under its 1500 cutoff are ordered by points per game from the table.
 - Fable back-tested on the 149 matches of the last 30 days (mean 5.96 → 5.91, 9+ share 2% → 3%, no 10s) and the tests were updated on purpose where the owner's choices moved known matches.
 - **Same evening, after seeing the numbers:** scores felt too high overall, and Man Utd 1–1 Tottenham (great: end to end, a 90th-minute equaliser) too low. Added "end to end" (both teams attacking about equally, by shots) and "a goal from 85' that changed the result"; the owner then asked for chances (xG, big chances, xG on target, box touches) to weigh more and the late equaliser less, and chose "in between" (lateDecider 0.6). Overall level "clearly lower" (curveFrom 2.5): about 1 in 10 matches gets 8+.
+
+## Later decisions (2026-10-10): look and small changes
+- **Glass look** like ProQuiz, **on by default**, with a "Glass look" switch under More filters/settings for people who don't like it. The original, smaller corner rounding stays. No em dashes in the page's text.
+- **Labels:** "More filters/settings" and "Add favorites to calendar".
+- **"Why this score?"** has no underline, and a ✕ in the panel's top-right corner hides the spoilers again.
+- **Install card** made like the Substitutor app's: icon, "Install the app", an Install button and a ✕ that hides it for good.
