@@ -259,7 +259,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-11T14:14:23.957Z",
+ "lastFull": "2026-10-11T17:05:31.026Z",
  "versions": {
   "football": "18.c0368165",
   "tennis": "9.c615cf94",
@@ -365,10 +365,6 @@
    "code": "title",
    "start": "2026-10-24T14:00Z"
   },
-  "fb-401843371": {
-   "code": "relegation",
-   "start": "2026-10-24T16:00Z"
-  },
   "fb-401843373": {
    "code": "title",
    "start": "2026-10-25T13:30Z"
@@ -378,6 +374,14 @@
    "start": "2026-10-25T16:00Z"
   },
   "fb-401843367": {
+   "code": "relegation",
+   "start": "2026-10-25T16:00Z"
+  },
+  "fb-401843462": {
+   "code": "relegation",
+   "start": "2026-10-18T15:00Z"
+  },
+  "fb-401843366": {
    "code": "relegation",
    "start": "2026-10-25T16:00Z"
   }
@@ -1635,18 +1639,6 @@
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/napoli-arsenal-wkn4q3kj"
    }
   },
-  "fb-401915424": {
-   "start": "2026-09-09T16:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/barcelona-feyenoord-5vkcy4jr"
-   }
-  },
-  "fb-401915448": {
-   "start": "2026-09-09T16:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/stuttgart-viking-90wwfw7c"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -1994,17 +1986,17 @@
     "Arsenal": 2.5,
     "Brighton & Hove Albion": 2.1666666666666665,
     "Brentford": 1.6666666666666667,
+    "Everton": 1.6666666666666667,
     "Chelsea": 1.6666666666666667,
     "Leeds United": 1.5,
     "Liverpool": 1.8,
-    "Everton": 1.8,
+    "Hull City": 1.5,
     "Ipswich Town": 1.5,
-    "Hull City": 1.6,
     "Newcastle United": 1.6,
+    "Crystal Palace": 1.1666666666666667,
     "Manchester United": 1,
-    "Nottingham Forest": 1,
+    "Nottingham Forest": 0.8333333333333334,
     "Aston Villa": 0.8333333333333334,
-    "Crystal Palace": 0.8,
     "Sunderland": 0.6666666666666666,
     "AFC Bournemouth": 0.5,
     "Tottenham Hotspur": 0.5,
@@ -2052,20 +2044,20 @@
    "nor.1": {
     "Viking FK": 2.409090909090909,
     "Bodo/Glimt": 2.409090909090909,
-    "Tromso": 1.8095238095238095,
+    "Tromso": 1.7727272727272727,
     "Molde": 1.7142857142857142,
     "Rosenborg": 1.5454545454545454,
     "Lillestrom": 1.5238095238095237,
     "SK Brann": 1.3181818181818181,
-    "Fredrikstad": 1.3333333333333333,
-    "Sarpsborg FK": 1.1904761904761905,
+    "Fredrikstad": 1.3181818181818181,
+    "Sarpsborg FK": 1.2727272727272727,
+    "Hamarkameratene": 1.1818181818181819,
     "KFUM Oslo": 1.1904761904761905,
     "Sandefjord": 1.0909090909090908,
     "Vålerenga": 1.0952380952380953,
-    "Hamarkameratene": 1.0952380952380953,
-    "Aalesund": 1,
+    "Aalesund": 0.9545454545454546,
     "Kristiansund BK": 0.8636363636363636,
-    "IK Start": 0.7619047619047619
+    "IK Start": 0.7272727272727273
    }
   },
   "clubSeed": "2026-09-27",
