@@ -2,6 +2,7 @@
 // where each came from, for analysis outside the app (spreadsheets, other LLMs).
 // Writes export/ (git-ignored, it's full of results):
 //   primetime-events.jsonl  one event per line, all sports, nested and self-describing
+//   primetime-events.json   the same records as one JSON array
 //   football.csv            one football match per row, flat columns
 //   README.md               what every field means and its source
 // Events that have dropped out of docs/data (football after 30 days) are
@@ -207,6 +208,7 @@ function footballRow(r) {
 const records = collect().map(record).sort((a, b) => Date.parse(b.start) - Date.parse(a.start));
 mkdirSync(OUT, { recursive: true });
 writeFileSync(`${OUT}/primetime-events.jsonl`, records.map((r) => JSON.stringify(r)).join('\n') + '\n');
+writeFileSync(`${OUT}/primetime-events.json`, JSON.stringify(records));
 
 const rows = records.filter((r) => r.sport === 'football').map(footballRow);
 const cols = Object.keys(rows[0] ?? {});

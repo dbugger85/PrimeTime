@@ -10,6 +10,7 @@ PrimeTime (https://primetime.re) rates finished sports events 0–10 for how ent
 | File | What it is |
 |---|---|
 | `primetime-events.jsonl` | One event per line (JSON Lines), all sports, newest first. Nested, self-describing field names. Each record carries a `sources` map: field path → where it came from. Best for LLMs and code. |
+| `primetime-events.json` | The same records as one JSON array, for tools that don't read JSON Lines. |
 | `football.csv` | One football match per row, flat columns (lists joined with `;`). Best for spreadsheets and regression. |
 | `README.md` | This file. |
 
