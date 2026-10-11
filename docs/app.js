@@ -863,30 +863,40 @@ function fillCalc(box, e, f) {
 
   // The facts, as the scorer saw them.
   const facts = [];
-  const pair = (p, fmt = n2) => (p ? `${fmt(p.home)} • ${fmt(p.away)}` : null); // not a dash: that reads like a range
+  // A row is [label, home, away] for team numbers, or [label, text] for one value (totals, minutes).
+  const pair = (p, fmt = n2) => (p ? [fmt(p.home), fmt(p.away)] : ['', '']);
   let h = 0, a = 0;
   const goals = [...f.goals].sort((x, y) => x.min - y.min).map((g) => {
     g.side === 'home' ? h++ : a++;
     const note = [g.pen && 'pen', g.own && 'own goal'].filter(Boolean).join(', ');
     return `${g.clock ?? `${Math.ceil(g.min)}'`} · ${h}–${a} · ${g.side === 'home' ? home : away}${note ? ` (${note})` : ''}`;
   });
-  if (f.odds) facts.push(['Win chances', pair(f.odds, (x) => `${Math.round(100 * x)}%`)]); // the draw is what's left
-  if (f.strength) facts.push(['Team strength (0 to 1)', pair(f.strength)]);
+  if (f.odds) facts.push(['Win chances', ...pair(f.odds, (x) => `${Math.round(100 * x)}%`)]); // the draw is what's left
+  if (f.strength) facts.push(['Strength (0 to 1)', ...pair(f.strength)]);
   if (f.stakes) facts.push(['At stake before kick-off', STAKES[f.stakes] ?? f.stakes]);
-  facts.push(['xG', pair(f.xg) ?? 'not available']);
-  if (f.stats?.bigChances) facts.push(['Big chances', pair(f.stats.bigChances)]);
-  if (f.stats?.xgot) facts.push(['xG on target', pair(f.stats.xgot)]);
-  if (f.stats?.touchesInBox) facts.push(['Touches in the opposition box', pair(f.stats.touchesInBox)]);
-  if (f.shotsBy) facts.push(['Shots', pair(f.shotsBy)]);
-  if (f.shotsOnTarget != null) facts.push(['Shots on target (total)', String(f.shotsOnTarget)]);
+  facts.push(f.xg ? ['xG', ...pair(f.xg)] : ['xG', 'not available']);
+  if (f.stats?.bigChances) facts.push(['Big chances', ...pair(f.stats.bigChances)]);
+  if (f.stats?.xgot) facts.push(['xG on target', ...pair(f.stats.xgot)]);
+  if (f.stats?.touchesInBox) facts.push(['Touches in the box', ...pair(f.stats.touchesInBox)]);
+  if (f.shotsBy) facts.push(['Shots', ...pair(f.shotsBy)]);
+  if (f.shotsOnTarget != null) facts.push(['On target (total)', String(f.shotsOnTarget)]);
   if (f.corners != null) facts.push(['Corners (total)', String(f.corners)]);
   if (f.yellows != null) facts.push(['Yellow cards (total)', String(f.yellows)]);
-  facts.push(['Red cards', mins(f.reds)], ['Penalties', mins(f.pens)], ['Goals ruled out by VAR', mins(f.disallowed)], ['Woodwork', mins(f.woodwork)]);
+  facts.push(['Red cards', mins(f.reds)], ['Penalties', mins(f.pens)], ['Ruled out by VAR', mins(f.disallowed)], ['Woodwork', mins(f.woodwork)]);
   if (f.extraTime) facts.push(['Extra time', 'yes']);
   if (f.shootout) facts.push(['Penalty shootout', f.shootoutWinner ? `won by ${f.shootoutWinner === 'home' ? home : away}` : 'yes']);
 
-  const dl = el('dl', { className: 'facts' });
-  for (const [k, v] of facts) dl.append(el('dt', { textContent: k }), el('dd', { textContent: v }));
+  // A table, so each team's numbers line up in its own column.
+  const dl = el('table', { className: 'facts' });
+  dl.append(el('colgroup', {}, el('col', { className: 'label' }), el('col'), el('col')));
+  dl.append(el('thead', {}, el('tr', {}, el('th', { scope: 'col' }), ...[home, away].map((t) => el('th', { scope: 'col', textContent: t })))));
+  const rows = el('tbody');
+  for (const [k, ...v] of facts) {
+    rows.append(el('tr', {}, el('th', { scope: 'row', textContent: k }), ...(v.length === 2
+      ? v.map((x) => el('td', { textContent: x }))
+      : [el('td', { colSpan: 2, className: 'one', textContent: v[0] })])));
+  }
+  dl.append(rows);
 
   // The calculation, line by line in the order it's worked out: points, what for, the running
   // total, and under it the slider and the weights behind the line.
@@ -907,7 +917,7 @@ function fillCalc(box, e, f) {
     : `Score ${scored.score.toFixed(1)} (standard scoring)`);
   box.replaceChildren(
     el('h4', { textContent: 'Goals' }), goals.length ? columnsList(goals, 'goals') : el('p', { className: 'small', textContent: 'No goals.' }),
-    el('h4', { textContent: 'Facts' }), el('p', { className: 'small', textContent: `Pairs are ${home} • ${away}.` }), dl,
+    el('h4', { textContent: 'Facts' }), dl,
     el('h4', { textContent: 'Calculation' }), calc, sum,
     el('p', { className: 'small', textContent: 'The total is kept between 0 and 10. The heat strip and skip tips always use the standard scoring.' }),
   );
