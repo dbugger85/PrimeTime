@@ -169,7 +169,22 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .filters .s-label { display: block; font-size: 15px; font-weight: 600; color: var(--ink); }
 .s-val { font-size: 13px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .s-track { position: relative; padding-bottom: 16px; }
-.s-track input { width: 100%; margin: 6px 0 0; accent-color: var(--accent); min-height: 28px; }
+.s-track { touch-action: pan-y; } /* vertical swipes scroll the page; app.js moves the knob on sideways drags */
+/* Our own track and a bigger knob (26 px, THUMB in app.js), the same in every browser. */
+.s-track input {
+  -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 34px; margin: 2px 0 0;
+  background: transparent; --fill: 50%;
+}
+.s-track input::-webkit-slider-runnable-track {
+  height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--accent) var(--fill), var(--line) var(--fill));
+}
+.s-track input::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--accent) var(--fill), var(--line) var(--fill)); }
+.s-track input::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 26px; height: 26px; margin-top: -10px; border-radius: 50%;
+  background: var(--accent); border: 3px solid var(--surface); box-shadow: 0 1px 4px rgb(0 0 0 / 0.3);
+}
+.s-track input::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); border: 3px solid var(--surface); box-shadow: 0 1px 4px rgb(0 0 0 / 0.3); }
+.s-track input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 .s-track input:disabled { opacity: 0.45; }
 .s-std {
   position: absolute; bottom: 0; transform: translateX(-50%); font-size: 10.5px; color: var(--muted);

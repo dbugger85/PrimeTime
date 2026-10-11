@@ -946,8 +946,9 @@ function buildTuning() {
     const track = Object.assign(document.createElement('div'), { className: 's-track' });
     track.append(input, Object.assign(document.createElement('span'), { className: 's-std', textContent: 'standard', ariaHidden: 'true' }));
     row.append(head, track, Object.assign(document.createElement('p'), { className: 'small s-hint', textContent: s.hint }), Object.assign(document.createElement('p'), { className: 'small s-weights', hidden: true }));
-    const show = () => { row.querySelector('.s-val').textContent = s.key === 'curve' ? curveText(Number(input.value)) : sliderText(s.key, Number(input.value)); };
+    const show = () => { row.querySelector('.s-val').textContent = s.key === 'curve' ? curveText(Number(input.value)) : sliderText(s.key, Number(input.value)); fill(input); };
     input.oninput = show;
+    guardSlider(track, input);
     input.onchange = () => {
       const v = Number(input.value);
       if (s.key === 'curve') prefs.tweaks.curveFrom = v === footballWeights?.curveFrom ? null : v;
@@ -966,10 +967,63 @@ function tuningChanged() {
 }
 
 // Marks the standard setting under a slider. The thumb's centre doesn't reach the track's ends,
-// so the mark is nudged by up to half a thumb (16 px) to sit under it.
+// so the mark is nudged by up to half a thumb (THUMB px, as in style.css) to sit under it.
+const THUMB = 26;
 function placeStd(row, value, min, max) {
   const f = (value - min) / (max - min);
-  row.querySelector('.s-std').style.left = `calc(${(100 * f).toFixed(2)}% + ${((0.5 - f) * 16).toFixed(1)}px)`;
+  row.querySelector('.s-std').style.left = `calc(${(100 * f).toFixed(2)}% + ${((0.5 - f) * THUMB).toFixed(1)}px)`;
+}
+
+// The coloured part of the track, up to the knob (style.css reads --fill).
+function fill(input) {
+  const f = (Number(input.value) - Number(input.min)) / (Number(input.max) - Number(input.min));
+  input.style.setProperty('--fill', `calc(${(100 * f).toFixed(2)}% + ${((0.5 - f) * THUMB).toFixed(1)}px)`);
+}
+
+// Sliders are hard to move by accident while scrolling on a phone: only a drag that starts on
+// the knob moves one (a tap elsewhere on the track does nothing), and only once the finger has
+// gone sideways; a mostly vertical swipe scrolls the page. Keyboards still work as usual.
+function guardSlider(track, input) {
+  input.style.pointerEvents = 'none'; // the track below handles touches and the mouse instead
+  let drag = null;
+  const valueAt = (x) => {
+    const r = input.getBoundingClientRect();
+    const min = Number(input.min), max = Number(input.max), step = Number(input.step);
+    const f = Math.min(1, Math.max(0, (x - r.left - THUMB / 2) / (r.width - THUMB)));
+    return Math.round((min + f * (max - min)) / step) * step;
+  };
+  track.addEventListener('pointerdown', (ev) => {
+    if (input.disabled) return;
+    const r = input.getBoundingClientRect();
+    const f = (Number(input.value) - Number(input.min)) / (Number(input.max) - Number(input.min));
+    const knob = r.left + THUMB / 2 + f * (r.width - THUMB);
+    if (Math.abs(ev.clientX - knob) > THUMB) return; // not on the knob
+    drag = { id: ev.pointerId, x: ev.clientX, y: ev.clientY, moving: false };
+  });
+  track.addEventListener('pointermove', (ev) => {
+    if (!drag || ev.pointerId !== drag.id) return;
+    if (!drag.moving) {
+      const dx = Math.abs(ev.clientX - drag.x), dy = Math.abs(ev.clientY - drag.y);
+      if (dy > 8 && dy > dx) { drag = null; return; } // scrolling, not sliding
+      if (dx < 6) return;
+      drag.moving = true;
+      track.setPointerCapture(ev.pointerId);
+    }
+    ev.preventDefault();
+    const v = valueAt(ev.clientX);
+    if (v !== Number(input.value)) {
+      input.value = String(v);
+      input.dispatchEvent(new Event('input'));
+    }
+  });
+  const end = (ev) => {
+    if (!drag || ev.pointerId !== drag.id) return;
+    const moved = drag.moving;
+    drag = null;
+    if (moved) input.dispatchEvent(new Event('change'));
+  };
+  track.addEventListener('pointerup', end);
+  track.addEventListener('pointercancel', end);
 }
 
 let boostKey = '';
@@ -986,6 +1040,7 @@ function renderTuning() {
     if (document.activeElement !== input || !input.matches(':active')) input.value = String(s.key === 'curve' ? curveValue() : t.sliders[s.key] * scaleOf(s.key));
     input.disabled = !t.on;
     row.querySelector('.s-val').textContent = s.key === 'curve' ? curveText(Number(input.value)) : sliderText(s.key, Number(input.value));
+    fill(input);
     if (s.key === 'curve') placeStd(row, footballWeights?.curveFrom ?? 2.5, 0, 9); else placeStd(row, scaleOf(s.key), 0, SCALE_MAX);
     // Calibration mode: the weights each slider moves, standard and yours.
     const weights = row.querySelector('.s-weights');

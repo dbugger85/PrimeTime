@@ -456,6 +456,26 @@ try {
     const pairs = () => page.$$eval('.card.custom', (els) => els.map((c) => [Number(c.querySelector('.num').textContent), Number(c.dataset.std)]));
     assert.ok((await pairs()).every(([mine, std]) => mine === std), 'standard sliders give the standard scores');
     await page.locator('#tuning').screenshot({ path: `${shots}/custom-scoring.png` });
+    // Hard to move by accident: a tap on the track does nothing, a vertical swipe neither; dragging the knob does.
+    {
+      const box = await page.locator('#t-s-chances').boundingBox();
+      const before = await page.$eval('#t-s-chances', (e) => e.value);
+      const y = box.y + box.height / 2;
+      await page.mouse.click(box.x + box.width - 10, y);
+      assert.equal(await page.$eval('#t-s-chances', (e) => e.value), before, 'a tap on the track moved the slider');
+      const knob = box.x + 13 + (Number(before) / 7) * (box.width - 26);
+      await page.mouse.move(knob, y);
+      await page.mouse.down();
+      await page.mouse.move(knob + 3, y + 40, { steps: 5 }); // mostly down: scrolling
+      await page.mouse.up();
+      assert.equal(await page.$eval('#t-s-chances', (e) => e.value), before, 'a vertical swipe moved the slider');
+      await page.mouse.move(knob, y);
+      await page.mouse.down();
+      await page.mouse.move(knob + 80, y, { steps: 8 });
+      await page.mouse.up();
+      assert.ok(Number(await page.$eval('#t-s-chances', (e) => e.value)) > Number(before), 'dragging the knob did not move it');
+      await page.click('#t-reset');
+    }
     const setSlider = (key, v) => page.$eval(`#t-s-${key}`, (e, x) => { e.value = String(x); e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); }, v);
     await setSlider('goals', 0);
     await page.waitForFunction(() => document.querySelector('#t-s-goals').closest('.slider').querySelector('.s-val').textContent === 'Off');
