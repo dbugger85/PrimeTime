@@ -137,6 +137,22 @@
     <button type="button" class="reset" id="f-reset" hidden>Reset filters</button>
   </details>
 
+  <!-- Custom scoring (football): re-scores matches on this device with your own weights (docs/scoring.js). -->
+  <details class="filters tuning" id="tuning" data-for="football all">
+    <summary><span>Custom scoring (football)</span> <span class="count" id="t-count" hidden></span></summary>
+    <p class="small">Decide what makes a match exciting for you. Your scores are worked out on this device only; everyone else sees the standard scores.</p>
+    <div class="grid">
+      <label class="check"><input type="checkbox" id="t-on"> Use my own scoring</label>
+      <label class="check"><input type="checkbox" id="t-calib"> Calibration mode (shows all results)</label>
+    </div>
+    <p class="small t-status" id="t-status" aria-live="polite"></p>
+    <div class="sliders" id="t-sliders"></div>
+    <h3 class="t-head">Boost or lower competitions</h3>
+    <p class="small">Points added to every match in that competition, before the top end.</p>
+    <div class="grid boosts" id="t-boosts"></div>
+    <button type="button" class="reset" id="t-reset">Reset to standard</button>
+  </details>
+
   <main>
     <p class="status" id="status" aria-live="polite">Loading…</p>
     <ul class="cards" id="cards"></ul>
@@ -153,11 +169,12 @@
 
   <template id="card-tpl">
     <li class="card">
-      <div class="badge"><span class="num"></span><span class="tier"></span></div>
+      <div class="badge"><span class="num"></span><span class="tier"></span><span class="yours" hidden>yours</span></div>
       <div class="body">
         <p class="meta"><span class="sport"></span> · <span class="when"></span></p>
         <h3 class="title"></h3>
         <p class="sub"></p>
+        <p class="calib-result" hidden></p>
         <div class="strip" aria-hidden="true"></div>
         <p class="advice"></p>
         <div class="row">
@@ -166,6 +183,8 @@
         </div>
         <button class="lineup-btn" type="button" aria-expanded="false" hidden>Line-ups</button>
         <div class="lineups" hidden></div>
+        <button class="calc-btn" type="button" aria-expanded="false" hidden>▸ Facts and calculation</button>
+        <div class="calc" hidden></div>
         <button class="why-btn" type="button">⚠ Why this score?</button>
         <div class="why" hidden></div>
       </div>
@@ -178,6 +197,7 @@
       <div class="body">
         <p class="meta"><span class="sport"></span> · <span class="comp"></span></p>
         <h3 class="title"></h3>
+        <p class="calib-result" hidden></p>
         <p class="sub"></p>
         <p class="sub chances" hidden></p>
         <div class="row"><div class="svc"></div></div>

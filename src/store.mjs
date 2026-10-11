@@ -2,6 +2,7 @@
 //   docs/data/events.json   spoiler-free: scored events + upcoming/live events (the page loads this)
 //   docs/data/reasons.json  spoilers: why each event got its score (loaded only after a warning)
 //   docs/data/results.json  big spoilers: the actual result (loaded only after a second warning)
+//   docs/data/facts.json    spoilers: each football match's facts, for "Custom scoring" (loaded only after a warning)
 //   docs/cal/<team>.ics     calendar feeds, one per football team (src/calendar.mjs)
 //   data/state.json         bookkeeping: what's complete, when the last full build ran
 
@@ -17,6 +18,7 @@ const root = new URL('..', import.meta.url);
 const EVENTS = new URL('docs/data/events.json', root);
 const REASONS = new URL('docs/data/reasons.json', root);
 const RESULTS = new URL('docs/data/results.json', root);
+const FACTS = new URL('docs/data/facts.json', root);
 const STATE = new URL('data/state.json', root);
 const readJson = (url, fallback) => (existsSync(url) ? JSON.parse(readFileSync(url)) : fallback);
 
@@ -24,11 +26,12 @@ const readJson = (url, fallback) => (existsSync(url) ? JSON.parse(readFileSync(u
 export const warn = (msg) => console.log(`::warning::${msg}`);
 
 // Saves a scored event: the spoiler-free card data, and separately the reasons behind
-// its score and the result (each only loaded after its warning on the page).
-export const saver = ({ events, reasons, results }) => (event, scored) => {
+// its score, the result and (football) the trimmed facts (each only loaded after a warning on the page).
+export const saver = ({ events, reasons, results, facts }) => (event, scored, matchFacts) => {
   events.set(event.id, event);
   reasons.set(event.id, scored.reasons);
   results.set(event.id, scored.result);
+  if (matchFacts) facts.set(event.id, matchFacts);
 };
 
 export function loadData() {
@@ -38,6 +41,7 @@ export function loadData() {
     upcoming: data.upcoming ?? [],
     reasons: new Map(Object.entries(readJson(REASONS, {}))),
     results: new Map(Object.entries(readJson(RESULTS, {}))),
+    facts: new Map(Object.entries(readJson(FACTS, {}))),
     state: readJson(STATE, {}),
   };
   loaded.migrated = unrateQualifying(loaded); // the live check must save these even if nothing else changed
@@ -58,7 +62,7 @@ function unrateQualifying({ events, reasons }) {
 }
 
 // Writes all the files. Returns a one-line summary.
-export function saveData({ events, upcoming, reasons, results, state }, now = new Date()) {
+export function saveData({ events, upcoming, reasons, results, facts, state }, now = new Date()) {
   // Direct links to the match (state.links, see src/sources/links.mjs) go onto every event here,
   // so both the full build and the live check publish them.
   const withLinks = (e, replay) => {
@@ -75,10 +79,13 @@ export function saveData({ events, upcoming, reasons, results, state }, now = ne
   // The weights for "Excitement so far", which the page works out itself on live football cards
   // (docs/live.js). Published so weights.mjs stays the only place they're set.
   const liveWeights = liveWeightsFrom(FOOTBALL_W, FOOTBALL_LIVE);
-  writeFileSync(EVENTS, JSON.stringify({ generated: now.toISOString(), events: list, upcoming: soon, elo, liveWeights }) + '\n');
+  // All the football weights, for "Custom scoring": the page re-scores with these (docs/scoring.js).
+  const footballWeights = FOOTBALL_W;
+  writeFileSync(EVENTS, JSON.stringify({ generated: now.toISOString(), events: list, upcoming: soon, elo, liveWeights, footballWeights }) + '\n');
   const pick = (map) => JSON.stringify(Object.fromEntries(list.filter((e) => map.has(e.id)).map((e) => [e.id, map.get(e.id)]))) + '\n';
   writeFileSync(REASONS, pick(reasons));
   writeFileSync(RESULTS, pick(results));
+  writeFileSync(FACTS, pick(facts ?? new Map()));
   const feeds = writeCalendars(new URL('docs/cal/', root), list, soon, state, now); // updates state.calTeams
   writeFileSync(STATE, JSON.stringify(state, null, 1) + '\n');
   const count = (s) => list.filter((e) => e.sport === s).length;

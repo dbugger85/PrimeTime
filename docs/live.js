@@ -118,8 +118,9 @@ export const ROUGH_UNTIL = 30; // "early, rough" until this minute
 // "Excitement so far" as a pace: how much has happened per minute, scaled up to a full match,
 // on the same 0–10 scale as the replay scores. Early on it's pulled towards a typical match.
 // `w` holds the weights (FOOTBALL plus FOOTBALL_LIVE from src/scoring/weights.mjs; the page
-// gets them from events.json). `factor` is the big-match factor. Returns { pace, rough } or null.
-export function scoreLivePace(f, { w, factor = 1, stakes } = {}) {
+// gets them from events.json). `factor` is the big-match factor. `boost`: the page's own points for
+// the competition ("Custom scoring"), added before the curve as on replays. Returns { pace, rough } or null.
+export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0 } = {}) {
   const played = f?.played ?? 0;
   if (!w || played < LIVE_FROM) return null;
   const goals = [...f.goals].sort((a, b) => a.min - b.min);
@@ -153,7 +154,7 @@ export function scoreLivePace(f, { w, factor = 1, stakes } = {}) {
   // Early on, a typical match counts for `settleMinutes` minutes of play, shrinking to nothing at 90'.
   const prior = Math.max(0, w.settleMinutes * (1 - played / 90));
   const blended = (played * raw + prior * w.typicalMatch) / (played + prior);
-  const x = curve(Math.max(0, blended) * factor, w.curveFrom);
+  const x = curve(Math.max(0, Math.max(0, blended) * factor + boost), w.curveFrom);
   if (!Number.isFinite(x)) return null;
   return { pace: Math.round(Math.min(10, Math.max(0, x)) * 10) / 10, rough: played < ROUGH_UNTIL };
 }

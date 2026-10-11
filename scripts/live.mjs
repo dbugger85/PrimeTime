@@ -15,14 +15,14 @@ import * as football from '../src/sources/espn-football.mjs';
 import * as tennis from '../src/sources/espn-tennis.mjs';
 import * as f1 from '../src/sources/openf1.mjs';
 import * as fotmob from '../src/sources/fotmob.mjs';
-import { chancesOf, publishFootball, publishTennis, publishF1, upcomingFootball, upcomingTennis, lineupFields } from '../src/publish.mjs';
+import { chancesOf, publishFootball, publishTennis, publishF1, upcomingFootball, upcomingTennis, lineupFields, trimFacts } from '../src/publish.mjs';
 import { loadData, saveData, warn, saver } from '../src/store.mjs';
 import { FOOTBALL as FOOTBALL_W, FOOTBALL_LIVE } from '../src/scoring/weights.mjs';
 import { liveFacts, scoreLivePace, liveWeightsFrom, bigMatchFactor, espnDays } from '../docs/live.js';
 
 const now = process.env.NOW ? new Date(process.env.NOW) : new Date(); // NOW=... pretends it's another time (for testing)
 const data = loadData();
-const { events, reasons, results } = data;
+const { events, reasons, results, facts } = data;
 let upcoming = data.upcoming;
 const before = JSON.stringify([upcoming, [...events.keys()]]);
 const save = saver(data);
@@ -70,9 +70,11 @@ async function liveFootball() {
       if (m.finished) {
         try {
           const summary = await football.fetchSummary(compKey, m.espnId);
-          const xg = await fotmob.xgFor(m); // optional; the full build tries again later if it's missing
-          const scored = scoreFootball({ ...football.factsFromSummary(summary), stakes: old.stakes, xg, strength: strengthOf(data.state.ratings, compKey, m.home, m.away) }); // ratings from the last full build, no fetch
-          save(publishFootball(comp, m, scored, { lineups: football.lineupsFromSummary(summary) ?? old.lineups, stakes: old.stakes }), scored);
+          const fm = await fotmob.fotmobFor(m); // optional; the full build tries again later if xG is missing
+          const matchFacts = { ...football.factsFromSummary(summary), stakes: old.stakes, xg: fm?.xg ?? null, stats: fm?.stats ?? null,
+            strength: strengthOf(data.state.ratings, compKey, m.home, m.away) }; // ratings from the last full build, no fetch
+          const scored = scoreFootball(matchFacts);
+          save(publishFootball(comp, m, scored, { lineups: football.lineupsFromSummary(summary) ?? old.lineups, stakes: old.stakes }), scored, trimFacts(matchFacts));
           upcoming = upcoming.filter((e) => e.id !== id);
           console.log(`scored ${m.home} – ${m.away}`);
         } catch (err) {
@@ -170,5 +172,5 @@ for (const [sport, run] of Object.entries({ football: liveFootball, f1: liveF1, 
 if (JSON.stringify([upcoming, [...events.keys()]]) === before && !data.migrated) {
   console.log('live: nothing changed');
 } else {
-  console.log(saveData({ events, upcoming, reasons, results, state: data.state }, now));
+  console.log(saveData({ events, upcoming, reasons, results, facts, state: data.state }, now));
 }

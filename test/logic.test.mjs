@@ -127,6 +127,9 @@ test('publishing stamps a version on the page files', async () => {
   assert.doesNotMatch(out.js, /from '\.\/logic\.js'/);
   assert.match(out.js, /from '\.\/live\.js\?v=abc1234'/);
   assert.doesNotMatch(out.js, /from '\.\/live\.js'/);
+  assert.match(out.js, /from '\.\/scoring\.js\?v=abc1234'/);
+  const scoring = readFileSync(new URL('../docs/scoring.js', import.meta.url), 'utf8');
+  assert.match(stamp('', scoring, 'abc1234').js, /from '\.\/live\.js\?v=abc1234'/, 'modules importing modules are stamped too');
 });
 
 test('favorites: football teams, tennis players only under Coming up, F1 as a whole', () => {

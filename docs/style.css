@@ -160,6 +160,53 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 }
 .small { font-size: 13px; color: var(--muted); }
 
+/* Custom scoring (football): sliders with a "standard" mark, competition boosts, calibration mode. */
+.tuning > .small { padding: 0 14px 10px; margin: 0; }
+.tuning .t-status { color: var(--ink); }
+.tuning .sliders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; padding: 4px 14px 14px; }
+.slider { display: grid; gap: 2px; min-width: 0; }
+.s-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.filters .s-label { display: block; font-size: 15px; font-weight: 600; color: var(--ink); }
+.s-val { font-size: 13px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.s-track { position: relative; padding-bottom: 16px; }
+.s-track input { width: 100%; margin: 6px 0 0; accent-color: var(--accent); min-height: 28px; }
+.s-track input:disabled { opacity: 0.45; }
+.s-std {
+  position: absolute; bottom: 0; transform: translateX(-50%); font-size: 10.5px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; pointer-events: none;
+}
+.s-std::before { content: ''; position: absolute; left: 50%; top: -6px; width: 2px; height: 5px; margin-left: -1px; background: var(--muted); border-radius: 1px; }
+.filters .slider .small { margin: 0; padding: 0; }
+.s-weights { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--ink) !important; }
+.t-head { font-size: 15px; font-weight: 600; margin: 0; padding: 4px 14px 2px; }
+.tuning .boosts { padding-top: 6px; }
+.reset:disabled { opacity: 0.45; cursor: default; }
+.card.custom .badge { outline: 2px dashed var(--c); outline-offset: 2px; }
+.yours { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.85; }
+.meta .std { white-space: nowrap; }
+.calib-result { font-size: 14.5px; font-weight: 700; color: var(--live); }
+.calc-btn {
+  justify-self: start; margin-top: 4px; border: 0; background: none; padding: 6px 0; min-height: 36px;
+  color: var(--ink); font-size: 13.5px; font-weight: 600; cursor: pointer;
+}
+.calc { padding: 10px 12px; border-radius: 10px; background: var(--chip); font-size: 13.5px; display: grid; gap: 6px; min-width: 0; }
+.calc h4 { margin: 4px 0 0; font-size: 14px; }
+.calc ul.goals { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-variant-numeric: tabular-nums; }
+.calc ul.goals li { display: grid; grid-template-columns: 3.6em 2.6em 1fr; }
+.calc ul.goals li span:nth-child(-n+2) { color: var(--muted); }
+.facts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3px 10px; margin: 0; font-variant-numeric: tabular-nums; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; overflow-wrap: anywhere; }
+.calc-lines { list-style: none; margin: 0; padding: 0; display: grid; font-variant-numeric: tabular-nums; }
+.calc-lines li { display: grid; grid-template-columns: 3.6em minmax(0, 1fr) auto; gap: 0 8px; padding: 4px 0; border-top: 1px solid var(--line); }
+.calc-lines .calc-headings { border-top: 0; font-size: 12px; color: var(--muted); font-weight: 600; padding-top: 0; }
+.calc-lines .pts { font-weight: 700; color: var(--accent); }
+.calc-lines .neg .pts { color: var(--muted); }
+.calc-lines .run { color: var(--muted); text-align: right; }
+.calc-lines .how { grid-column: 2 / -1; color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere; }
+.calc-sum { font-weight: 700; margin: 0; }
+@media (max-width: 560px) { .tuning .sliders { grid-template-columns: 1fr; } }
+
 .status { color: var(--muted); font-size: 14px; margin: 14px 0 8px; }
 .cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .card {
@@ -448,7 +495,7 @@ body.glass .card[data-tier="must"] .badge, body.glass .soon.live .badge { box-sh
 body.glass .soon.live .badge { --c: var(--live); }
 
 /* Inner panels (line-ups, "Why this score?", filters' dropdowns): a lighter frosted tint. */
-body.glass .lineups, body.glass .why, body.glass .reveal, body.glass .pill { background-color: var(--chip); }
+body.glass .lineups, body.glass .why, body.glass .calc, body.glass .reveal, body.glass .pill { background-color: var(--chip); }
 /* Dropdowns stay solid: the browser draws the open list with the select's colour, and a
    see-through one made it unreadable in dark mode. */
 body.glass .filters select, body.glass .filters select option { background-color: var(--surface); color: var(--ink); }

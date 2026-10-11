@@ -1,5 +1,6 @@
 import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug } from './logic.js';
 import { ESPN, clockOf, liveClockText, espnDays, liveFacts, scoreLivePace, LIVE_FROM, elapsedText } from './live.js';
+import { scoreFootball, applyTweaks, cleanTweaks, isStandard, DEFAULT_TWEAKS, TWEAK_GROUPS, TWEAK_FIXED, STAKES, SLIDER_STEP, CURVE_STEP, BOOST_STEP, BOOST_MAX } from './scoring.js';
 
 const SERVICES = {
   viaplay: { name: 'Viaplay', url: 'https://viaplay.no/sport' },
@@ -13,6 +14,7 @@ const DEFAULTS = {
   view: 'replays', sport: 'all', services: [], comp: 'all', days: 30, minScore: 0, sort: 'date',
   round: '', draw: '', f1Session: '', hideTennis: true, hideFootball: false, hints: true, preHints: true, showElo: false, showChances: false, hideWatched: false, glass: true,
   favsOnly: false, favs: { teams: [], players: [], f1: false, winter: [] }, gender: '',
+  tweaks: DEFAULT_TWEAKS, // "Custom scoring (football)": the sliders and competition boosts (docs/scoring.js)
 };
 
 const store = {
@@ -26,6 +28,7 @@ const store = {
 
 const prefs = { ...DEFAULTS, ...migratePrefs(store.load('pt-prefs', {})) };
 prefs.favs = { ...DEFAULTS.favs, ...prefs.favs };
+prefs.tweaks = cleanTweaks(prefs.tweaks);
 const watched = new Set(store.load('pt-watched', []));
 const revealed = new Set(); // names revealed this visit only
 const whyShown = new Set(); // "Why this score?" opened this visit only
@@ -45,6 +48,14 @@ const paceNow = new Map(); // id -> { pace, rough } | { early: true } | { failed
 const freshClock = new Map(); // id -> the clock as the page last read it from ESPN, plus `seen` (this device's time)
 const finished = new Set(); // live matches ESPN says are over, until the bot moves them to Replays
 const redrawn = new Set(); // finished matches already redrawn without their button
+let footballWeights = null; // all the football weights (from events.json), for custom scoring
+let factsFile = null; // docs/data/facts.json: loaded only after the custom scoring or calibration warning
+let factsFailed = false;
+let custom = new Map(); // id -> the match re-scored with your settings ({ score, reasons, lines })
+let customW = null; // the football weights with your sliders applied
+let calibrating = false; // "Calibration mode": every result shown. This visit only, so a reload never opens full of results
+const calcOpen = new Set(); // "Facts and calculation" opened (calibration mode)
+const liveScore = new Map(); // id -> the live score as ESPN says it (calibration mode only)
 const PAGE = 40;
 let limit = PAGE; // cards shown; grows with "Show more"
 
@@ -118,7 +129,7 @@ function renderControls() {
   if (!periods.some((p) => p.days === prefs.days)) prefs.days = periods.at(-1).days;
   $('#f-days').replaceChildren(...periods.map((p) => new Option(p.label, p.days)));
 
-  const pool = view === 'upcoming' ? upcoming : events;
+  const pool = view === 'upcoming' ? upcoming : viewEvents();
   const f = facets(pool, prefs, view, watched);
 
   // Competition chips (football and tennis only).
@@ -173,6 +184,7 @@ function renderControls() {
   $('#filter-count').hidden = !active;
   $('#filter-count').textContent = `${active} on`;
   $('#f-reset').hidden = !active;
+  renderTuning();
 }
 
 const F1_NAME = 'F1 (every race)';
@@ -320,11 +332,18 @@ function card(e) {
   const tier = tierOf(e.score);
   li.dataset.tier = tier.key;
   li.dataset.id = e.id;
+  li.dataset.comp = e.comp;
   li.classList.toggle('is-watched', watched.has(e.id));
   li.querySelector('.num').textContent = e.score == null ? '–' : e.score.toFixed(1);
   li.querySelector('.tier').textContent = tier.label;
   li.querySelector('.sport').textContent = e.sport === 'winter' ? e.compName : SPORTS[e.sport];
   li.querySelector('.when').textContent = fmt.format(new Date(e.start));
+  if (e.custom) { // re-scored on this device with your own settings
+    li.classList.add('custom');
+    li.querySelector('.yours').hidden = false;
+    li.querySelector('.badge').title = `Your own scoring. Standard score: ${e.std.toFixed(1)}`;
+    li.querySelector('.meta').append(Object.assign(document.createElement('span'), { className: 'std', textContent: ` · standard score ${e.std.toFixed(1)}` }));
+  }
   if (e.limited) { // football scored from shot counts only: FotMob had no xG for it
     const tag = Object.assign(document.createElement('span'), { className: 'limited', textContent: ' · limited info: no xG' });
     tag.title = 'No chance-quality (xG) data for this match, so the score is based on shot counts only.';
@@ -334,6 +353,8 @@ function card(e) {
   fillTitle(li.querySelector('.title'), e);
   const stakes = prefs.preHints ? prematchLine(e) : ''; // replays only have the stakes, never the forecast
   li.querySelector('.sub').textContent = stakes ? `${subtitleOf(e)} · ${stakes}` : subtitleOf(e);
+
+  fillCalibration(li, e);
 
   const strip = li.querySelector('.strip');
   const advice = li.querySelector('.advice');
@@ -367,6 +388,7 @@ function card(e) {
     whyBtn.classList.add('result-btn');
   }
   whyBtn.onclick = () => askSpoiler(e.id, unrated ? 'result' : 'why');
+  if (calibrating) whyBtn.textContent = unrated ? 'Show the result' : 'Why this score?'; // already warned
 
   const w = li.querySelector('.watched');
   w.textContent = watched.has(e.id) ? 'Watched ✓' : 'Mark watched';
@@ -397,7 +419,7 @@ function fillWhy(box, e) {
 }
 
 function fillReasons(box, e) {
-  const reasons = reasonsFile?.[e.id];
+  const reasons = e.custom ? custom.get(e.id).reasons : reasonsFile?.[e.id];
   if (!reasons) {
     box.textContent = 'No explanation saved for this event yet.';
     return;
@@ -412,6 +434,7 @@ function fillReasons(box, e) {
   }
   box.replaceChildren(ul);
   if (note) box.append(Object.assign(document.createElement('p'), { className: 'small', textContent: note }));
+  if (e.custom) box.append(Object.assign(document.createElement('p'), { className: 'small', textContent: `Your own scoring. The standard score is ${e.std.toFixed(1)}.` }));
 
   // Second level: the actual result, behind another warning.
   if (resultShown.has(e.id)) box.append(resultBox(e));
@@ -456,8 +479,8 @@ const SPOILER_LEVELS = {
 };
 const spoilerFiles = { why: () => reasonsFile, result: () => resultsFile };
 
-async function askSpoiler(id, level) {
-  const cfg = SPOILER_LEVELS[level];
+// The spoiler warning dialog. Resolves to true when "show" was chosen.
+async function confirmSpoiler(cfg) {
   const dlg = $('#spoiler-dlg');
   dlg.querySelector('h2').textContent = cfg.title;
   dlg.querySelector('.dlg-text').textContent = cfg.text;
@@ -465,7 +488,12 @@ async function askSpoiler(id, level) {
   dlg.returnValue = '';
   dlg.showModal();
   await new Promise((r) => dlg.addEventListener('close', r, { once: true }));
-  if (dlg.returnValue !== 'ok') return;
+  return dlg.returnValue === 'ok';
+}
+
+async function askSpoiler(id, level) {
+  const cfg = SPOILER_LEVELS[level];
+  if (!calibrating && !(await confirmSpoiler(cfg))) return; // calibration mode: already warned
   // Fetched once per visit, and again if it doesn't know this event yet (scored while the page was open).
   if (!spoilerFiles[level]()?.[id]) {
     let file = spoilerFiles[level]() ?? {};
@@ -516,6 +544,8 @@ function soonCard(e) {
   const began = live ? ` · ${e.sport === 'tennis' ? 'listed' : 'started'} ${timeFmt.format(new Date(e.start))}` : '';
   li.querySelector('.comp').textContent = where + began;
   fillTitle(li.querySelector('.title'), e);
+  const now = calibrating && liveScore.get(e.id);
+  if (now) Object.assign(li.querySelector('.calib-result'), { hidden: false, textContent: `Now: ${now}` });
   // Tennis: draw and round. Football: the pre-match hints, if any. Otherwise the meta line says it all.
   const sub = e.sport === 'tennis' ? subtitleOf(e) : e.sport === 'football' && prefs.preHints ? prematchLine(e) : '';
   li.querySelector('.sub').textContent = sub;
@@ -550,17 +580,32 @@ function fillPace(li, e) {
   line.textContent = paceText(e);
 }
 
+// The live number from ESPN's facts, with your own scoring when it's on (sliders and competition boost).
+function livePace(e, facts) {
+  const t = prefs.tweaks;
+  if (!t.on || isStandard(t)) return scoreLivePace(facts, { w: liveWeights, factor: e.factor ?? 1, stakes: e.stakes });
+  return scoreLivePace(facts, {
+    w: liveWeights && applyTweaks(liveWeights, t),
+    factor: 1 + ((e.factor ?? 1) - 1) * t.sliders.bigMatch, // exact: the factor is linear in bigMatch and smallMatch
+    stakes: e.stakes,
+    boost: t.comps[e.comp] ?? 0,
+  });
+}
+
 function paceText(e) {
   const mine = paceNow.get(e.id);
   const fmt = (p, note) => `≈ ${p.pace.toFixed(1)} out of 10${p.rough ? ', early and rough' : ''}${note}`;
-  if (mine?.pace != null) return fmt(mine, '');
-  if (mine?.early) return `Too early to tell: check back after ${LIVE_FROM}'.`;
+  const yours = prefs.tweaks.on && !isStandard(prefs.tweaks);
+  const p = mine?.facts && livePace(e, mine.facts); // worked out again, so a slider change shows at once
+  if (p) return fmt(p, yours ? ' (your scoring)' : '');
+  if (mine?.facts && mine.facts.played < LIVE_FROM) return `Too early to tell: check back after ${LIVE_FROM}'.`;
   if (!mine) return 'Working it out…';
-  if (e.pace != null) return fmt(e, ' (a few minutes old)');
+  if (e.pace != null) return fmt(e, yours ? ' (a few minutes old, standard scoring)' : ' (a few minutes old)');
   return 'Couldn\'t work it out right now. Try again in a minute.';
 }
 
-// Fetches the match summary from ESPN and works out the number. Only the number is kept.
+// Fetches the match summary from ESPN and works out the number. Only the facts behind it are kept
+// (minutes, sides and counts: no names, no score), so a slider change can work it out again.
 async function loadPace(e) {
   try {
     const res = await fetch(`${ESPN}/${e.comp}/summary?event=${e.id.slice(3)}`, { signal: AbortSignal.timeout(20e3) });
@@ -572,9 +617,8 @@ async function loadPace(e) {
       keepScroll(render);
       return;
     }
-    const facts = liveFacts(summary);
-    const p = facts && scoreLivePace(facts, { w: liveWeights, factor: e.factor ?? 1, stakes: e.stakes });
-    paceNow.set(e.id, p ?? (facts && facts.played < LIVE_FROM ? { early: true } : { failed: true }));
+    const facts = liveFacts(summary); // minutes, sides and counts only: no names, no score
+    paceNow.set(e.id, facts ? { facts } : { failed: true });
   } catch {
     paceNow.set(e.id, { failed: true });
   }
@@ -607,6 +651,12 @@ async function pollLiveNow() {
       for (const ev of (await res.json()).events ?? []) {
         if (!ids.has(ev.id)) continue;
         const id = `fb-${ev.id}`;
+        if (calibrating) { // the score itself, only in calibration mode (after its warning)
+          const c = ev.competitions?.[0]?.competitors ?? [];
+          const [h, a] = ['home', 'away'].map((side) => c.find((x) => x.homeAway === side)?.score);
+          const e = live.find((x) => x.id === id);
+          if (h != null && a != null && e) liveScore.set(id, `${e.teams[0]} ${h}–${a} ${e.teams[1]}`);
+        }
         if (ev.status?.type?.state === 'post') { finished.add(id); paceOpen.delete(id); continue; }
         const clock = clockOf(ev.status);
         if (clock) freshClock.set(id, { ...clock, at: new Date().toISOString(), seen: Date.now() });
@@ -615,6 +665,12 @@ async function pollLiveNow() {
   }));
   for (const e of live) if (paceOpen.has(e.id) && !finished.has(e.id)) await loadPace(e);
   updateClocks();
+  if (calibrating) {
+    for (const li of document.querySelectorAll('#cards > .card.soon.live')) {
+      const now = liveScore.get(li.dataset.id);
+      if (now) Object.assign(li.querySelector('.calib-result'), { hidden: false, textContent: `Now: ${now}` });
+    }
+  }
   // A match that just ended: redraw it once (no more "Excitement so far"), and look for the
   // bot's replay every minute instead of every 5.
   const over = live.filter((e) => finished.has(e.id));
@@ -695,15 +751,315 @@ function renderUpcoming() {
 function render() {
   renderControls();
   if (prefs.view === 'upcoming') return renderUpcoming();
-  const list = filterEvents(events, prefs, watched);
+  const list = filterEvents(viewEvents(), prefs, watched);
   $('#cards').replaceChildren(...list.slice(0, limit).map(card));
   moreButton(list.length);
-  const shown = list.length === 1 ? '1 event' : `${list.length} events`;
+  const yours = prefs.tweaks.on && custom.size ? ', football with your own scoring' : '';
+  const shown = (list.length === 1 ? '1 event' : `${list.length} events`) + yours + (calibrating ? '. Calibration mode: all results shown' : '');
   $('#status').textContent = events.length
     ? (list.length ? shown : prefs.favsOnly
       ? 'None of your favorites match these filters. Turn off “Only favorites” to see everything.'
       : 'Nothing matches these filters. Try a longer period or fewer filters.')
     : 'No events yet.';
+}
+
+// ── Custom scoring and calibration mode (football) ──────────────────────────
+// The page re-scores football replays itself with docs/scoring.js (the bot's own scorer), from
+// the facts in docs/data/facts.json, which is only downloaded after a warning.
+
+// Your score for every football replay that has facts. The standard score stays on the event.
+function recompute() {
+  custom = new Map();
+  customW = footballWeights && applyTweaks(footballWeights, prefs.tweaks);
+  if (!customW || !factsFile) return;
+  for (const e of events) {
+    const f = e.sport === 'football' && factsFile[e.id];
+    if (!f) continue;
+    try {
+      custom.set(e.id, scoreFootball(f, customW, { boost: prefs.tweaks.comps[e.comp] ?? 0, boostLabel: e.compName }));
+    } catch { /* keeps the standard score */ }
+  }
+}
+
+// The replays as shown: with custom scoring on, re-scored matches carry your score, the
+// standard one in `std`, and `custom: true` (so sorting, filters and counts use your numbers).
+function viewEvents() {
+  if (!prefs.tweaks.on || !custom.size) return events;
+  return events.map((e) => (custom.has(e.id) ? { ...e, score: custom.get(e.id).score, std: e.score, custom: true } : e));
+}
+
+async function ensureFacts({ force = false } = {}) {
+  if (factsFile && !force) return;
+  try {
+    factsFile = await (await fetch('./data/facts.json', { cache: 'no-cache' })).json();
+    factsFailed = false;
+  } catch {
+    factsFailed = !factsFile;
+  }
+}
+async function ensureResults({ force = false } = {}) {
+  if (resultsFile && !force) return;
+  try { resultsFile = await (await fetch('./data/results.json', { cache: 'no-cache' })).json(); } catch { /* shown as "not saved" */ }
+}
+
+const CONSENT = {
+  custom: {
+    title: '⚠ Custom scoring',
+    text: 'To re-score matches, this device downloads the facts behind every football score: goals, cards, chances and the odds before kick-off. They are never shown, but extreme settings can hint at results (with only "Upsets" turned up, a high score means an upset).',
+    ok: 'Turn it on',
+  },
+  calibrate: {
+    title: '⚠⚠ Calibration mode',
+    text: 'Calibration mode shows every result on every card, live scores included, plus the facts and the full calculation behind each football score. Everything is spoiled until you switch it off. It switches itself off when you reload the page.',
+    ok: 'Show everything',
+  },
+};
+
+// Calibration mode on a replay card: the result under the title, and (football) the facts and calculation.
+function fillCalibration(li, e) {
+  if (!calibrating) return;
+  const saved = resultsFile?.[e.id];
+  const text = typeof saved === 'string' ? saved : saved?.text;
+  Object.assign(li.querySelector('.calib-result'), { hidden: false, textContent: text ? `Result: ${text}` : 'No result saved for this event yet.' });
+  if (e.sport !== 'football' || !factsFile?.[e.id] || !footballWeights) return;
+  const btn = li.querySelector('.calc-btn');
+  const open = calcOpen.has(e.id);
+  btn.hidden = false;
+  btn.textContent = open ? '▾ Facts and calculation' : '▸ Facts and calculation';
+  btn.setAttribute('aria-expanded', String(open));
+  btn.onclick = () => { open ? calcOpen.delete(e.id) : calcOpen.add(e.id); keepScroll(render); };
+  if (!open) return;
+  const box = li.querySelector('.calc');
+  box.hidden = false;
+  fillCalc(box, e, factsFile[e.id]);
+}
+
+const n2 = (x) => String(Math.round(x * 100) / 100);
+const mins = (a) => (a.length ? a.map((m) => `${Math.ceil(m)}'`).join(', ') : 'none');
+
+// Which slider moves a scoring line, from the weights behind it.
+function sliderOf(keys) {
+  if (!keys.length) return 'Competition boost';
+  if (keys.includes('curveFrom')) return 'Top end';
+  const group = Object.values(TWEAK_GROUPS).find((g) => keys.some((k) => g.keys.includes(k)));
+  if (group) return group.label;
+  return keys.some((k) => TWEAK_FIXED.includes(k)) ? TWEAK_GROUPS.upsets.label : '';
+}
+
+// The weights behind a line: "goal 1.2", or "goal 1.2 → 1.44" when your sliders changed it.
+function weightsText(keys, W) {
+  return keys.filter((k) => k in footballWeights).map((k) => {
+    const std = footballWeights[k], mine = W[k];
+    return Math.abs(mine - std) > 1e-9 ? `${k} ${n2(std)} → ${n2(mine)}` : `${k} ${n2(std)}`;
+  }).join(', ');
+}
+
+function fillCalc(box, e, f) {
+  const [home, away] = e.teams;
+  const useMine = e.custom;
+  const W = useMine ? customW : footballWeights;
+  const scored = useMine ? custom.get(e.id) : scoreFootball(f, footballWeights);
+  const el = (tag, props = {}, ...kids) => { const x = Object.assign(document.createElement(tag), props); x.append(...kids); return x; };
+
+  // The facts, as the scorer saw them.
+  const facts = [];
+  const pair = (p, fmt = n2) => (p ? `${fmt(p.home)} – ${fmt(p.away)}` : null);
+  let h = 0, a = 0;
+  const goals = [...f.goals].sort((x, y) => x.min - y.min).map((g) => {
+    g.side === 'home' ? h++ : a++;
+    const note = [g.pen && 'pen', g.own && 'own goal'].filter(Boolean).join(', ');
+    return `${g.clock ?? `${Math.ceil(g.min)}'`} · ${h}–${a} · ${g.side === 'home' ? home : away}${note ? ` (${note})` : ''}`;
+  });
+  facts.push(['Home – away', `${home} – ${away}`]);
+  if (f.odds) facts.push(['Win chances before kick-off', `${home} ${Math.round(100 * f.odds.home)}% · draw ${Math.round(100 * f.odds.draw)}% · ${away} ${Math.round(100 * f.odds.away)}%`]);
+  if (f.strength) facts.push(['Team strength (0 to 1)', pair(f.strength)]);
+  if (f.stakes) facts.push(['At stake before kick-off', STAKES[f.stakes] ?? f.stakes]);
+  facts.push(['xG', pair(f.xg) ?? 'not available']);
+  if (f.stats?.bigChances) facts.push(['Big chances', pair(f.stats.bigChances)]);
+  if (f.stats?.xgot) facts.push(['xG on target', pair(f.stats.xgot)]);
+  if (f.stats?.touchesInBox) facts.push(['Touches in the opposition box', pair(f.stats.touchesInBox)]);
+  if (f.shotsBy) facts.push(['Shots', pair(f.shotsBy)]);
+  if (f.shotsOnTarget != null) facts.push(['Shots on target (both teams)', String(f.shotsOnTarget)]);
+  if (f.corners != null) facts.push(['Corners (both teams)', String(f.corners)]);
+  if (f.yellows != null) facts.push(['Yellow cards (both teams)', String(f.yellows)]);
+  facts.push(['Red cards', mins(f.reds)], ['Penalties', mins(f.pens)], ['Goals ruled out by VAR', mins(f.disallowed)], ['Woodwork', mins(f.woodwork)]);
+  if (f.extraTime) facts.push(['Extra time', 'yes']);
+  if (f.shootout) facts.push(['Penalty shootout', f.shootoutWinner ? `won by ${f.shootoutWinner === 'home' ? home : away}` : 'yes']);
+
+  const dl = el('dl', { className: 'facts' });
+  for (const [k, v] of facts) dl.append(el('dt', { textContent: k }), el('dd', { textContent: v }));
+
+  // The calculation, line by line in the order it's worked out: points, what for, the running
+  // total, and under it the slider and the weights behind the line.
+  const calc = el('ol', { className: 'calc-lines' });
+  calc.append(el('li', { className: 'calc-headings' }, el('span', { textContent: 'Points' }), el('span', { textContent: 'Line' }), el('span', { textContent: 'Total' })));
+  for (const l of scored.lines) {
+    const how = [sliderOf(l.keys), weightsText(l.keys, W)].filter(Boolean).join(': ');
+    calc.append(el('li', { className: l.points < 0 ? 'neg' : '' },
+      el('span', { className: 'pts', textContent: `${l.points > 0 ? '+' : ''}${l.points.toFixed(2)}` }),
+      el('span', { textContent: l.label }),
+      el('span', { className: 'run', textContent: l.total.toFixed(2) }),
+      el('span', { className: 'how', textContent: how })));
+  }
+
+  const std = useMine ? scoreFootball(f, footballWeights).score : scored.score;
+  const sum = el('p', { className: 'calc-sum' }, useMine
+    ? `Your score ${scored.score.toFixed(1)} · standard score ${std.toFixed(1)}`
+    : `Score ${scored.score.toFixed(1)} (standard scoring)`);
+  box.replaceChildren(
+    el('h4', { textContent: 'Goals' }), goals.length ? columnsList(goals, 'goals') : el('p', { className: 'small', textContent: 'No goals.' }),
+    el('h4', { textContent: 'Facts' }), dl,
+    el('h4', { textContent: 'Calculation' }), calc, sum,
+    el('p', { className: 'small', textContent: 'The total is kept between 0 and 10. The heat strip and skip tips always use the standard scoring.' }),
+  );
+}
+
+// The panel: built once (so a slider isn't replaced while you drag it), then kept up to date.
+const SLIDERS = [...Object.entries(TWEAK_GROUPS).map(([key, g]) => ({ key, ...g })),
+  { key: 'curve', label: 'Top end', hint: 'Left: high scores are rarer. Right: more generous.', keys: ['curveFrom'] }];
+const sliderText = (v) => (v === 0 ? 'Off' : v === 1 ? 'Normal' : v === 2 ? 'Double' : `×${v.toFixed(1)}`);
+function curveText(v) {
+  const std = footballWeights?.curveFrom;
+  return v === std ? `Standard (${v})` : std != null && v < std ? `Stricter (${v})` : `More generous (${v})`;
+}
+const curveValue = () => prefs.tweaks.curveFrom ?? footballWeights?.curveFrom ?? 2.5;
+
+function buildTuning() {
+  const box = $('#t-sliders');
+  box.replaceChildren(...SLIDERS.map((s) => {
+    const row = Object.assign(document.createElement('div'), { className: 'slider' });
+    row.dataset.key = s.key;
+    const id = `t-s-${s.key}`;
+    const input = Object.assign(document.createElement('input'), { type: 'range', id });
+    Object.assign(input, s.key === 'curve' ? { min: 0, max: 9, step: CURVE_STEP } : { min: 0, max: 2, step: SLIDER_STEP });
+    const head = Object.assign(document.createElement('div'), { className: 's-head' });
+    head.append(Object.assign(document.createElement('label'), { htmlFor: id, className: 's-label', textContent: s.label }), Object.assign(document.createElement('output'), { className: 's-val', htmlFor: id }));
+    const track = Object.assign(document.createElement('div'), { className: 's-track' });
+    track.append(input, Object.assign(document.createElement('span'), { className: 's-std', textContent: 'standard', ariaHidden: 'true' }));
+    row.append(head, track, Object.assign(document.createElement('p'), { className: 'small s-hint', textContent: s.hint }), Object.assign(document.createElement('p'), { className: 'small s-weights', hidden: true }));
+    const show = () => { row.querySelector('.s-val').textContent = s.key === 'curve' ? curveText(Number(input.value)) : sliderText(Number(input.value)); };
+    input.oninput = show;
+    input.onchange = () => {
+      const v = Number(input.value);
+      if (s.key === 'curve') prefs.tweaks.curveFrom = v === footballWeights?.curveFrom ? null : v;
+      else prefs.tweaks.sliders[s.key] = v;
+      prefs.tweaks = cleanTweaks(prefs.tweaks);
+      tuningChanged();
+    };
+    return row;
+  }));
+}
+
+function tuningChanged() {
+  savePrefs({ keepPlace: true });
+  recompute();
+  keepScroll(render);
+}
+
+// Marks the standard setting under a slider. The thumb's centre doesn't reach the track's ends,
+// so the mark is nudged by up to half a thumb (16 px) to sit under it.
+function placeStd(row, value, min, max) {
+  const f = (value - min) / (max - min);
+  row.querySelector('.s-std').style.left = `calc(${(100 * f).toFixed(2)}% + ${((0.5 - f) * 16).toFixed(1)}px)`;
+}
+
+let boostKey = '';
+function renderTuning() {
+  const t = prefs.tweaks;
+  $('#t-on').checked = t.on;
+  $('#t-calib').checked = calibrating;
+  $('#t-count').hidden = !t.on && !calibrating;
+  $('#t-count').textContent = calibrating ? (t.on ? 'on, calibrating' : 'calibrating') : 'on';
+  const W = customW ?? footballWeights ?? {};
+  for (const row of document.querySelectorAll('#t-sliders .slider')) {
+    const s = SLIDERS.find((x) => x.key === row.dataset.key);
+    const input = row.querySelector('input');
+    if (document.activeElement !== input || !input.matches(':active')) input.value = String(s.key === 'curve' ? curveValue() : t.sliders[s.key]);
+    input.disabled = !t.on;
+    row.querySelector('.s-val').textContent = s.key === 'curve' ? curveText(Number(input.value)) : sliderText(Number(input.value));
+    if (s.key === 'curve') placeStd(row, footballWeights?.curveFrom ?? 2.5, 0, 9); else placeStd(row, 1, 0, 2);
+    // Calibration mode: the weights each slider moves, standard and yours.
+    const weights = row.querySelector('.s-weights');
+    weights.hidden = !calibrating || !footballWeights;
+    if (!weights.hidden) {
+      const live = s.keys.filter((k) => !(k in footballWeights) && liveWeights && k in liveWeights);
+      const liveW = live.length && applyTweaks(liveWeights, t.on ? t : DEFAULT_TWEAKS);
+      weights.textContent = [weightsText(s.keys, t.on ? W : footballWeights), ...live.map((k) => `${k} (live) ${n2(liveWeights[k])}${t.on && liveW[k] !== liveWeights[k] ? ` → ${n2(liveW[k])}` : ''}`)].filter(Boolean).join(', ');
+    }
+  }
+  // One row per football competition on the page.
+  const comps = [...new Map([...events, ...upcoming].filter((e) => e.sport === 'football').map((e) => [e.comp, e.compName])).entries()]
+    .sort((x, y) => x[1].localeCompare(y[1]));
+  const key = comps.map(([c]) => c).join();
+  if (key !== boostKey) {
+    boostKey = key;
+    const steps = [];
+    for (let v = -BOOST_MAX; v <= BOOST_MAX + 1e-9; v += BOOST_STEP) steps.push(Math.round(v * 10) / 10);
+    $('#t-boosts').replaceChildren(...comps.map(([comp, name]) => {
+      const label = Object.assign(document.createElement('label'), { textContent: name });
+      const sel = document.createElement('select');
+      sel.dataset.comp = comp;
+      sel.append(...steps.map((v) => new Option(v === 0 ? '0 (standard)' : `${v > 0 ? '+' : ''}${v.toFixed(1)} points`, v)));
+      sel.onchange = () => {
+        prefs.tweaks.comps[comp] = Number(sel.value);
+        prefs.tweaks = cleanTweaks(prefs.tweaks);
+        tuningChanged();
+      };
+      label.append(sel);
+      return label;
+    }));
+  }
+  for (const sel of document.querySelectorAll('#t-boosts select')) {
+    sel.value = String(t.comps[sel.dataset.comp] ?? 0);
+    sel.disabled = !t.on;
+  }
+  $('#t-reset').disabled = !t.on || isStandard(t);
+  // How many replays got your score.
+  const football = events.filter((e) => e.sport === 'football').length;
+  $('#t-status').textContent = !t.on
+    ? 'Off: you see the standard scores. Turn it on to use the sliders.'
+    : factsFailed ? 'Could not load the match facts. Showing the standard scores for now.'
+      : !factsFile ? 'Loading the match facts…'
+        : `${custom.size} of ${football} football replays re-scored on this device${custom.size < football ? ' (the rest have no saved facts yet and keep the standard score)' : ''}. Live "Excitement so far" uses your settings too.`;
+}
+
+function bindTuning() {
+  buildTuning();
+  $('#t-on').onchange = async (ev) => {
+    if (ev.target.checked) {
+      ev.target.checked = false;
+      if (!calibrating && !(await confirmSpoiler(CONSENT.custom))) return;
+      prefs.tweaks.on = true;
+      savePrefs({ keepPlace: true });
+      renderTuning();
+      await ensureFacts();
+    } else {
+      prefs.tweaks.on = false;
+      savePrefs({ keepPlace: true });
+    }
+    recompute();
+    keepScroll(render);
+  };
+  $('#t-calib').onchange = async (ev) => {
+    if (ev.target.checked) {
+      ev.target.checked = false;
+      if (!(await confirmSpoiler(CONSENT.calibrate))) return;
+      calibrating = true;
+      await Promise.all([ensureFacts(), ensureResults()]);
+      recompute();
+      keepScroll(render);
+      pollLive(); // the live scores
+    } else {
+      calibrating = false;
+      calcOpen.clear();
+      liveScore.clear();
+      keepScroll(render);
+    }
+  };
+  $('#t-reset').onclick = () => {
+    prefs.tweaks = { ...cleanTweaks(null), on: prefs.tweaks.on };
+    tuningChanged();
+  };
 }
 
 function bind() {
@@ -760,6 +1116,7 @@ function bind() {
   on('#f-chances', 'showChances');
   on('#f-watched', 'hideWatched');
   on('#f-glass', 'glass');
+  bindTuning();
 }
 
 // Re-renders without the card you're looking at jumping when a card above it comes or goes:
@@ -787,6 +1144,11 @@ async function fetchData({ quiet = false } = {}) {
     upcoming = data.upcoming ?? [];
     eloRatings = data.elo ?? {};
     liveWeights = data.liveWeights ?? null;
+    footballWeights = data.footballWeights ?? null;
+    // Custom scoring or calibration: fetch the facts again when a replay is missing from them (scored since).
+    if ((prefs.tweaks.on || calibrating) && (!factsFile || events.some((e) => e.sport === 'football' && !factsFile[e.id]))) await ensureFacts({ force: true });
+    if (calibrating && events.some((e) => !resultsFile?.[e.id])) await ensureResults({ force: true });
+    recompute();
     for (const id of finished) if (!upcoming.some((e) => e.id === id)) finished.delete(id);
     keepScroll(render); // keeps filters, "Show more" and open panels as they were
     $('#updated').dataset.generated = data.generated;
@@ -879,6 +1241,8 @@ async function importSettings() {
   if (dlg.returnValue !== 'ok') return;
   Object.assign(prefs, { ...DEFAULTS, ...data.prefs, view: prefs.view });
   prefs.favs = { ...DEFAULTS.favs, ...prefs.favs };
+  prefs.tweaks = { ...cleanTweaks(prefs.tweaks), on: false }; // sliders travel; switching it on shows its warning here first
+  recompute();
   for (const id of data.watched) watched.add(id);
   savePrefs();
   store.save('pt-watched', [...watched]);
@@ -890,7 +1254,7 @@ function load() {
   bind();
   renderControls();
   window.primetimeStarted = true; // tells the safety net in index.html that the app started (set last, so a crash above still shows it)
-  fetchData();
+  fetchData(); // fetches the facts too when custom scoring is on (agreed to on an earlier visit)
   importSettings();
   addEventListener('hashchange', importSettings); // a link opened while the page is already open
   setInterval(() => document.visibilityState === 'visible' && fetchData({ quiet: true }), REFRESH_MS);

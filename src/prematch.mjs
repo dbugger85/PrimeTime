@@ -30,21 +30,12 @@ export function outlookOf(odds, stakes) {
   return lean >= -0.1 ? 'promising' : lean < -1.1 ? 'quiet' : null;
 }
 
+export { STAKES } from '../docs/scoring.js'; // the labels, shared with the page
+
 // What's at stake: each competition's places that matter. A rule [code, k] means
 // "finishing k-th or better is what counts" (for relegation: k is the last safe place).
 // Listed in order of priority; a match gets the first one that applies.
 // Tournaments (EURO, World Cup) get none: their groups are too short.
-export const STAKES = {
-  title: 'Title race',
-  relegation: 'Relegation battle',
-  top4: 'Top-4 race',
-  top8: 'Top-8 race',
-  europe: 'European spots',
-  playoff: 'Play-off spots',
-  group: 'Top of the group',
-  qualify: 'Qualifying race',
-};
-
 export const STAKES_COMPS = new Set(['eng.1', 'nor.1', 'uefa.champions', 'uefa.nations', 'uefa.euroq', 'fifa.worldq.uefa']);
 
 function rulesFor(compKey, groupName, size) {

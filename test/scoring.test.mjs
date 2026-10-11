@@ -3,7 +3,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { factsFromSummary } from '../src/sources/espn-football.mjs';
 import { matchesFromSlam } from '../src/sources/espn-tennis.mjs';
 import { factsFromRace, factsFromQuali } from '../src/sources/openf1.mjs';
@@ -657,4 +657,72 @@ test('direct links: TV 2 dates, NRK races, and only safe links get out', async (
   assert.equal(linkFields({ nrk: { url: 'https://tv.nrk.no/se?v=ISPO30211226' } }, { replay: true }).links.nrk, 'https://tv.nrk.no/se?v=ISPO30211226&autoplay=true');
   assert.deepEqual(linkFields({ viaplay: { url: 'https://viaplay.no/sport/fotball/premier-league/arsenal-leeds/s1', until: '2026-10-01T00:00:00Z' } }, { now }), {}, 'Viaplay links stop after about 2 days');
   assert.deepEqual(linkFields({ tv2play: { url: 'https://evil.example/x' }, nrk: { url: 'https://tv.nrk.no/se?v=x-hoydepunkter' }, hbomax: { url: 'https://play.hbomax.com/x' } }), {}, 'unknown hosts, clips and other services are dropped');
+});
+
+// Custom scoring: the page re-scores football from docs/data/facts.json (trimFacts) with docs/scoring.js.
+test('football: the trimmed facts (facts.json) give exactly the same score and reasons', async () => {
+  const { trimFacts } = await import('../src/publish.mjs');
+  const { readdirSync } = await import('node:fs');
+  const extra = { stakes: 'title', xg: { home: 1.73, away: 0.912, shots: [{ min: 12, side: 'home', xg: 0.3 }] },
+    stats: { bigChances: { home: 3, away: 2 }, xgot: { home: 1.1, away: 0.7 }, touchesInBox: { home: 30, away: 21 } }, strength: { home: 0.81234, away: 0.4321 } };
+  for (const file of readdirSync(new URL('./fixtures/football/', import.meta.url)).filter((f) => /^\d+\.json$/.test(f))) {
+    const facts = factsFromSummary(fixture(`football/${file}`));
+    for (const f of [facts, { ...facts, ...extra }]) {
+      const bot = scoreFootball(f);
+      const page = scoreFootball(JSON.parse(JSON.stringify(trimFacts(f)))); // through JSON, like the file
+      assert.equal(page.score, bot.score, `${file}: score`);
+      assert.deepEqual(page.reasons, bot.reasons, `${file}: reasons`);
+    }
+  }
+});
+
+test('football: the real facts.json re-scores every event exactly as the bot did', { skip: !existsSync(new URL('../docs/data/facts.json', import.meta.url)) }, () => {
+  const read = (f) => JSON.parse(readFileSync(new URL(`../docs/data/${f}`, import.meta.url)));
+  const { events, footballWeights } = read('events.json');
+  const facts = read('facts.json');
+  const reasons = read('reasons.json');
+  for (const e of events.filter((x) => x.sport === 'football' && facts[x.id] && x.v === SCORING_VERSIONS.football)) {
+    const s = scoreFootball(facts[e.id], footballWeights ?? WEIGHTS.FOOTBALL);
+    assert.equal(s.score, e.score, `${e.id}: score`);
+    assert.deepEqual(s.reasons, reasons[e.id], `${e.id}: reasons`);
+  }
+});
+
+test('custom scoring: sliders, boosts and the clean-up of saved settings', async () => {
+  const { applyTweaks, cleanTweaks, DEFAULT_TWEAKS, TWEAK_GROUPS, TWEAK_FIXED, isStandard } = await import('../docs/scoring.js');
+  // Every football weight belongs to exactly one slider, or is deliberately fixed.
+  const grouped = Object.values(TWEAK_GROUPS).flatMap((g) => g.keys);
+  assert.equal(new Set(grouped).size, grouped.length, 'a weight in two sliders');
+  const live = Object.keys(WEIGHTS.FOOTBALL_LIVE);
+  assert.deepEqual([...grouped.filter((k) => !live.includes(k)), ...TWEAK_FIXED].sort(), Object.keys(WEIGHTS.FOOTBALL).sort(), 'every weight needs a slider (or TWEAK_FIXED)');
+  assert.ok(grouped.every((k) => k in WEIGHTS.FOOTBALL || k in WEIGHTS.FOOTBALL_LIVE));
+
+  const W = WEIGHTS.FOOTBALL;
+  const std = cleanTweaks(null);
+  assert.deepEqual(std, DEFAULT_TWEAKS);
+  assert.ok(isStandard(std));
+  assert.deepEqual(applyTweaks(W, std), W, 'standard sliders change nothing');
+  const f = factsFromSummary(fixture('football/760516.json')); // France 4-6 England
+  assert.equal(scoreFootball(f, applyTweaks(W, std)).score, scoreFootball(f).score);
+
+  const noGoals = cleanTweaks({ sliders: { goals: 0 } });
+  const s0 = scoreFootball(f, applyTweaks(W, noGoals));
+  assert.ok(!s0.reasons.some(([, l]) => /^10 goals$/.test(l)), 'Goals off: no goal line');
+  assert.ok(s0.score < scoreFootball(f).score);
+  const tw = applyTweaks(W, cleanTweaks({ sliders: { oneSided: 2, bigMatch: 2 } }));
+  assert.ok(tw.alreadyDecided <= 1 && tw.nearlyDecided <= 1 && tw.smallMatch <= 1, 'shares stay parts of 1');
+  assert.equal(tw.blowout, W.blowout * 2);
+  assert.equal(applyTweaks(W, cleanTweaks({ curveFrom: 6 })).curveFrom, 6);
+
+  // Boost: before the curve, so +1 lifts a top match less than an ordinary one; always 0–10.
+  const dull = factsFromSummary(fixture('football/401879276.json')); // Bournemouth 0-1 Liverpool
+  const lift = (x, b) => scoreFootball(x, W, { boost: b, boostLabel: 'Premier League' }).score - scoreFootball(x).score;
+  assert.ok(lift(dull, 1) > lift(f, 1), 'a boost lifts an ordinary match more than a top one');
+  assert.ok(scoreFootball(f, W, { boost: 1, boostLabel: 'World Cup' }).reasons.some(([p, l]) => p === 1 && l === 'World Cup: your boost'));
+  assert.ok(scoreFootball(dull, W, { boost: -2 }).score >= 0);
+
+  // Junk in, defaults out; numbers snap to the slider steps.
+  assert.deepEqual(cleanTweaks({ on: 'yes', sliders: { goals: 7, tight: -1, late: 'x', nope: 1 }, curveFrom: 99, comps: { 'eng.1': 1.3, 'nor.1': 0, bad: 'x' } }),
+    { ...DEFAULT_TWEAKS, sliders: { ...DEFAULT_TWEAKS.sliders, goals: 2, tight: 0 }, curveFrom: 9, comps: { 'eng.1': 1.5 } });
+  assert.equal(cleanTweaks({ sliders: { goals: 1.13 } }).sliders.goals, 1.2);
 });

@@ -426,6 +426,91 @@ try {
     await page.close();
   }
 
+  // Custom scoring (football): off by default, the facts file only after the warning, your scores
+  // marked on the cards and used for sorting, competition boosts, reset, and calibration mode.
+  if (existsSync(`${docs}/data/facts.json`) || process.env.BASE_URL) {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+    const errors = [];
+    const factRequests = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+    page.on('request', (r) => r.url().includes('facts.json') && factRequests.push(r.url()));
+    await page.goto(base);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.click('#sports [data-sport="football"]');
+    await page.waitForSelector('.card');
+    await page.click('#tuning summary');
+    assert.ok(await page.$eval('#t-s-goals', (e) => e.disabled), 'sliders work only when it is on');
+    assert.equal(await page.$$eval('#t-sliders .slider', (els) => els.length), 10, '10 sliders');
+    assert.equal(await page.$$eval('.card.custom', (els) => els.length), 0);
+    await page.click('#t-on');
+    await page.waitForSelector('#spoiler-dlg[open]');
+    await page.click('#spoiler-dlg button[value="cancel"]');
+    assert.ok(!(await page.$eval('#t-on', (e) => e.checked)), 'still off after cancelling');
+    assert.equal(factRequests.length, 0, 'facts.json loaded before agreeing');
+    await page.click('#t-on');
+    await page.click('#spoiler-dlg button[value="ok"]');
+    await page.waitForSelector('.card.custom');
+    assert.equal(factRequests.length, 1);
+    // Standard sliders: every re-scored card shows the same number as the standard one.
+    const pairs = () => page.$$eval('.card.custom', (els) => els.map((c) => [Number(c.querySelector('.num').textContent), Number(c.querySelector('.meta .std').textContent.match(/[\d.]+$/)[0])]));
+    assert.ok((await pairs()).every(([mine, std]) => mine === std), 'standard sliders give the standard scores');
+    await page.locator('#tuning').screenshot({ path: `${shots}/custom-scoring.png` });
+    const setSlider = (key, v) => page.$eval(`#t-s-${key}`, (e, x) => { e.value = String(x); e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); }, v);
+    await setSlider('goals', 0);
+    await page.waitForFunction(() => document.querySelector('#t-s-goals').closest('.slider').querySelector('.s-val').textContent === 'Off');
+    assert.ok((await pairs()).some(([mine, std]) => mine < std), 'Goals off lowers the scores');
+    await setSlider('goals', 1);
+    // A competition boost shows in "Why this score?".
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const first = await page.$eval('.card.custom', (c) => c.dataset.id);
+    const comp = await page.$eval('.card.custom', (c) => c.dataset.comp);
+    await page.selectOption(`#t-boosts select[data-comp="${comp}"]`, '2');
+    await page.$eval(`.card[data-id="${first}"] .why-btn`, (b) => b.scrollIntoView({ block: 'center' }));
+    await page.click(`.card[data-id="${first}"] .why-btn`);
+    await page.click('#spoiler-dlg button[value="ok"]');
+    await page.waitForSelector(`.card[data-id="${first}"] .why li`);
+    const whyText = await page.$eval(`.card[data-id="${first}"] .why`, (e) => e.textContent);
+    assert.match(whyText, /: your boost/);
+    assert.match(whyText, /Your own scoring/);
+    await page.screenshot({ path: `${shots}/custom-cards.png` });
+    // Best first follows your scores.
+    await page.click('#filters summary');
+    await page.selectOption('#f-sort', 'score');
+    const nums = await page.$$eval('.card .num', (els) => els.map((e) => Number(e.textContent)).filter(Number.isFinite));
+    assert.deepEqual(nums, [...nums].sort((a, b) => b - a), 'Best first sorts by your scores');
+    await page.selectOption('#f-sort', 'date');
+    await page.click('#filters summary');
+    // Reset to standard, and the setting survives a reload.
+    await page.click('#t-reset');
+    assert.ok((await pairs()).every(([mine, std]) => mine === std), 'reset brings back the standard scores');
+    await page.reload();
+    await page.waitForSelector('.card.custom');
+    // Calibration mode: a stronger warning, then every result, and the facts and calculation.
+    await page.click('#tuning summary');
+    await page.click('#t-calib');
+    await page.waitForSelector('#spoiler-dlg[open]');
+    assert.match(await page.$eval('#spoiler-dlg h2', (e) => e.textContent), /Calibration/);
+    await page.click('#spoiler-dlg button[value="ok"]');
+    await page.waitForSelector('.card .calib-result:not([hidden])');
+    assert.match(await page.$eval('.card .calib-result', (e) => e.textContent), /^Result: /);
+    assert.ok(!(await page.$eval('#t-sliders .s-weights', (e) => e.hidden)), 'the weights show under the sliders');
+    await page.locator('#tuning').screenshot({ path: `${shots}/calibration-panel.png` });
+    await page.$eval('.card .calc-btn:not([hidden])', (b) => b.scrollIntoView({ block: 'start' }));
+    const calcCard = await page.$eval('.card .calc-btn:not([hidden])', (b) => b.closest('.card').dataset.id);
+    await page.click(`.card[data-id="${calcCard}"] .calc-btn`);
+    await page.waitForSelector(`.card[data-id="${calcCard}"] .calc-lines li:nth-child(2)`);
+    assert.match(await page.$eval(`.card[data-id="${calcCard}"] .calc-sum`, (e) => e.textContent), /score \d+\.\d/i);
+    await page.locator(`.card[data-id="${calcCard}"]`).screenshot({ path: `${shots}/calibration-card.png` });
+    await page.reload();
+    await page.waitForSelector('.card');
+    assert.equal(await page.$$eval('.calib-result:not([hidden])', (els) => els.length), 0, 'calibration mode is off after a reload');
+    await page.close();
+    assert.deepEqual(errors, []);
+  } else {
+    console.log('no docs/data/facts.json yet: custom scoring not tested in the browser');
+  }
+
   // Live cards, with a made-up live match: the minute counts up and is refreshed from ESPN (routed
   // to test data here), "Excitement so far" only shows after a tap, and no score ever shows.
   {
@@ -480,6 +565,23 @@ try {
     assert.doesNotMatch(text, /\b\d+\s*[-–]\s*\d+\b/, 'a score-like text on the page');
     for (const leak of ['Kane', 'Mbapp', 'France', 'England']) assert.ok(!text.includes(leak), `"${leak}" from the summary on the page`);
     await card.screenshot({ path: `${shots}/live-card.png` });
+    // Custom scoring changes the live number too (Goals doubled, a boost for the Premier League).
+    await page.evaluate(() => {
+      const p = JSON.parse(localStorage.getItem('pt-prefs') ?? '{}');
+      p.tweaks = { on: true, sliders: { goals: 2 }, curveFrom: null, comps: { 'eng.1': 1 } };
+      localStorage.setItem('pt-prefs', JSON.stringify(p));
+    });
+    await page.reload();
+    await page.locator('.card[data-id="fb-999001"] .pace-btn').click();
+    const mine = await paceOf(page);
+    assert.match(mine, /your scoring/);
+    assert.ok(Number(mine.match(/[\d.]+/)[0]) > Number(pace.match(/[\d.]+/)[0]), 'more for goals and the boost');
+    // Calibration mode shows the live score from ESPN.
+    assert.equal(await page.$$eval('.calib-result:not([hidden])', (els) => els.length), 0, 'a live score before calibration mode');
+    await page.click('#tuning summary');
+    await page.click('#t-calib');
+    await page.click('#spoiler-dlg button[value="ok"]');
+    await page.waitForFunction(() => document.querySelector('.card[data-id="fb-999001"] .calib-result')?.textContent === 'Now: Testford United 3–2 Mockham City');
     await page.close();
     assert.deepEqual(page.errors, []);
 

@@ -22,7 +22,7 @@ import * as fotmob from '../src/sources/fotmob.mjs';
 import { updateRatings, strengthOf } from '../src/sources/ratings.mjs';
 import { updateLinks } from '../src/sources/links.mjs';
 import { forecastOf, outlookOf, stakesFor, STAKES_COMPS } from '../src/prematch.mjs';
-import { chancesOf, publishFootball, publishTennis, publishF1, publishWinter, upcomingFootball, upcomingTennis, upcomingF1, upcomingWinter, expiringRights } from '../src/publish.mjs';
+import { chancesOf, publishFootball, publishTennis, publishF1, publishWinter, upcomingFootball, upcomingTennis, upcomingF1, upcomingWinter, expiringRights, trimFacts } from '../src/publish.mjs';
 import { loadData, saveData, warn, saver } from '../src/store.mjs';
 import { FOOTBALL as FOOTBALL_W } from '../src/scoring/weights.mjs';
 import { bigMatchFactor } from '../docs/live.js';
@@ -30,7 +30,7 @@ import { bigMatchFactor } from '../docs/live.js';
 const now = new Date();
 const only = process.argv[2];
 const data = loadData();
-const { events, reasons, results } = data;
+const { events, reasons, results, facts } = data;
 const save = saver(data);
 let state = data.state;
 // A sport's formula or weights changed: forget which days and Slams are done, so they're fetched again.
@@ -89,9 +89,10 @@ async function buildFootball() {
           const summary = await football.fetchSummary(comp.key, m.espnId);
           const stakes = events.get(id)?.stakes ?? previous.get(id)?.stakes ?? state.stakes[id]?.code; // frozen before kick-off
           const fm = await fotmob.fotmobFor(m); // optional: null when FotMob has none or is down
-          const scored = scoreFootball({ ...football.factsFromSummary(summary), stakes, xg: fm?.xg ?? null, stats: fm?.stats ?? null,
-            strength: strengthOf(state.ratings, comp.key, m.home, m.away) });
-          save(publishFootball(comp, m, scored, { lineups: football.lineupsFromSummary(summary), stakes }), scored);
+          const matchFacts = { ...football.factsFromSummary(summary), stakes, xg: fm?.xg ?? null, stats: fm?.stats ?? null,
+            strength: strengthOf(state.ratings, comp.key, m.home, m.away) };
+          const scored = scoreFootball(matchFacts);
+          save(publishFootball(comp, m, scored, { lineups: football.lineupsFromSummary(summary), stakes }), scored, trimFacts(matchFacts));
         } catch (err) {
           complete = false;
           warn(`football ${comp.key} ${m.espnId}: ${err.message}`);
@@ -277,4 +278,4 @@ try {
 
 if (!only) state.lastFull = now.toISOString(); // the live check uses this to know when a full build is due
 state.versions = { ...SCORING_VERSIONS };
-console.log(saveData({ events, upcoming, reasons, results, state }, now));
+console.log(saveData({ events, upcoming, reasons, results, facts, state }, now));

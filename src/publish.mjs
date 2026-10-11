@@ -91,6 +91,34 @@ export const publishFootball = (comp, match, scored, { lineups, stakes } = {}) =
   ...(scored.limited ? { limited: true } : {}),
 });
 
+// The match facts behind a football score, for "Custom scoring" and "Calibration mode" on the
+// page: docs/data/facts.json, which the page downloads only after a warning (like reasons.json).
+// Spoilers by nature (goal minutes and sides, so the result), but no names and no text: just what
+// scoreFootball needs, at full precision so the page's score equals the bot's. Shot-by-shot lists
+// are left out (they only feed the strip and the skip tips, which stay the bot's).
+const num = (x) => (Number.isFinite(x) ? x : undefined); // left out when missing, like NaN for the scorer
+const minutes = (a) => (Array.isArray(a) ? a.filter(Number.isFinite) : []);
+const SIDES = ['home', 'away'];
+const pair = (p) => (p && Number.isFinite(p.home) && Number.isFinite(p.away) ? { home: p.home, away: p.away } : null);
+export function trimFacts(f) {
+  return {
+    goals: (f.goals ?? []).filter((g) => Number.isFinite(g.min) && SIDES.includes(g.side)).map((g) => ({
+      min: g.min, side: g.side, ...(g.own ? { own: true } : {}), ...(g.pen ? { pen: true } : {}),
+      ...(/^\d{1,3}(\+\d{1,2})?'$/.test(g.clock ?? '') ? { clock: g.clock } : {}),
+    })),
+    odds: f.odds && ['home', 'draw', 'away'].every((k) => Number.isFinite(f.odds[k])) ? { home: f.odds.home, draw: f.odds.draw, away: f.odds.away } : null,
+    reds: minutes(f.reds), pens: minutes(f.pens), disallowed: minutes(f.disallowed), woodwork: minutes(f.woodwork),
+    corners: num(f.corners), yellows: num(f.yellows), shotsOnTarget: num(f.shotsOnTarget), totalShots: num(f.totalShots),
+    shotsBy: pair(f.shotsBy),
+    extraTime: f.extraTime === true, shootout: f.shootout === true,
+    shootoutWinner: SIDES.includes(f.shootoutWinner) ? f.shootoutWinner : null,
+    ...(f.stakes in STAKES ? { stakes: f.stakes } : {}),
+    xg: pair(f.xg),
+    stats: f.stats ? Object.fromEntries(['bigChances', 'xgot', 'touchesInBox'].map((k) => [k, pair(f.stats[k])]).filter(([, v]) => v)) : null,
+    strength: pair(f.strength),
+  };
+}
+
 // Players are sorted by name: ESPN tends to list the winner second.
 export const publishTennis = (match, scored) => ({
   ...base(`tn-${match.espnId}`, 'tennis', 'tennis.slam', match.tournament, match.start, scored, 'tennis.slam'),
