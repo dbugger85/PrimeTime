@@ -722,7 +722,14 @@ test('custom scoring: sliders, boosts and the clean-up of saved settings', async
   assert.ok(scoreFootball(dull, W, { boost: -2 }).score >= 0);
 
   // Junk in, defaults out; numbers snap to the slider steps.
-  assert.deepEqual(cleanTweaks({ on: 'yes', sliders: { goals: 7, tight: -1, late: 'x', nope: 1 }, curveFrom: 99, comps: { 'eng.1': 1.3, 'nor.1': 0, bad: 'x' } }),
-    { ...DEFAULT_TWEAKS, sliders: { ...DEFAULT_TWEAKS.sliders, goals: 2, tight: 0 }, curveFrom: 9, comps: { 'eng.1': 1.5 } });
-  assert.equal(cleanTweaks({ sliders: { goals: 1.13 } }).sliders.goals, 1.2);
+  assert.deepEqual(cleanTweaks({ on: 'yes', sliders: { goals: 70, tight: -1, late: 'x', nope: 1 }, curveFrom: 99, comps: { 'eng.1': 1.3, 'nor.1': 0, bad: 'x' } }),
+    { ...DEFAULT_TWEAKS, sliders: { ...DEFAULT_TWEAKS.sliders, goals: 50, tight: 0 }, curveFrom: 9, comps: { 'eng.1': 1.5 } });
+  assert.equal(cleanTweaks({ sliders: { goals: 1.13456 } }).sliders.goals, 1.135, 'multipliers behind the points, not snapped');
+
+  // The scale: each slider's typical points with the standard weights, from the fixtures.
+  const { sliderScale } = await import('../docs/scoring.js');
+  const all = ['760516', '401843437', '401879276', '760512'].map((id) => factsFromSummary(fixture(`football/${id}.json`)));
+  const scale = sliderScale(all, W);
+  assert.ok(scale.goals > scale.cards && scale.goals > 1, `goals ${scale.goals} vs cards ${scale.cards}`);
+  assert.ok(Object.values(scale).every((v) => v > 0));
 });

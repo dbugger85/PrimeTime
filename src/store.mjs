@@ -13,6 +13,7 @@ import { eloList } from './sources/ratings.mjs';
 import { FOOTBALL as FOOTBALL_W, FOOTBALL_LIVE } from './scoring/weights.mjs';
 import { liveWeightsFrom } from '../docs/live.js';
 import { SCORING_VERSIONS } from './scoring/common.mjs';
+import { sliderScale } from '../docs/scoring.js';
 
 const root = new URL('..', import.meta.url);
 const EVENTS = new URL('docs/data/events.json', root);
@@ -81,7 +82,9 @@ export function saveData({ events, upcoming, reasons, results, facts, state }, n
   const liveWeights = liveWeightsFrom(FOOTBALL_W, FOOTBALL_LIVE);
   // All the football weights, for "Custom scoring": the page re-scores with these (docs/scoring.js).
   const footballWeights = FOOTBALL_W;
-  writeFileSync(EVENTS, JSON.stringify({ generated: now.toISOString(), events: list, upcoming: soon, elo, liveWeights, footballWeights }) + '\n');
+  // Where each custom-scoring slider stands with these weights, in points (see sliderScale()).
+  const scale = sliderScale(list.filter((e) => e.sport === 'football' && facts?.has(e.id)).map((e) => facts.get(e.id)), FOOTBALL_W);
+  writeFileSync(EVENTS, JSON.stringify({ generated: now.toISOString(), events: list, upcoming: soon, elo, liveWeights, footballWeights, sliderScale: scale }) + '\n');
   const pick = (map) => JSON.stringify(Object.fromEntries(list.filter((e) => map.has(e.id)).map((e) => [e.id, map.get(e.id)]))) + '\n';
   writeFileSync(REASONS, pick(reasons));
   writeFileSync(RESULTS, pick(results));

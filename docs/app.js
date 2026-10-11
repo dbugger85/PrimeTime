@@ -1,6 +1,6 @@
 import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug } from './logic.js';
 import { ESPN, clockOf, liveClockText, espnDays, liveFacts, scoreLivePace, LIVE_FROM, elapsedText } from './live.js';
-import { scoreFootball, applyTweaks, cleanTweaks, isStandard, DEFAULT_TWEAKS, TWEAK_GROUPS, TWEAK_FIXED, STAKES, SLIDER_STEP, CURVE_STEP, BOOST_STEP, BOOST_MAX } from './scoring.js';
+import { scoreFootball, applyTweaks, cleanTweaks, isStandard, DEFAULT_TWEAKS, TWEAK_GROUPS, TWEAK_FIXED, STAKES, SCALE_MAX, SCALE_STEP, CURVE_STEP, BOOST_STEP, BOOST_MAX } from './scoring.js';
 
 const SERVICES = {
   viaplay: { name: 'Viaplay', url: 'https://viaplay.no/sport' },
@@ -49,6 +49,7 @@ const freshClock = new Map(); // id -> the clock as the page last read it from E
 const finished = new Set(); // live matches ESPN says are over, until the bot moves them to Replays
 const redrawn = new Set(); // finished matches already redrawn without their button
 let footballWeights = null; // all the football weights (from events.json), for custom scoring
+let sliderScale = {}; // where each slider stands with the standard weights, in points (from events.json)
 let factsFile = null; // docs/data/facts.json: loaded only after the custom scoring or calibration warning
 let factsFailed = false;
 let custom = new Map(); // id -> the match re-scored with your settings ({ score, reasons, lines })
@@ -926,7 +927,11 @@ function fillCalc(box, e, f) {
 // The panel: built once (so a slider isn't replaced while you drag it), then kept up to date.
 const SLIDERS = [...Object.entries(TWEAK_GROUPS).map(([key, g]) => ({ key, ...g })),
   { key: 'curve', label: 'Top end', hint: 'Left: high scores are rarer. Right: more generous.', keys: ['curveFrom'] }];
-const sliderText = (v) => (v === 0 ? 'Off' : v === 1 ? 'Normal' : v === 2 ? 'Double' : `×${v.toFixed(1)}`);
+// A slider shows points (see SCALE_MAX in scoring.js): its multiplier times where it stands by standard.
+// Without a scale (an older events.json) it falls back to the plain multiplier.
+const scaleOf = (key) => sliderScale[key] || 1;
+const sliderText = (key, v) => (v === 0 ? 'Off' : `${v.toFixed(1)} points${key === 'oneSided' ? ' off' : ''}`);
+const multiplierOf = (key, v) => (Math.abs(v - scaleOf(key)) < SCALE_STEP / 2 ? 1 : v / scaleOf(key)); // on the mark: exactly standard
 function curveText(v) {
   const std = footballWeights?.curveFrom;
   return v === std ? `Standard (${v})` : std != null && v < std ? `Stricter (${v})` : `More generous (${v})`;
@@ -940,18 +945,18 @@ function buildTuning() {
     row.dataset.key = s.key;
     const id = `t-s-${s.key}`;
     const input = Object.assign(document.createElement('input'), { type: 'range', id });
-    Object.assign(input, s.key === 'curve' ? { min: 0, max: 9, step: CURVE_STEP } : { min: 0, max: 2, step: SLIDER_STEP });
+    Object.assign(input, s.key === 'curve' ? { min: 0, max: 9, step: CURVE_STEP } : { min: 0, max: SCALE_MAX, step: SCALE_STEP });
     const head = Object.assign(document.createElement('div'), { className: 's-head' });
     head.append(Object.assign(document.createElement('label'), { htmlFor: id, className: 's-label', textContent: s.label }), Object.assign(document.createElement('output'), { className: 's-val', htmlFor: id }));
     const track = Object.assign(document.createElement('div'), { className: 's-track' });
     track.append(input, Object.assign(document.createElement('span'), { className: 's-std', textContent: 'standard', ariaHidden: 'true' }));
     row.append(head, track, Object.assign(document.createElement('p'), { className: 'small s-hint', textContent: s.hint }), Object.assign(document.createElement('p'), { className: 'small s-weights', hidden: true }));
-    const show = () => { row.querySelector('.s-val').textContent = s.key === 'curve' ? curveText(Number(input.value)) : sliderText(Number(input.value)); };
+    const show = () => { row.querySelector('.s-val').textContent = s.key === 'curve' ? curveText(Number(input.value)) : sliderText(s.key, Number(input.value)); };
     input.oninput = show;
     input.onchange = () => {
       const v = Number(input.value);
       if (s.key === 'curve') prefs.tweaks.curveFrom = v === footballWeights?.curveFrom ? null : v;
-      else prefs.tweaks.sliders[s.key] = v;
+      else prefs.tweaks.sliders[s.key] = multiplierOf(s.key, v);
       prefs.tweaks = cleanTweaks(prefs.tweaks);
       tuningChanged();
     };
@@ -983,10 +988,10 @@ function renderTuning() {
   for (const row of document.querySelectorAll('#t-sliders .slider')) {
     const s = SLIDERS.find((x) => x.key === row.dataset.key);
     const input = row.querySelector('input');
-    if (document.activeElement !== input || !input.matches(':active')) input.value = String(s.key === 'curve' ? curveValue() : t.sliders[s.key]);
+    if (document.activeElement !== input || !input.matches(':active')) input.value = String(s.key === 'curve' ? curveValue() : t.sliders[s.key] * scaleOf(s.key));
     input.disabled = !t.on;
-    row.querySelector('.s-val').textContent = s.key === 'curve' ? curveText(Number(input.value)) : sliderText(Number(input.value));
-    if (s.key === 'curve') placeStd(row, footballWeights?.curveFrom ?? 2.5, 0, 9); else placeStd(row, 1, 0, 2);
+    row.querySelector('.s-val').textContent = s.key === 'curve' ? curveText(Number(input.value)) : sliderText(s.key, Number(input.value));
+    if (s.key === 'curve') placeStd(row, footballWeights?.curveFrom ?? 2.5, 0, 9); else placeStd(row, scaleOf(s.key), 0, SCALE_MAX);
     // Calibration mode: the weights each slider moves, standard and yours.
     const weights = row.querySelector('.s-weights');
     weights.hidden = !calibrating || !footballWeights;
@@ -1154,6 +1159,7 @@ async function fetchData({ quiet = false } = {}) {
     eloRatings = data.elo ?? {};
     liveWeights = data.liveWeights ?? null;
     footballWeights = data.footballWeights ?? null;
+    sliderScale = data.sliderScale ?? {};
     // Custom scoring or calibration: fetch the facts again when a replay is missing from them (scored since).
     if ((prefs.tweaks.on || calibrating) && (!factsFile || events.some((e) => e.sport === 'football' && !factsFile[e.id]))) await ensureFacts({ force: true });
     if (calibrating && events.some((e) => !resultsFile?.[e.id])) await ensureResults({ force: true });

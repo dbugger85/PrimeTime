@@ -291,7 +291,13 @@ export const TWEAK_GROUPS = {
 };
 export const TWEAK_FIXED = ['favoriteDiscount', 'underdogBonus', 'upsetWin', 'upsetDraw', 'upsetShootout', 'evenMatch', 'leagueLevel', 'curveFrom'];
 const SHARES = ['alreadyDecided', 'nearlyDecided', 'smallMatch']; // parts of 1: never more than all of it
-export const SLIDER_STEP = 0.2;
+// The sliders are in points, on one scale for all of them: about how much that part typically adds to
+// (or takes off) a match's score when it happens, from 0 to SCALE_MAX. The bot measures where each part
+// stands with the standard weights (`sliderScale()`, published in events.json), so the "standard" marks
+// sit at different places. Saved settings are the multipliers behind the points (1 = standard).
+export const SCALE_MAX = 7;
+export const SCALE_STEP = 0.1;
+export const MULT_MAX = 50; // a rare part (what was at stake, 0.35 points) can still be made worth the whole scale
 export const CURVE_STEP = 0.5;
 export const BOOST_STEP = 0.5;
 export const BOOST_MAX = 2;
@@ -312,7 +318,7 @@ export function cleanTweaks(x) {
   out.on = x.on === true;
   for (const k of Object.keys(out.sliders)) {
     const v = x.sliders?.[k];
-    if (typeof v === 'number' && Number.isFinite(v)) out.sliders[k] = tidy(snap(v, SLIDER_STEP, 0, 2));
+    if (typeof v === 'number' && Number.isFinite(v)) out.sliders[k] = Math.round(clamp(v, 0, MULT_MAX) * 1000) / 1000;
   }
   if (typeof x.curveFrom === 'number' && Number.isFinite(x.curveFrom)) out.curveFrom = tidy(snap(x.curveFrom, CURVE_STEP, 0, 9));
   for (const [comp, v] of Object.entries(x.comps && typeof x.comps === 'object' ? x.comps : {})) {
@@ -336,3 +342,31 @@ export function applyTweaks(W, tweaks) {
 
 // True when the tweaks change nothing (the standard scoring), apart from the switch.
 export const isStandard = (tweaks) => Object.values(tweaks.sliders).every((v) => v === 1) && tweaks.curveFrom == null && !Object.keys(tweaks.comps).length;
+
+// Which slider a scoring line belongs to, from the weights behind it ('boost' and 'curve' have none).
+export function groupOfKeys(keys) {
+  if (!keys.length) return 'boost';
+  if (keys.includes('curveFrom')) return 'curve';
+  const g = Object.entries(TWEAK_GROUPS).find(([, x]) => keys.some((k) => x.keys.includes(k)));
+  return g ? g[0] : keys.some((k) => TWEAK_FIXED.includes(k)) ? 'upsets' : null;
+}
+
+// Where each slider stands with the standard weights: the points its lines typically add up to (as a
+// size, so "taken off" counts too) in the matches where they add something. Made by the bot from the
+// saved facts; nothing in it says anything about a single match.
+export function sliderScale(factsList, W) {
+  const total = {}, count = {};
+  for (const f of factsList) {
+    const per = {};
+    for (const l of scoreFootball(f, W).lines) {
+      const g = groupOfKeys(l.keys);
+      if (g in TWEAK_GROUPS) per[g] = (per[g] ?? 0) + l.points;
+    }
+    for (const [g, v] of Object.entries(per)) {
+      if (Math.abs(v) < 0.05) continue;
+      total[g] = (total[g] ?? 0) + Math.abs(v);
+      count[g] = (count[g] ?? 0) + 1;
+    }
+  }
+  return Object.fromEntries(Object.keys(count).map((g) => [g, Math.round((100 * total[g]) / count[g]) / 100]));
+}

@@ -266,12 +266,14 @@ test('upcoming events carry no score, only when and where', () => {
 
 test('the real docs/data/events.json is spoiler-free', { skip: !existsSync(new URL('../docs/data/events.json', import.meta.url)) }, () => {
   const data = JSON.parse(readFileSync(new URL('../docs/data/events.json', import.meta.url)));
-  assert.deepEqual(Object.keys(data).filter((k) => !['elo', 'liveWeights', 'footballWeights'].includes(k)).sort(), ['events', 'generated', 'upcoming']); // elo: since football 16; liveWeights: since 2026-10-10; footballWeights: since football 18
+  assert.deepEqual(Object.keys(data).filter((k) => !['elo', 'liveWeights', 'footballWeights', 'sliderScale'].includes(k)).sort(), ['events', 'generated', 'upcoming']); // elo: since football 16; liveWeights: since 2026-10-10; footballWeights: since football 18
   // All the football weights, for custom scoring: exactly weights.mjs's keys, numbers only.
   if (data.footballWeights) {
     assert.deepEqual(Object.keys(data.footballWeights).sort(), Object.keys(WEIGHTS.FOOTBALL).sort());
     assert.ok(Object.values(data.footballWeights).every(Number.isFinite));
   }
+  // Where each slider stands: one number per slider, an average over many matches.
+  for (const [k, v] of Object.entries(data.sliderScale ?? {})) assert.ok(['goals', 'tight', 'late', 'chances', 'cards', 'oneSided', 'upsets', 'bigMatch', 'stakes'].includes(k) && Number.isFinite(v) && v >= 0, `sliderScale ${k}`);
   // The weights for "Excitement so far": exactly the football weights the page needs, numbers only.
   if (data.liveWeights) {
     assert.deepEqual(Object.keys(data.liveWeights).sort(), Object.keys(liveWeightsFrom(WEIGHTS.FOOTBALL, WEIGHTS.FOOTBALL_LIVE)).sort());

@@ -460,7 +460,6 @@ try {
     await setSlider('goals', 0);
     await page.waitForFunction(() => document.querySelector('#t-s-goals').closest('.slider').querySelector('.s-val').textContent === 'Off');
     assert.ok((await pairs()).some(([mine, std]) => mine < std), 'Goals off lowers the scores');
-    await setSlider('goals', 1);
     // A competition boost shows in "Why this score?".
     await page.evaluate(() => window.scrollTo(0, 0));
     const first = await page.$eval('.card.custom', (c) => c.dataset.id);
