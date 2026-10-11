@@ -259,7 +259,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-11T17:05:31.026Z",
+ "lastFull": "2026-10-11T19:38:53.127Z",
  "versions": {
   "football": "18.c0368165",
   "tennis": "9.c615cf94",
@@ -1621,24 +1621,6 @@
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/fenerbahce-roma-rw02rxqg"
    }
   },
-  "fb-401915447": {
-   "start": "2026-09-09T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/sporting-cp-galatasaray-5p7smsfj"
-   }
-  },
-  "fb-401915446": {
-   "start": "2026-09-09T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/liverpool-atletico-yt9fbt62"
-   }
-  },
-  "fb-401915423": {
-   "start": "2026-09-09T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/napoli-arsenal-wkn4q3kj"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -1989,8 +1971,8 @@
     "Everton": 1.6666666666666667,
     "Chelsea": 1.6666666666666667,
     "Leeds United": 1.5,
-    "Liverpool": 1.8,
     "Hull City": 1.5,
+    "Liverpool": 1.5,
     "Ipswich Town": 1.5,
     "Newcastle United": 1.6,
     "Crystal Palace": 1.1666666666666667,
@@ -2045,9 +2027,9 @@
     "Viking FK": 2.409090909090909,
     "Bodo/Glimt": 2.409090909090909,
     "Tromso": 1.7727272727272727,
-    "Molde": 1.7142857142857142,
+    "Molde": 1.6818181818181819,
     "Rosenborg": 1.5454545454545454,
-    "Lillestrom": 1.5238095238095237,
+    "Lillestrom": 1.5,
     "SK Brann": 1.3181818181818181,
     "Fredrikstad": 1.3181818181818181,
     "Sarpsborg FK": 1.2727272727272727,
