@@ -60,12 +60,7 @@ h1, h2, h3, p { margin: 0; }
 
 .top { padding: calc(22px + env(safe-area-inset-top)) 0 10px; }
 .brand { display: flex; align-items: center; gap: 10px; }
-.logo {
-  display: grid; place-items: center;
-  width: 34px; height: 34px; border-radius: 9px;
-  background: var(--accent); color: var(--accent-ink);
-  font-size: 15px; padding-left: 3px;
-}
+.logo { display: block; width: 36px; height: 36px; }
 h1 { font: 700 32px/1 'Barlow Condensed', system-ui, sans-serif; letter-spacing: 0.01em; text-transform: uppercase; }
 .tld { font-size: 0.6em; font-weight: 600; text-transform: none; letter-spacing: 0; margin-left: 2px; opacity: 0.6; }
 .tagline { color: var(--muted); margin-top: 6px; }
