@@ -5,12 +5,16 @@
 //   primetime-events.json   the same records as one JSON array
 //   football.csv            one football match per row, flat columns
 //   README.md               what every field means and its source
+//   primetime-data.zip      all of the above (needs the zip command)
+// It also writes the public download page docs/dataset/index.html (primetime.re/dataset)
+// from scripts/dataset-page.html. The files themselves go on a GitHub release
+// (the page links to releases/latest), see "Research dataset" in CLAUDE.md.
 // Events that have dropped out of docs/data (football after 30 days) are
 // recovered from the git history of the data files.
 // Usage: npm run export
 
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { STAKES } from '../docs/scoring.js';
 
 const OUT = 'export';
@@ -222,4 +226,35 @@ writeFileSync(`${OUT}/README.md`, template
   .replace('{{counts}}', `${records.length} events (${sports}); ${count((r) => r.facts)} football matches with full facts; ${count((r) => r.recoveredFromGitHistory)} recovered from git history`)
   .replace('{{sources}}', Object.entries(SRC).map(([k, v]) => `- \`${k}\`: ${v}`).join('\n')));
 
-console.log(`Wrote ${OUT}/: ${records.length} events (${sports}), ${rows.length} football rows`);
+const ZIPPED = ['README.md', 'primetime-events.jsonl', 'primetime-events.json', 'football.csv'];
+rmSync(`${OUT}/primetime-data.zip`, { force: true });
+execFileSync('zip', ['-q', '-9', 'primetime-data.zip', ...ZIPPED], { cwd: OUT });
+
+// The public page: counts, date ranges, file sizes and one example record.
+const fmtDate = (d) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+const ofSport = (s) => records.filter((r) => r.sport === s);
+const range = (rs) => { const d = rs.map((r) => Date.parse(r.start)).sort((a, b) => a - b); return `${fmtDate(d[0])} to ${fmtDate(d.at(-1))}`; };
+const size = (f) => { const b = statSync(`${OUT}/${f}`).size; return b > 1e6 ? `${(b / 1e6).toFixed(1)} MB` : `${Math.round(b / 1e3)} KB`; };
+const esc = (s) => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
+const ex = structuredClone(records.find((r) => r.sport === 'football' && r.facts && r.lineups) ?? records[0]);
+if (ex.lineups) ex.lineups = [{ ...ex.lineups[0], players: [...ex.lineups[0].players.slice(0, 2), ['…']], bench: [['…']] }, '…'];
+if (ex.result?.substitutions?.length) ex.result.substitutions = [ex.result.substitutions[0], '…'];
+const fill = {
+  BASE: 'https://github.com/dbugger85/PrimeTime/releases/latest/download/',
+  TOTAL: records.length.toLocaleString('en-US'), DATE: fmtDate(Date.now()),
+  SIZE_ZIP: size('primetime-data.zip'), SIZE_README: size('README.md'), SIZE_JSON: size('primetime-events.json'),
+  SIZE_JSONL: size('primetime-events.jsonl'), SIZE_CSV: size('football.csv'), CSV_COLS: cols.length,
+  N_FB: ofSport('football').length, N_TN: ofSport('tennis').length.toLocaleString('en-US'),
+  N_F1: ofSport('f1').length, N_WI: ofSport('winter').length,
+  R_FB: range(ofSport('football')), R_TN: range(ofSport('tennis')), R_F1: range(ofSport('f1')), R_WI: range(ofSport('winter')),
+  C_FB: [...new Set(ofSport('football').map((r) => r.competition.name))].join(', '),
+  N_FACTS: count((r) => r.facts), N_REC: count((r) => r.recoveredFromGitHistory),
+  EX_TITLE: esc(ex.result?.text ?? ex.id), EXAMPLE: esc(JSON.stringify(ex, null, 2)),
+};
+let page = readFileSync('scripts/dataset-page.html', 'utf8');
+for (const [k, v] of Object.entries(fill)) page = page.replaceAll(`{{${k}}}`, String(v));
+if (page.includes('{{')) throw new Error('dataset page: unfilled placeholder');
+mkdirSync('docs/dataset', { recursive: true });
+writeFileSync('docs/dataset/index.html', page);
+
+console.log(`Wrote ${OUT}/: ${records.length} events (${sports}), ${rows.length} football rows, and docs/dataset/index.html`);

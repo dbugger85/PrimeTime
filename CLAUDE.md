@@ -13,7 +13,7 @@ npm test              # unit tests: scoring, page logic, live clock and pace, sp
 npm run build         # fetch + score everything into docs/data/events.json (takes minutes the first time)
 npm run build -- f1   # only one sport: football | tennis | f1
 npm start             # serve docs/ at http://localhost:8000
-npm run export        # all events with every data point and its source → export/ (git-ignored; JSONL, football CSV, README)
+npm run export        # research dataset → export/ (git-ignored) + docs/dataset/index.html; see "Research dataset"
 npm install && npm run e2e   # browser test in headless Chromium (/usr/bin/chromium); screenshots in test/screenshots/
 ```
 
@@ -75,6 +75,10 @@ The competitions are in `src/competitions.mjs`. The owner chose them: the Premie
 - `data/state.json` lists football days and Slams that are complete.
 - **Each sport has its own version** (`SCORING_VERSIONS` in `src/scoring/common.mjs`, e.g. `"10.3fa2c1d0"`): a formula number from `FORMULA_VERSIONS` plus a fingerprint of that sport's weights. **Bump the sport's number whenever its formula changes.** A weight change re-scores that sport by itself. The versions are per sport because re-fetching a year of F1 is slow. `state.versions` remembers what the saved days and Slams were built with.
 - **Time budget:** after 18 minutes (`BUDGET_MIN`; try `BUDGET_MIN=2 npm run build -- f1`) the build stops fetching, saves what's done, and continues at the next full build, because GitHub kills a run after 30 minutes and nothing gets saved. F1 is processed newest first.
+
+## Research dataset (primetime.re/dataset, since 2026-10-11)
+
+The owner shares all the data with researchers outside the app. `npm run export` (`scripts/export.mjs`) collects every event from `docs/data/*.json` plus the ones that have dropped out (recovered from every 10th commit of the data files' git history) and writes `export/` (git-ignored): `primetime-events.jsonl` and `.json` (nested records, each with a `sources` map: field path → source), `football.csv` (flat, one match per row), `README.md` (from `scripts/export-readme.md`, the field guide) and `primetime-data.zip` (needs the `zip` command). It also renders `docs/dataset/index.html` from `scripts/dataset-page.html` (counts, date ranges, sizes, one example record). The files are **not in the repo**: they're assets of a GitHub release, and the page links to `releases/latest/download/<file>`, so **keep the newest dataset release the repo's "latest"**. To refresh: `npm run export`, then `gh release create dataset-YYYY-MM-DD export/primetime-data.zip export/README.md export/primetime-events.json export/primetime-events.jsonl export/football.csv --latest --title "Research dataset YYYY-MM-DD" --notes "…"`, then commit and push `docs/dataset/index.html`. The app doesn't link to the page (it's full of results). Claude artifacts can't be shared outside the owner's organization, which is why it lives here; a private artifact copy exists at https://claude.ai/artifact/Mrb3L86SnYXuhux857KqTG.
 
 ## Upcoming and live events ("Coming up/ongoing" view)
 
