@@ -2,7 +2,7 @@
 
 A phone-first web page that rates finished football, tennis and F1 events for how exciting they were (0–10), without spoiling the result. It also gives skip tips ("Skip the first half", "Start from set 3", "Watch the start, then skip to lap 30") and shows which Norwegian streaming services carry each event.
 
-- **Live:** https://dbugger85.github.io/PrimeTime/
+- **Live:** https://primetime.re (since 2026-10-11; bought at domeneshop.no: 4 A records to GitHub's 185.199.108–111.153 and `www` CNAME `dbugger85.github.io`; the domain is set in the repo's Pages settings, not a CNAME file, because Pages publishes from Actions; HTTPS enforced). The old https://dbugger85.github.io/PrimeTime/ redirects there. The header shows a small ".re" after the name (`.tld`).
 - **Repo:** https://github.com/dbugger85/PrimeTime (public, branch `main`). The failed 2026 Next.js attempt is kept on branch `old-nextjs`.
 - **Owner:** a beginner "vibe coder" in Norway. Explain things in plain language. `PLAN.md` holds the original plan and the owner's decisions.
 
@@ -13,6 +13,7 @@ npm test              # unit tests: scoring, page logic, live clock and pace, sp
 npm run build         # fetch + score everything into docs/data/events.json (takes minutes the first time)
 npm run build -- f1   # only one sport: football | tennis | f1
 npm start             # serve docs/ at http://localhost:8000
+npm run export        # all events with every data point and its source → export/ (git-ignored; JSONL, football CSV, README)
 npm install && npm run e2e   # browser test in headless Chromium (/usr/bin/chromium); screenshots in test/screenshots/
 ```
 
