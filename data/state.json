@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-12T18:45:35.968Z",
+ "lastFull": "2026-10-12T21:40:36.625Z",
  "versions": {
   "football": "18.c0368165",
   "tennis": "9.c615cf94",
@@ -1599,24 +1599,6 @@
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/lillestroem-vaalerenga-mfqzfreq"
    }
   },
-  "fb-401915441": {
-   "start": "2026-09-10T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/como-leipzig-ecbywfch"
-   }
-  },
-  "fb-401915443": {
-   "start": "2026-09-10T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/bayern-bodoe-glimt-fsy4wm9r"
-   }
-  },
-  "fb-401915442": {
-   "start": "2026-09-10T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/manchester-united-sabah-56jzza6t"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -1991,15 +1973,15 @@
     "Hull City": 1.5,
     "Liverpool": 1.5,
     "Ipswich Town": 1.5,
-    "Newcastle United": 1.6,
+    "Newcastle United": 1.3333333333333333,
     "Crystal Palace": 1.1666666666666667,
     "Manchester United": 1,
+    "Coventry City": 1,
     "Nottingham Forest": 0.8333333333333334,
     "Aston Villa": 0.8333333333333334,
     "Sunderland": 0.6666666666666666,
     "AFC Bournemouth": 0.5,
     "Tottenham Hotspur": 0.5,
-    "Coventry City": 0.6,
     "Fulham": 0.3333333333333333
    },
    "uefa.champions": {
@@ -2050,10 +2032,10 @@
     "SK Brann": 1.3181818181818181,
     "Fredrikstad": 1.3181818181818181,
     "Sarpsborg FK": 1.2727272727272727,
+    "KFUM Oslo": 1.2727272727272727,
     "Hamarkameratene": 1.1818181818181819,
-    "KFUM Oslo": 1.1904761904761905,
     "Sandefjord": 1.0909090909090908,
-    "Vålerenga": 1.0952380952380953,
+    "Vålerenga": 1.0454545454545454,
     "Aalesund": 0.9545454545454546,
     "Kristiansund BK": 0.8636363636363636,
     "IK Start": 0.7272727272727273
