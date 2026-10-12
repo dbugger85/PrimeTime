@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-12T15:55:32.471Z",
+ "lastFull": "2026-10-12T18:45:35.968Z",
  "versions": {
   "football": "18.c0368165",
   "tennis": "9.c615cf94",
@@ -1617,18 +1617,6 @@
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/manchester-united-sabah-56jzza6t"
    }
   },
-  "fb-401915422": {
-   "start": "2026-09-10T16:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/psv-shakhtar-njhh8mhv"
-   }
-  },
-  "fb-401915444": {
-   "start": "2026-09-10T16:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/fenerbahce-roma-rw02rxqg"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -1898,6 +1886,13 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/nottingham-forest-arsenal/s26100858935751475",
     "until": "2026-10-20T18:00:00.000Z"
+   }
+  },
+  "fb-401879257": {
+   "start": "2026-10-19T19:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/tottenham-coventry/s26100904869345605",
+    "until": "2026-10-21T22:00:00.000Z"
    }
   }
  },
