@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-12T13:01:08.689Z",
+ "lastFull": "2026-10-12T15:55:32.471Z",
  "versions": {
   "football": "18.c0368165",
   "tennis": "9.c615cf94",
@@ -1884,6 +1884,20 @@
    "start": "2026-10-14T19:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/slovan-bratislava-stuttgart-b4h8jaaa"
+   }
+  },
+  "fb-401879263": {
+   "start": "2026-10-18T13:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/bournemouth-sunderland/s26100701899854520",
+    "until": "2026-10-20T15:30:00.000Z"
+   }
+  },
+  "fb-401878769": {
+   "start": "2026-10-18T15:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/nottingham-forest-arsenal/s26100858935751475",
+    "until": "2026-10-20T18:00:00.000Z"
    }
   }
  },
