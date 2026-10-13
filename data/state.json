@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-13T17:45:38.097Z",
+ "lastFull": "2026-10-13T20:40:40.325Z",
  "versions": {
   "football": "18.c0368165",
   "tennis": "9.c615cf94",
@@ -1876,6 +1876,12 @@
     "url": "https://viaplay.no/sport/fotball/premier-league/tottenham-coventry/s26100904869345605",
     "until": "2026-10-21T22:00:00.000Z"
    }
+  },
+  "fb-401843465": {
+   "start": "2026-10-17T12:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/hamkam-bodoe-glimt-dfyervg1"
+   }
   }
  },
  "ratings": {
@@ -1985,22 +1991,23 @@
     "Fulham": 0.3333333333333333
    },
    "uefa.champions": {
+    "Sporting CP": 3,
     "Paris Saint-Germain": 3,
     "Bayern Munich": 3,
     "Barcelona": 3,
     "Manchester United": 3,
     "Como": 3,
-    "Sporting CP": 3,
     "VfB Stuttgart": 3,
     "Manchester City": 3,
     "Aston Villa": 3,
-    "Lens": 3,
     "Real Betis": 3,
     "Borussia Dortmund": 3,
     "Liverpool": 3,
     "Real Madrid": 3,
     "Arsenal": 3,
     "AEK Athens": 3,
+    "Lens": 1.5,
+    "Sabah FK": 1.5,
     "AS Roma": 1,
     "Shakhtar Donetsk": 1,
     "Fenerbahce": 1,
@@ -2008,7 +2015,6 @@
     "Villarreal": 0,
     "Club Brugge": 0,
     "Lille": 0,
-    "Slavia Prague": 0,
     "Atlético Madrid": 0,
     "Internazionale": 0,
     "LASK Linz": 0,
@@ -2016,9 +2022,9 @@
     "Galatasaray": 0,
     "Viking FK": 0,
     "FC Porto": 0,
+    "Slavia Prague": 0,
     "RB Leipzig": 0,
     "Feyenoord Rotterdam": 0,
-    "Sabah FK": 0,
     "Slovan Bratislava": 0,
     "Bodo/Glimt": 0
    },
