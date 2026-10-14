@@ -259,9 +259,9 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-14T18:38:13.257Z",
+ "lastFull": "2026-10-14T19:40:21.662Z",
  "versions": {
-  "football": "19.7dbd9be4",
+  "football": "20.758d20f3",
   "tennis": "9.c615cf94",
   "f1": "11.376e0bc0",
   "winter": "2.1e4975a6"
@@ -1875,6 +1875,19 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kristiansund-aalesund-qx9a8abx"
    }
+  },
+  "fb-401843459": {
+   "start": "2026-10-17T16:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/viking-fredrikstad-2t5sn8sn"
+   }
+  },
+  "fb-401879256": {
+   "start": "2026-10-24T11:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/aston-villa-man-city/s26101438393058540",
+    "until": "2026-10-26T14:25:00.000Z"
+   }
   }
  },
  "ratings": {
@@ -1990,7 +2003,7 @@
     "Arsenal": 3,
     "Bayern Munich": 2,
     "Paris Saint-Germain": 3,
-    "Como": 3,
+    "Como": 1.5,
     "Manchester United": 1.5,
     "VfB Stuttgart": 3,
     "Manchester City": 3,
@@ -2005,6 +2018,7 @@
     "Lens": 1.5,
     "RB Leipzig": 1.5,
     "Sabah FK": 1.5,
+    "Feyenoord Rotterdam": 1.5,
     "AS Roma": 1,
     "Shakhtar Donetsk": 1,
     "Fenerbahce": 1,
@@ -2016,7 +2030,6 @@
     "Napoli": 0,
     "LASK Linz": 0,
     "Lille": 0,
-    "Feyenoord Rotterdam": 0,
     "Galatasaray": 0,
     "Slovan Bratislava": 0,
     "Bodo/Glimt": 0
