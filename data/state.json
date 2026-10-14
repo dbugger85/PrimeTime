@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-14T08:55:29.577Z",
+ "lastFull": "2026-10-14T11:45:38.367Z",
  "versions": {
   "football": "18.c0368165",
   "tennis": "9.c615cf94",
@@ -1881,6 +1881,13 @@
    "start": "2026-10-17T12:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/hamkam-bodoe-glimt-dfyervg1"
+   }
+  },
+  "fb-401879253": {
+   "start": "2026-10-23T19:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/ipswich-nottingham-forest/s26101412017099697",
+    "until": "2026-10-25T21:30:00.000Z"
    }
   }
  },
