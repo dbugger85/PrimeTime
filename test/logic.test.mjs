@@ -255,11 +255,18 @@ test('"Show win chances": one line from the pre-match chances, football only', (
   assert.equal(chancesLine({ sport: 'tennis', players: ['A', 'B'] }), '');
 });
 
-test('"Why this score?" groups football lines by pillar, with a subtotal each', () => {
+test('"Why this score?" groups football lines by pillar: scores 0–10, weights, the average, the occasion', () => {
   const labels = { chances: 'Chances', tempo: 'Tempo', tension: 'Tension', drama: 'Drama', occasion: 'The occasion' };
-  const groups = reasonGroups([[2.4, '2 goals', 'drama'], [-3.1, 'Higher scores are harder to reach', 'occasion'], [0.5, 'Hit the woodwork', 'chances'],
-    [0.9, 'Big match: two strong teams (×1.15)', 'occasion'], [-0.7, 'One-sided: won by 3 goals', 'drama'], [0.3, 'Your mix of the four pillars, evened out to the usual level', 'mix']], labels);
-  assert.deepEqual(groups.map((g) => [g.label, g.total]), [['Chances', '+0.5'], ['Drama', '+1.7'], ['The occasion', '-1.9']]);
-  assert.deepEqual(groups[2].lines.map((l) => l.label.slice(0, 9)), ['Your mix ', 'Big match', 'Higher sc']);
+  const shares = { chances: 0.2, tempo: 0.08, tension: 0.24, drama: 0.48 };
+  const groups = reasonGroups([[6.4, 'chances', 'pillar'], [4.1, 'Chances worth 3.2 xG', 'chances'], [2.3, '5 big chances', 'chances'],
+    [8.1, 'drama', 'pillar'], [8.8, '4 goals', 'drama'], [-0.7, 'One-sided: won by 3 goals', 'drama'],
+    [7.4, 'Weighted average of the four pillars', 'average'],
+    [0.5, 'Title race before kick-off', 'occasion'], [-0.3, 'Higher scores are harder to reach', 'occasion']], labels, shares);
+  assert.deepEqual(groups.map((g) => [g.kind, g.label, g.total]), [['pillar', 'Chances (20%)', '6.4'], ['pillar', 'Drama (48%)', '8.1'],
+    ['average', 'Match score: the weighted average', '7.4'], ['occasion', 'The occasion', ''], ['final', 'Final score', '7.6']]);
+  assert.deepEqual(groups[1].lines.map((l) => l.pts), ['+8.8', '-0.7']);
+  // Football 19 reasons: grouped and added up, no weights.
+  const old = reasonGroups([[2.4, '2 goals', 'drama'], [0.5, 'Hit the woodwork', 'chances'], [0.9, 'Big match: two strong teams (×1.15)', 'occasion']], labels);
+  assert.deepEqual(old.map((g) => [g.label, g.total]), [['Chances', '+0.5'], ['Drama', '+2.4'], ['The occasion', '+0.9']]);
   assert.equal(reasonGroups([[1, 'x']], labels), null, 'older reasons keep the flat list');
 });

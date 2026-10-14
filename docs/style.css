@@ -197,13 +197,14 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .s-name { display: inline-flex; align-items: center; gap: 2px; min-width: 0; }
 .s-info { border: 0; background: none; color: var(--muted); font-size: 16px; line-height: 1; padding: 6px 8px; margin: -6px 0; min-width: 32px; min-height: 32px; cursor: pointer; }
 .s-info[aria-expanded="true"] { color: var(--accent); }
-.tuning .t-mix { padding: 0 14px 10px; margin: 0; }
 .t-advanced { margin: 4px 14px 12px; border-top: 1px solid var(--line); }
 .t-advanced > summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
 .t-advanced > .small { padding: 0 0 8px; margin: 0; }
 .t-advanced .t-group h4 { margin: 10px 0 4px; font-size: 14px; }
 .t-advanced .sliders { padding: 4px 0 10px; }
 .why li.group { margin-top: 8px; font-weight: 700; }
+.why li.group.average, .why li.group.final { border-top: 1px solid var(--line); padding-top: 6px; }
+.why li.group .pts { color: var(--ink); }
 .why li.group:first-child { margin-top: 0; }
 .reset:disabled { opacity: 0.45; cursor: default; }
 .calib-result { font-size: 14.5px; font-weight: 700; color: var(--live); }

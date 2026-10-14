@@ -21,6 +21,7 @@ export const FOOTBALL = {
   closeMatch: 1.2, //         if it was within one goal the whole match, stoppage time included (less if only part of it)
   equaliser: 0.8, //          each equaliser
   leadChange: 1.0, //         each time the lead changed hands (up to 3 times)
+  comeback: 1.0, //           a team 2 or more goals down got back to within one goal (once per match)
   lateGoal: 0.5, //           each goal from 75' to 85', while the result was still open
   veryLateGoal: 1.0, //       each goal from 85', while the result was still open
   lateDecider: 0.6, //        extra for each goal from 85' that changed the result: an equaliser, or a winner from level (up to 2)
@@ -75,14 +76,25 @@ export const FOOTBALL = {
   relegationBattle: 0.4, //   a relegation battle
   otherRace: 0.2, //          top-4, top-8, European spots, play-off spots, top of the group, qualifying
 
+  // The four pillars (football 20). Every line above belongs to one: Chances, Tempo, Tension or Drama.
+  // Each pillar's points become a score from 0 to 10, and the match score is their weighted average.
+  pillarChances: 0.25, //     how much Chances counts in the match score (the four are shares: 0.25 = 25%)
+  pillarTempo: 0.25, //       how much Tempo counts
+  pillarTension: 0.25, //     how much Tension counts
+  pillarDrama: 0.25, //       how much Drama counts
+  chancesScale: 1.4, //       Chances points that give a pillar score of about 6.3 out of 10 (twice as many: about 8.6; 10 is never quite reached)
+  tempoScale: 0.57, //        the same for Tempo
+  tensionScale: 2.2, //       the same for Tension
+  dramaScale: 3.6, //         the same for Drama
+
   // Big match, from the teams' Elo ratings (not the odds): clubs are compared with the rest of
   // their own league, national teams with the whole world
-  bigMatch: 0.25, //          two of the strongest teams: all points ×1.25; an average pair: ×1 (0 = off)
-  smallMatch: 0.4, //         two of the weakest teams: all points ×0.6 (0 = off); a weak pair loses more than a strong pair gains
+  bigMatch: 0.15, //          two of the strongest teams: the match score ×1.15; an average pair: ×1 (0 = off)
+  smallMatch: 0.27, //        two of the weakest teams: the match score ×0.73 (0 = off); a weak pair loses more than a strong pair gains
   leagueLevel: 0.5, //        how much the league's level counts in a club's strength: 0 = clubs only against their own league (the best of Eliteserien = the best of the Premier League), 1 = only the worldwide Elo scale (from 0 to 1)
 
   // The top end
-  curveFrom: 2.0, //          above this, each point counts a bit less than the one before, so scores bend towards 10 and a 10 is almost impossible (lower = stricter; from 0 to 9)
+  curveFrom: 7.7, //          above this, each point counts a bit less than the one before, so scores bend towards 10 and a 10 is almost impossible (lower = stricter; from 0 to 9)
 };
 
 export const TENNIS = {
@@ -190,8 +202,8 @@ export const FOOTBALL_OUTLOOK = {
 // goal, equaliser, card, VAR, woodwork, close-match, stakes and curve weights from FOOTBALL above,
 // plus these. Nothing here changes a replay score, so editing them doesn't re-score anything.
 export const FOOTBALL_LIVE = {
-  shotOnTarget: 0.2, //      each shot on target so far
-  shotOffTarget: 0.06, //    each shot off target or blocked so far
-  typicalMatch: 5.5, //       early on, the number is pulled towards this (a typical match, before the curve; from 0 to 9)
+  shotOnTarget: 0.3, //      each shot on target so far
+  shotOffTarget: 0.08, //    each shot off target or blocked so far
+  typicalMatch: 6.2, //       early on, each pillar is pulled towards this (a typical match: the pillars average about 6.2; from 0 to 9)
   settleMinutes: 45, //       how many minutes of play the "typical match" counts for at kick-off (it fades to nothing at 90'; from 0 to 90)
 };

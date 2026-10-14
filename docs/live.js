@@ -84,6 +84,7 @@ export function liveFacts(summary) {
   }
   const plays = (summary.commentary ?? []).map((c) => c.play).filter((p) => p && inPlay(p));
   const typed = (re) => plays.filter((p) => re.test(p.type?.text ?? '')).map(minuteOf);
+  const names = Object.fromEntries((comp.competitors ?? []).map((t) => [t.team?.displayName, t.homeAway]));
   const clock = clockOf(comp.status);
   return {
     played: playedOf(clock),
@@ -95,6 +96,11 @@ export function liveFacts(summary) {
     woodwork: typed(/woodwork/i).length,
     shotsOn: typed(/shot on target/i).length,
     shotsOff: typed(/shot off target|shot blocked/i).length,
+    // Shots per team (for "end to end") and corners, counts only. ESPN only names the team on some
+    // competitions' commentary: without it, null (the live Tempo then counts as an ordinary match).
+    shotsBy: plays.some((p) => names[p.team?.displayName]) ? Object.fromEntries(['home', 'away'].map((side) =>
+      [side, plays.filter((p) => /^(shot|goal|penalty - scored)/i.test(p.type?.text ?? '') && names[p.team?.displayName] === side).length])) : null,
+    corners: typed(/corner awarded/i).length,
   };
 }
 
@@ -112,6 +118,20 @@ export const bigMatchFactor = (st, bigMatch, smallMatch = bigMatch) => {
   const x = st.home + st.away - 1; // −1 for the two weakest, 0 for an average pair, 1 for the two strongest
   return 1 + (x >= 0 ? bigMatch : smallMatch) * x;
 };
+
+// The biggest deficit a team came back from to within one goal (0 when none): 2 down or more.
+// `goals` sorted by minute. Shared with the replay score (docs/scoring.js).
+export function comebackOf(goals) {
+  let d = 0, best = 0;
+  const worst = { home: 0, away: 0 };
+  for (const g of goals) {
+    d += g.side === 'home' ? 1 : -1;
+    worst.home = Math.max(worst.home, -d); // how far behind each team has been
+    worst.away = Math.max(worst.away, d);
+    for (const side of ['home', 'away']) if (worst[side] >= 2 && (side === 'home' ? -d : d) <= 1) best = Math.max(best, worst[side]);
+  }
+  return best;
+}
 
 // ── Win chances through a match (for "suspense" and "swing", football 19) ──────────────────────
 // A simple model: each team scores at a steady rate (goals per 90 minutes), fitted to the pre-match
@@ -179,27 +199,45 @@ export function suspenseOf(goals, odds, end, upTo = end) {
 export const suspensePoints = (w, s) => (w.suspense ?? 0) * Math.min(1, Math.max(0, (s.suspense - 0.2) / 0.3));
 export const swingPoints = (w, s) => (w.swing ?? 0) * Math.min(1, s.swing / 1.5);
 
+// ── The four pillars (football 20) ──────────────────────────────────────────────────────────────
+// Each pillar's points become a score from 0 to 10 with a soft ceiling: `<pillar>Scale` points give
+// about 6.3, twice as many about 8.6, and 10 is never quite reached. The match score is the weighted
+// average of the four (`pillar<Name>` weights, as shares of the total), before the occasion lines.
+export const PILLAR_KEYS = ['chances', 'tempo', 'tension', 'drama'];
+const cap = (p) => p[0].toUpperCase() + p.slice(1);
+export const pillarWeightKey = (p) => `pillar${cap(p)}`;
+export const pillarScore = (points, scale) => 10 * (1 - Math.exp(-Math.max(0, points) / scale));
+// The four weights as shares adding up to 1 (all off or missing: equal shares).
+export function pillarShares(w) {
+  const raw = PILLAR_KEYS.map((p) => Math.max(0, Number(w[pillarWeightKey(p)]) || 0));
+  const sum = raw.reduce((a, b) => a + b, 0);
+  return Object.fromEntries(PILLAR_KEYS.map((p, i) => [p, sum > 0 ? raw[i] / sum : 1 / PILLAR_KEYS.length]));
+}
+
 export const LIVE_FROM = 15; // no number before this minute: too little to go on
 export const ROUGH_UNTIL = 30; // "early, rough" until this minute
 
-// "Excitement so far" as a pace: how much has happened per minute, scaled up to a full match,
-// on the same 0–10 scale as the replay scores. Early on it's pulled towards a typical match.
-// `w` holds the weights (FOOTBALL plus FOOTBALL_LIVE from src/scoring/weights.mjs; the page
-// gets them from events.json). `factor` is the big-match factor. `boost`: the page's own points for
-// the competition ("Custom scoring"), added before the curve as on replays. Returns { pace, rough } or null.
-// `odds`: the pre-match { home, draw, away } chances (for suspense), or null. `mix`: { a, k } from
-// mixFrom() in scoring.js when the four pillar sliders aren't level (the page only).
-export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0, odds = null, mix = null } = {}) {
+// "Excitement so far" as a pace: how much has happened per minute, scaled up to a full match, on the
+// same 0–10 scale as the replay scores (football 20: four pillars, each pulled towards a typical match
+// early on, then their weighted average). `w` holds the weights (FOOTBALL plus FOOTBALL_LIVE from
+// src/scoring/weights.mjs; the page gets them from events.json). `factor` is the big-match factor.
+// `boost`: the page's own points for the competition ("Custom scoring"), added before the curve as on
+// replays. `odds`: the pre-match { home, draw, away } chances (for suspense), or null.
+// Returns { pace, rough } or null.
+export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0, odds = null } = {}) {
   const played = f?.played ?? 0;
   if (!w || played < LIVE_FROM) return null;
   const goals = [...f.goals].sort((a, b) => a.min - b.min);
+  const per90 = 90 / played;
+  const n = (x) => (Number.isFinite(x) ? x : 0); // weights missing from an older events.json count as 0
 
-  // Things that happen: per minute, scaled up to 90 minutes.
-  let rate = 0, diff = 0, prevMin = 0, closeMinutes = 0, equalisers = 0, leadChanges = 0, leader = 0;
+  // Drama: goals (less when a team was already 2+ up), red cards, minus a 3+ goal lead.
+  // Tension: within one goal, equalisers, lead changes, suspense and swing, evenly matched.
+  let drama = 0, diff = 0, prevMin = 0, closeMinutes = 0, equalisers = 0, leadChanges = 0, leader = 0;
   goals.forEach((g, i) => {
     const ahead = g.side === 'home' ? diff : -diff;
     const worth = i < 4 ? w.goal : w.extraGoal;
-    rate += worth * (1 - (ahead >= 3 ? w.alreadyDecided : ahead === 2 ? w.nearlyDecided : 0));
+    drama += worth * (1 - (ahead >= 3 ? w.alreadyDecided : ahead === 2 ? w.nearlyDecided : 0));
     const min = Math.min(g.min, played);
     if (Math.abs(diff) <= 1) closeMinutes += min - prevMin;
     prevMin = min;
@@ -210,28 +248,44 @@ export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0, odds = null
     if (now !== 0) leader = now;
   });
   if (Math.abs(diff) <= 1) closeMinutes += played - prevMin;
-  rate += w.equaliser * equalisers + w.leadChange * Math.min(leadChanges, 3);
-  rate += w.redCard * Math.min(f.reds, 2) + w.penalty * Math.min(f.pens, 2);
   // A red card for the team ahead, or for either team when level from 60' (as on replays).
   const leadAt = (m) => goals.filter((g) => g.min < m).reduce((d, g) => d + (g.side === 'home' ? 1 : -1), 0);
   const opening = (f.redsBy ?? []).filter((r) => { const d = leadAt(r.min) * (r.side === 'home' ? 1 : r.side === 'away' ? -1 : 0); return r.side && (d > 0 || (d === 0 && r.min >= 60)); }).length;
-  rate += (w.redCardAhead ?? 0) * Math.min(opening, 2);
-  rate += w.varDisallowed * Math.min(f.disallowed, 2) + w.woodwork * Math.min(f.woodwork, 3);
-  rate += w.shotOnTarget * f.shotsOn + w.shotOffTarget * f.shotsOff;
+  drama += w.redCard * Math.min(f.reds, 2) + n(w.redCardAhead) * Math.min(opening, 2);
+  drama = drama * per90 - (Math.abs(diff) >= 3 ? w.blowout : 0); // 3+ goals up: less worth tuning in for
 
-  // How things stand: not scaled.
-  const stakesPoints = stakes === 'title' ? w.titleRace : stakes === 'relegation' ? w.relegationBattle : stakes ? w.otherRace : 0;
-  const oneSided = Math.abs(diff) >= 3 ? w.blowout : 0; // 3+ goals up: less worth tuning in for
-  // Suspense so far (how things stand) and swing so far (scaled up like the goals).
   const s = suspenseOf(goals.map((g) => ({ t: g.min, side: g.side })), odds, 90, Math.min(played, 90));
-  const sw = swingPoints(w, { swing: (s.swing * 90) / played });
-  const pillars = (rate * 90) / played + w.closeMatch * (closeMinutes / played) - oneSided + (Number.isFinite(sw) ? sw : 0) + (suspensePoints(w, s) || 0);
-  const raw = (mix ? mix.a + mix.k * pillars : pillars) + stakesPoints;
+  const gap = odds ? Math.abs(odds.home - odds.away) : 1;
+  // A comeback from 2+ down to within one goal (as on replays, once).
+  const tension = (comebackOf(goals) ? n(w.comeback) : 0) + w.closeMatch * (closeMinutes / played) + (w.equaliser * equalisers + w.leadChange * Math.min(leadChanges, 3)) * per90
+    + n(suspensePoints(w, s)) + n(swingPoints(w, { swing: s.swing * per90 })) + (gap < 0.2 ? n(w.evenMatch) * n(w.teamStrength) * (1 - gap / 0.2) : 0);
 
-  // Early on, a typical match counts for `settleMinutes` minutes of play, shrinking to nothing at 90'.
+  // Chances: shots so far (the page has no xG live), penalties, VAR, the woodwork.
+  const chances = (w.shotOnTarget * f.shotsOn + w.shotOffTarget * f.shotsOff + w.penalty * Math.min(f.pens, 2)
+    + w.varDisallowed * Math.min(f.disallowed, 2) + w.woodwork * Math.min(f.woodwork, 3)) * per90;
+
+  // Tempo: both teams attacking (shots per team, as on replays), and lots of corners.
+  const sb = f.shotsBy;
+  let tempo = 0;
+  if (sb && Math.max(sb.home, sb.away) >= Math.max(3, 6 * (played / 90))) {
+    tempo += n(w.endToEnd) * Math.min(1, Math.max(0, (Math.min(sb.home, sb.away) / Math.max(sb.home, sb.away) - 0.4) / 0.5));
+  }
+  if (Number.isFinite(f.corners) && f.corners * per90 >= 12) tempo += n(w.manyCorners);
+
+  // Each pillar's 0–10 score, pulled towards a typical match early on (`settleMinutes` of play at
+  // kick-off, fading to nothing at 90'); then the weighted average and the occasion.
   const prior = Math.max(0, w.settleMinutes * (1 - played / 90));
-  const blended = (played * raw + prior * w.typicalMatch) / (played + prior);
-  const x = curve(Math.max(0, Math.max(0, blended) * factor + boost), w.curveFrom);
+  const shares = pillarShares(w);
+  const points = { chances, tempo, tension, drama };
+  let x = 0;
+  for (const p of PILLAR_KEYS) {
+    const scale = n(w[`${p}Scale`]) || 1;
+    // Tempo without shots per team (ESPN didn't name the teams) and few corners: an ordinary match.
+    const now = p === 'tempo' && !sb && tempo === 0 ? w.typicalMatch : pillarScore(points[p], scale);
+    x += shares[p] * (played * now + prior * w.typicalMatch) / (played + prior);
+  }
+  const stakesPoints = stakes === 'title' ? w.titleRace : stakes === 'relegation' ? w.relegationBattle : stakes ? w.otherRace : 0;
+  x = curve(Math.max(0, Math.max(0, x + n(stakesPoints)) * factor + boost), w.curveFrom);
   if (!Number.isFinite(x)) return null;
   return { pace: Math.round(Math.min(10, Math.max(0, x)) * 10) / 10, rough: played < ROUGH_UNTIL };
 }
@@ -239,6 +293,8 @@ export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0, odds = null
 // The weights scoreLivePace uses, picked from the football weights (published in events.json,
 // so weights.mjs stays the only place they're set).
 export const LIVE_WEIGHT_KEYS = ['goal', 'extraGoal', 'alreadyDecided', 'nearlyDecided', 'closeMatch', 'blowout', 'equaliser', 'leadChange',
-  'redCard', 'penalty', 'varDisallowed', 'woodwork', 'titleRace', 'relegationBattle', 'otherRace', 'curveFrom', 'suspense', 'swing', 'redCardAhead'];
+  'redCard', 'penalty', 'varDisallowed', 'woodwork', 'titleRace', 'relegationBattle', 'otherRace', 'curveFrom', 'suspense', 'swing', 'redCardAhead',
+  'endToEnd', 'manyCorners', 'evenMatch', 'teamStrength', 'pillarChances', 'pillarTempo', 'pillarTension', 'pillarDrama',
+  'chancesScale', 'tempoScale', 'tensionScale', 'dramaScale'];
 export const liveWeightsFrom = (football, live) =>
   ({ ...Object.fromEntries(LIVE_WEIGHT_KEYS.map((k) => [k, football[k]])), ...live });

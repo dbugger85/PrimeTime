@@ -301,19 +301,37 @@ export function reasonLines(reasons) {
   return { lines, note };
 }
 
-// Football since football 19: each reason carries its pillar ([points, label, pillar]). Then the lines
-// come in groups with a subtotal each: the four pillars, then the occasion (your mix, what was at
-// stake, big match, your boost, the top end). `labels`: { chances: 'Chances', … }. Null for older
-// reasons (no pillars), which keep the flat list.
-const GROUP_ORDER = ['chances', 'tempo', 'tension', 'drama', 'occasion'];
-export function reasonGroups(reasons, labels) {
+// Football reasons carry a third item, their group. Since football 20 they come as: for each pillar a
+// heading [score 0–10, key, 'pillar'] and its lines [points, label, key] (adding up to the pillar's
+// score), then [match score, label, 'average'] (the weighted average of the pillars), then the
+// occasion lines [points, label, 'occasion']. Returns the groups to show:
+//   { kind: 'pillar' | 'average' | 'occasion' | 'final', label, total, lines }
+// `labels`: { chances: 'Chances', …, occasion: 'The occasion' }; `shares`: { chances: 0.2, … } (the
+// weights that scored it), shown after each pillar's name. Football 19 reasons (pillars added up, no
+// average) are grouped without weights; anything older gives null (the flat list).
+const PILLAR_ORDER = ['chances', 'tempo', 'tension', 'drama'];
+const fmt1 = (x, sign = true) => `${sign && x > 0 ? '+' : ''}${x.toFixed(1)}`;
+export function reasonGroups(reasons, labels, shares = null) {
   if (!reasons.length || !reasons.every((r) => typeof r[2] === 'string')) return null;
+  const average = reasons.find((r) => r[2] === 'average');
   const groups = [];
-  for (const key of GROUP_ORDER) {
-    const mine = reasons.filter((r) => (key === 'occasion' ? !GROUP_ORDER.slice(0, 4).includes(r[2]) : r[2] === key));
+  if (average) {
+    for (const [score, key] of reasons.filter((r) => r[2] === 'pillar')) {
+      const pct = shares?.[key] != null ? ` (${Math.round(100 * shares[key])}%)` : '';
+      groups.push({ kind: 'pillar', label: `${labels[key] ?? key}${pct}`, total: fmt1(score, false), lines: reasonLines(reasons.filter((r) => r[2] === key)).lines });
+    }
+    groups.push({ kind: 'average', label: 'Match score: the weighted average', total: fmt1(average[0], false), lines: [] });
+    const occ = reasons.filter((r) => r[2] === 'occasion');
+    if (occ.length) groups.push({ kind: 'occasion', label: labels.occasion ?? 'The occasion', total: '', lines: reasonLines(occ).lines });
+    const final = reasons.find((r) => r[2] === 'final')?.[0] ?? Math.min(10, Math.max(0, Math.round((average[0] + occ.reduce((a, [p]) => a + p, 0)) * 10) / 10));
+    groups.push({ kind: 'final', label: 'Final score', total: fmt1(final, false), lines: [] });
+    return groups;
+  }
+  for (const key of [...PILLAR_ORDER, 'occasion']) {
+    const mine = reasons.filter((r) => (key === 'occasion' ? !PILLAR_ORDER.includes(r[2]) : r[2] === key));
     if (!mine.length) continue;
     const total = Math.round(mine.reduce((a, [p]) => a + p, 0) * 10) / 10;
-    groups.push({ key, label: labels[key] ?? key, total: `${total > 0 ? '+' : ''}${total.toFixed(1)}`, lines: reasonLines(mine).lines });
+    groups.push({ kind: key === 'occasion' ? 'occasion' : 'pillar', label: labels[key] ?? key, total: fmt1(total), lines: reasonLines(mine).lines });
   }
   return groups;
 }

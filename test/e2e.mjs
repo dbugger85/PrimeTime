@@ -472,7 +472,7 @@ try {
       const y = box.y + box.height / 2;
       await page.mouse.click(box.x + box.width - 10, y);
       assert.equal(await page.$eval('#t-p-chances', (e) => e.value), before, 'a tap on the track moved the slider');
-      const knob = box.x + 13 + (Number(before) / 3) * (box.width - 26);
+      const knob = box.x + 13 + (Number(before) / 100) * (box.width - 26);
       await page.mouse.move(knob, y);
       await page.mouse.down();
       await page.mouse.move(knob + 3, y + 40, { steps: 5 }); // mostly down: scrolling
@@ -485,11 +485,14 @@ try {
       assert.ok(Number(await page.$eval('#t-p-chances', (e) => e.value)) > Number(before), 'dragging the knob did not move it');
       await page.click('#t-reset');
     }
-    // The pillars: a preset reorders the matches but keeps the average; the mix is shown, pillar values never on a card.
+    // The pillars: shares in percent; a preset reorders the matches but keeps the average; pillar values never on a card.
     {
+      assert.match(await page.$eval('#t-p-drama', (e) => e.closest('.slider').querySelector('.s-val').textContent), /^\d+% \(standard\)$/);
+      assert.equal(await page.$eval('#t-presets [data-preset="standard"]', (e) => e.getAttribute('aria-pressed')), 'true');
       await page.click('#t-presets [data-preset="goals"]');
-      await page.waitForFunction(() => !document.querySelector('#t-mix').hidden);
-      assert.match(await page.$eval('#t-mix', (e) => e.textContent), /^Your mix: Chances \d+% · Tempo \d+% · Tension \d+% · Drama \d+%/);
+      await page.waitForFunction(() => !/standard/.test(document.querySelector('#t-p-drama').closest('.slider').querySelector('.s-val').textContent));
+      const pct = await page.$$eval('#t-pillars .s-val', (els) => els.map((e) => Number(e.textContent.match(/\d+/)[0])));
+      assert.ok(Math.abs(pct.reduce((a, b) => a + b, 0) - 100) <= 2, `shares add up to 100: ${pct}`);
       assert.equal(await page.$eval('#t-presets [data-preset="goals"]', (e) => e.getAttribute('aria-pressed')), 'true');
       const p = await pairs();
       assert.ok(p.some(([mine, std]) => mine !== std), 'a preset changes some scores');
@@ -612,7 +615,7 @@ try {
     // Custom scoring changes the live number too (Goals doubled, a boost for the Premier League).
     await page.evaluate(() => {
       const p = JSON.parse(localStorage.getItem('pt-prefs') ?? '{}');
-      p.tweaks = { v: 3, on: true, sliders: { goals: 2 }, curveFrom: null, comps: { 'eng.1': 1 } };
+      p.tweaks = { v: 4, on: true, sliders: { goals: 2 }, curveFrom: null, comps: { 'eng.1': 1 } };
       localStorage.setItem('pt-prefs', JSON.stringify(p));
     });
     await page.reload();

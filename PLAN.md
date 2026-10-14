@@ -137,3 +137,12 @@ A friend proposed "Primetime Plus" (four pillars with fixed weights, 30/25/25/20
 - The detailed sliders are re-grouped under each pillar in an "Advanced" section (saved sliders reset once). Each pillar has a description, folded behind an ⓘ to keep the panel short.
 - Keep the level: mean about 5.8, about 1 in 10 matches at 8+ (curveFrom 2.5 → 2.0 did it).
 - Live "Excitement so far" follows the pillars too (suspense, swing and the red-card bonus live; great goals, late big chances and directness need FotMob, so replays only).
+
+## Later decisions (2026-10-14, evening): football 20, pillar scores
+The owner wanted "Why this score?" to be intuitive: each pillar as a score from 0 to 10, its weight in brackets, its lines below, combined into one score by a weighting. Football 19 only added points, so the formula changed to match (option B, chosen over a display-only change).
+- Each pillar gets a 0–10 score with a soft ceiling; the match score is their weighted average; then the occasion (stakes, big match, boost, a gentle top-end curve).
+- Constants fitted so scores stay in line with football 19 (the owner's condition): RMSE 0.26 on 152 matches, same level.
+- Pillar sliders show each pillar's share in percent and start at the standard weights, not at 1 (the owner).
+- The fit gave Drama 47%; the owner found that too much and chose **25% each** (no need to match historic scores).
+- Pillars keep a common average of about 6.2 (option C), not 5.0: with 5.0 the scores would have dropped to an average of 4.7 with 8+ only 2%.
+- A comeback line under Tension (France 4–6 England after 0–4).

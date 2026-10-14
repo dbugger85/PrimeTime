@@ -86,9 +86,9 @@ test('excitement so far: none before 15 minutes, rough before 30, always 0–10'
 
 test('excitement so far at 90 minutes is close to the replay score for known matches', () => {
   const at90 = (id) => scoreLivePace({ ...liveFacts(fixture(`football/${id}.json`)), played: 90 }, { w }).pace;
-  assert.ok(at90(760516) >= 7, 'France 4–6 England'); // a thriller
+  assert.ok(at90(760516) >= 6.5, 'France 4–6 England'); // a thriller (live has no xG: 6.9 since football 20)
   assert.ok(at90(401861083) <= 4, 'Bulgaria 0–0 Estonia'); // a dud
-  assert.ok(at90(760516) > at90(401879276) + 3, 'France–England well above Bournemouth 0–1 Liverpool');
+  assert.ok(at90(760516) > at90(401879276) + 1, 'France–England well above Bournemouth 0–1 Liverpool'); // live has shot counts only, no xG
 });
 
 test('excitement so far (football 19): suspense from the odds, a red card for the team ahead, your pillar mix', () => {
@@ -102,10 +102,12 @@ test('excitement so far (football 19): suspense from the odds, a red card for th
   const ahead = scoreLivePace(facts([{ min: 20, side: 'home' }], [{ min: 50, side: 'home' }]), { w }).pace;
   const behind = scoreLivePace(facts([{ min: 20, side: 'home' }], [{ min: 50, side: 'away' }]), { w }).pace;
   assert.ok(ahead > behind);
-  // The mix from the page (a + k·points) is applied before the stakes and the curve; { a: 0, k: 1 } changes nothing.
-  const f = facts([{ min: 20, side: 'home' }]);
-  assert.equal(scoreLivePace(f, { w, mix: { a: 0, k: 1 } }).pace, scoreLivePace(f, { w }).pace);
-  assert.ok(scoreLivePace(f, { w, mix: { a: 1, k: 1 } }).pace > scoreLivePace(f, { w }).pace);
+  // The pillar weights: only the shares count.
+  const f = facts([{ min: 20, side: 'home' }, { min: 50, side: 'away' }]);
+  const double = Object.fromEntries(Object.entries(w).map(([k, v]) => [k, /^pillar/.test(k) ? 2 * v : v]));
+  assert.equal(scoreLivePace(f, { w: double }).pace, scoreLivePace(f, { w }).pace);
+  // End to end live: shots per team.
+  assert.ok(scoreLivePace({ ...f, shotsBy: { home: 9, away: 8 } }, { w }).pace > scoreLivePace({ ...f, shotsBy: { home: 16, away: 1 } }, { w }).pace);
 });
 
 test('the live weights never re-score replays', () => {
