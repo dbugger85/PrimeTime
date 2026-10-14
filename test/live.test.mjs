@@ -91,6 +91,23 @@ test('excitement so far at 90 minutes is close to the replay score for known mat
   assert.ok(at90(760516) > at90(401879276) + 3, 'France–England well above Bournemouth 0–1 Liverpool');
 });
 
+test('excitement so far (football 19): suspense from the odds, a red card for the team ahead, your pillar mix', () => {
+  const facts = (goals, redsBy = []) => ({ played: 70, goals, reds: redsBy.length, redsBy, pens: 0, disallowed: 0, woodwork: 0, shotsOn: 4, shotsOff: 6 });
+  const fav = { home: 0.75, draw: 0.17, away: 0.08 };
+  // 1–0 to the underdog is more open than 1–0 to the favorite.
+  const dog = scoreLivePace(facts([{ min: 20, side: 'away' }]), { w, odds: fav }).pace;
+  const top = scoreLivePace(facts([{ min: 20, side: 'home' }]), { w, odds: fav }).pace;
+  assert.ok(dog > top, `${dog} > ${top}`);
+  // A red for the team ahead counts more than one for the team behind.
+  const ahead = scoreLivePace(facts([{ min: 20, side: 'home' }], [{ min: 50, side: 'home' }]), { w }).pace;
+  const behind = scoreLivePace(facts([{ min: 20, side: 'home' }], [{ min: 50, side: 'away' }]), { w }).pace;
+  assert.ok(ahead > behind);
+  // The mix from the page (a + k·points) is applied before the stakes and the curve; { a: 0, k: 1 } changes nothing.
+  const f = facts([{ min: 20, side: 'home' }]);
+  assert.equal(scoreLivePace(f, { w, mix: { a: 0, k: 1 } }).pace, scoreLivePace(f, { w }).pace);
+  assert.ok(scoreLivePace(f, { w, mix: { a: 1, k: 1 } }).pace > scoreLivePace(f, { w }).pace);
+});
+
 test('the live weights never re-score replays', () => {
   assert.equal(SCORING_VERSIONS.football.split('.')[1], fingerprint(WEIGHTS.FOOTBALL));
   assert.equal(curve(4, 5), 4);

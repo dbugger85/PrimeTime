@@ -7,6 +7,7 @@ import { factsFromSummary, lineupsFromSummary } from '../src/sources/espn-footba
 import { matchesFromSlam } from '../src/sources/espn-tennis.mjs';
 import { factsFromRace, factsFromQuali } from '../src/sources/openf1.mjs';
 import { scoreFootball } from '../src/scoring/football.mjs';
+import { TWEAK_GROUPS } from '../docs/scoring.js';
 import { scoreTennis } from '../src/scoring/tennis.mjs';
 import { scoreF1, scoreQuali } from '../src/scoring/f1.mjs';
 import { trimFacts, publishFootball, publishTennis, publishF1, publishWinter, upcomingFootball, upcomingTennis, upcomingF1, upcomingWinter, servicesFor, ADVICE_CODES } from '../src/publish.mjs';
@@ -273,7 +274,7 @@ test('the real docs/data/events.json is spoiler-free', { skip: !existsSync(new U
     assert.ok(Object.values(data.footballWeights).every(Number.isFinite));
   }
   // Where each slider stands: one number per slider, an average over many matches.
-  for (const [k, v] of Object.entries(data.sliderScale ?? {})) assert.ok(['goals', 'tight', 'late', 'chances', 'cards', 'oneSided', 'upsets', 'bigMatch', 'stakes'].includes(k) && Number.isFinite(v) && v >= 0, `sliderScale ${k}`);
+  for (const [k, v] of Object.entries(data.sliderScale ?? {})) assert.ok(k in TWEAK_GROUPS && Number.isFinite(v) && v >= 0, `sliderScale ${k}`);
   // The weights for "Excitement so far": exactly the football weights the page needs, numbers only.
   if (data.liveWeights) {
     assert.deepEqual(Object.keys(data.liveWeights).sort(), Object.keys(liveWeightsFrom(WEIGHTS.FOOTBALL, WEIGHTS.FOOTBALL_LIVE)).sort());
@@ -355,7 +356,8 @@ test('the real calendar feeds are spoiler-free', { skip: !existsSync(new URL('..
 // Spoilers by nature (only loaded after a warning), but no names and no free text: numbers,
 // 'home'/'away', a stakes code and goal clocks like "90+2'".
 const FACT_KEYS = ['goals', 'odds', 'reds', 'pens', 'disallowed', 'woodwork', 'corners', 'yellows', 'shotsOnTarget', 'totalShots',
-  'shotsBy', 'extraTime', 'shootout', 'shootoutWinner', 'stakes', 'xg', 'stats', 'strength'];
+  'shotsBy', 'extraTime', 'shootout', 'shootoutWinner', 'stakes', 'xg', 'stats', 'strength',
+  'redsBy', 'stoppage', 'passes', 'bangers', 'bigMisses']; // since football 19
 const isPair = (p) => p === null || (Object.keys(p).sort().join() === 'away,home' && Number.isFinite(p.home) && Number.isFinite(p.away));
 function checkFacts(id, f) {
   for (const k of Object.keys(f)) assert.ok(FACT_KEYS.includes(k), `${id}: facts field ${k}`);
@@ -365,6 +367,10 @@ function checkFacts(id, f) {
     if ('clock' in g) assert.match(g.clock, /^\d{1,3}(\+\d{1,2})?'$/);
   }
   for (const k of ['reds', 'pens', 'disallowed', 'woodwork']) assert.ok(f[k].every(Number.isFinite), `${id}: ${k}`);
+  for (const k of ['bangers', 'bigMisses']) assert.ok(!(k in f) || f[k].every(Number.isFinite), `${id}: ${k}`);
+  assert.ok(!('redsBy' in f) || f.redsBy.every((r) => Object.keys(r).sort().join() === 'min,side' && Number.isFinite(r.min) && ['home', 'away'].includes(r.side)), `${id}: redsBy`);
+  assert.ok(!('stoppage' in f) || (f.stoppage.length === 2 && f.stoppage.every((m) => Number.isFinite(m) && m >= 0 && m <= 20)), `${id}: stoppage`);
+  assert.ok(!('passes' in f) || isPair(f.passes), `${id}: passes`);
   for (const k of ['corners', 'yellows', 'shotsOnTarget', 'totalShots']) assert.ok(!(k in f) || Number.isFinite(f[k]), `${id}: ${k}`);
   for (const k of ['shotsBy', 'xg', 'strength']) assert.ok(isPair(f[k]), `${id}: ${k}`);
   assert.ok(f.odds === null || ['home', 'draw', 'away'].every((k) => Number.isFinite(f.odds[k])), `${id}: odds`);
@@ -377,7 +383,7 @@ function checkFacts(id, f) {
 test('facts.json: no names or text, only what the scorer needs', () => {
   for (const id of [760516, 401843437, 760512]) {
     const summary = fixture(`football/${id}.json`);
-    const f = trimFacts({ ...factsFromSummary(summary), stakes: 'title', xg: { home: 1, away: 2, shots: [{ min: 3, side: 'home', xg: 0.1 }] } });
+    const f = trimFacts({ ...factsFromSummary(summary), stakes: 'title', xg: { home: 1, away: 2, shots: [{ min: 3, side: 'home', xg: 0.1 }], bangers: [12], bigMisses: [88] } });
     checkFacts(id, f);
     assert.doesNotMatch(JSON.stringify(f), /England|France|Norway|Viking|Kane|Mbapp|Haaland|shots"/);
   }

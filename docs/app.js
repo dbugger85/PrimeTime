@@ -1,6 +1,6 @@
-import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug } from './logic.js';
+import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug } from './logic.js';
 import { ESPN, clockOf, liveClockText, espnDays, liveFacts, scoreLivePace, LIVE_FROM, elapsedText } from './live.js';
-import { scoreFootball, applyTweaks, cleanTweaks, isStandard, DEFAULT_TWEAKS, TWEAK_GROUPS, TWEAK_FIXED, STAKES, SCALE_MAX, SCALE_STEP, CURVE_STEP, BOOST_STEP, BOOST_MAX } from './scoring.js';
+import { scoreFootball, applyTweaks, cleanTweaks, isStandard, DEFAULT_TWEAKS, TWEAK_GROUPS, STAKES, SCALE_MAX, SCALE_STEP, CURVE_STEP, BOOST_STEP, BOOST_MAX, PILLARS, PILLAR_MAX, PILLAR_STEP, PRESETS, mixFrom, mixShares } from './scoring.js';
 
 const SERVICES = {
   viaplay: { name: 'Viaplay', url: 'https://viaplay.no/sport' },
@@ -53,6 +53,8 @@ let sliderScale = {}; // where each slider stands with the standard weights, in 
 let factsFile = null; // docs/data/facts.json: loaded only after the custom scoring or calibration warning
 let factsFailed = false;
 let custom = new Map(); // id -> the match re-scored with your settings ({ score, reasons, lines })
+let mixRows = []; // each re-scored match's four pillars with level pillar sliders (to even out your mix)
+let mix = null; // { a, k } from mixFrom(), or null when the pillar sliders are level
 let customW = null; // the football weights with your sliders applied
 let calibrating = false; // "Calibration mode": every result shown. This visit only, so a reload never opens full of results
 const calcOpen = new Set(); // "Facts and calculation" opened (calibration mode)
@@ -425,12 +427,16 @@ function fillReasons(box, e) {
   }
   const { lines, note } = reasonLines(reasons);
   const ul = document.createElement('ul');
-  for (const l of lines) {
-    const li = document.createElement('li');
+  const line = (l, className = '') => {
+    const li = Object.assign(document.createElement('li'), { className });
     li.classList.toggle('neg', l.negative);
     li.append(Object.assign(document.createElement('span'), { className: 'pts', textContent: l.pts }), Object.assign(document.createElement('span'), { textContent: l.label }));
-    ul.append(li);
-  }
+    return li;
+  };
+  // Football (since football 19): the lines grouped by pillar, each with its subtotal.
+  const groups = reasonGroups(reasons, GROUP_LABELS);
+  if (groups) for (const g of groups) ul.append(line({ pts: g.total, label: g.label, negative: g.total.startsWith('-') }, 'group'), ...g.lines.map((l) => line(l)));
+  else ul.append(...lines.map((l) => line(l)));
   box.replaceChildren(ul);
   if (note) box.append(Object.assign(document.createElement('p'), { className: 'small', textContent: note }));
 
@@ -475,6 +481,9 @@ const SPOILER_LEVELS = {
     ok: 'Show the result', file: './data/results.json', shown: resultShown,
   },
 };
+// Headings for the groups in "Why this score?" (football).
+const GROUP_LABELS = { ...Object.fromEntries(Object.entries(PILLARS).map(([k, p]) => [k, p.label])), occasion: 'The occasion' };
+
 const spoilerFiles = { why: () => reasonsFile, result: () => resultsFile };
 
 // The spoiler warning dialog. Resolves to true when "show" was chosen.
@@ -579,14 +588,20 @@ function fillPace(li, e) {
 }
 
 // The live number from ESPN's facts, with your own scoring when it's on (sliders and competition boost).
+// The pillar mix is evened out with the same numbers as the replays (`mix`).
 function livePace(e, facts) {
   const t = prefs.tweaks;
-  if (!t.on || isStandard(t)) return scoreLivePace(facts, { w: liveWeights, factor: e.factor ?? 1, stakes: e.stakes });
+  const odds = e.chances ? { home: e.chances[0] / 100, draw: e.chances[1] / 100, away: e.chances[2] / 100 } : null; // for suspense
+  if (!t.on || isStandard(t)) return scoreLivePace(facts, { w: liveWeights, factor: e.factor ?? 1, stakes: e.stakes, odds });
   return scoreLivePace(facts, {
-    w: liveWeights && applyTweaks(liveWeights, t),
+    // Without your mix yet (the match facts are still loading, or failed), the pillars stay level:
+    // un-evened pillar weights would lift or sink every live number.
+    w: liveWeights && applyTweaks(liveWeights, t, { pillars: Boolean(mix) }),
     factor: 1 + ((e.factor ?? 1) - 1) * t.sliders.bigMatch, // exact: the factor is linear in bigMatch and smallMatch
     stakes: e.stakes,
     boost: t.comps[e.comp] ?? 0,
+    odds,
+    mix,
   });
 }
 
@@ -764,15 +779,24 @@ function render() {
 // the facts in docs/data/facts.json, which is only downloaded after a warning.
 
 // Your score for every football replay that has facts. The standard score stays on the event.
+// Two rounds: first each match's four pillars with your detailed sliders but level pillars, to even
+// out your mix of the pillars (same average and spread as level ones, see mixFrom), then the scores.
 function recompute() {
   custom = new Map();
-  customW = footballWeights && applyTweaks(footballWeights, prefs.tweaks);
+  mixRows = [];
+  mix = null;
+  const t = prefs.tweaks;
+  customW = footballWeights && applyTweaks(footballWeights, t);
   if (!customW || !factsFile) return;
-  for (const e of events) {
-    const f = e.sport === 'football' && factsFile[e.id];
-    if (!f) continue;
+  const detailW = applyTweaks(footballWeights, t, { pillars: false });
+  const list = events.filter((e) => e.sport === 'football' && factsFile[e.id]);
+  for (const e of list) {
+    try { mixRows.push(scoreFootball(factsFile[e.id], detailW).pillars); } catch { /* left out */ }
+  }
+  mix = mixFrom(mixRows, t.pillars);
+  for (const e of list) {
     try {
-      custom.set(e.id, scoreFootball(f, customW, { boost: prefs.tweaks.comps[e.comp] ?? 0, boostLabel: e.compName }));
+      custom.set(e.id, scoreFootball(factsFile[e.id], customW, { boost: t.comps[e.comp] ?? 0, boostLabel: e.compName, mix }));
     } catch { /* keeps the standard score */ }
   }
 }
@@ -833,13 +857,14 @@ function fillCalibration(li, e) {
 const n2 = (x) => String(Math.round(x * 100) / 100);
 const mins = (a) => (a.length ? a.map((m) => `${Math.ceil(m)}'`).join(', ') : 'none');
 
-// Which slider moves a scoring line, from the weights behind it.
-function sliderOf(keys) {
-  if (!keys.length) return 'Competition boost';
-  if (keys.includes('curveFrom')) return 'Top end';
-  const group = Object.values(TWEAK_GROUPS).find((g) => keys.some((k) => g.keys.includes(k)));
-  if (group) return group.label;
-  return keys.some((k) => TWEAK_FIXED.includes(k)) ? TWEAK_GROUPS.upsets.label : '';
+// Which sliders move a scoring line, from the weights behind it: "Chances › Near misses".
+function sliderOf(l) {
+  if (l.pillar === 'mix') return 'The four pillars';
+  if (!l.keys.length) return 'Competition boost';
+  if (l.keys.includes('curveFrom')) return 'Top end';
+  const group = Object.values(TWEAK_GROUPS).find((g) => l.keys.some((k) => g.keys.includes(k)));
+  if (!group) return '';
+  return group.pillar ? `${PILLARS[group.pillar].label} › ${group.label}` : group.label;
 }
 
 // The weights behind a line: "goal 1.2", or "goal 1.2 → 1.44" when your sliders changed it.
@@ -899,7 +924,7 @@ function fillCalc(box, e, f) {
   const calc = el('ol', { className: 'calc-lines' });
   calc.append(el('li', { className: 'calc-headings' }, el('span', { textContent: 'Points' }), el('span', { textContent: 'Line' }), el('span', { textContent: 'Total' })));
   for (const l of scored.lines) {
-    const how = [sliderOf(l.keys), weightsText(l.keys, W)].filter(Boolean).join(': ');
+    const how = [sliderOf(l), weightsText(l.keys, W)].filter(Boolean).join(': ');
     calc.append(el('li', { className: l.points < 0 ? 'neg' : '' },
       el('span', { className: 'pts', textContent: `${l.points > 0 ? '+' : ''}${l.points.toFixed(2)}` }),
       el('span', { textContent: l.label }),
@@ -920,43 +945,81 @@ function fillCalc(box, e, f) {
 }
 
 // The panel: built once (so a slider isn't replaced while you drag it), then kept up to date.
-const SLIDERS = [...Object.entries(TWEAK_GROUPS).map(([key, g]) => ({ key, ...g })),
-  { key: 'curve', label: 'Top end', hint: 'Left: high scores are rarer. Right: more generous.', keys: ['curveFrom'] }];
-// A slider shows points (see SCALE_MAX in scoring.js): its multiplier times where it stands by standard.
-// Without a scale (an older events.json) it falls back to the plain multiplier.
+// Four pillar sliders (a weighting: 0 to PILLAR_MAX, 1 = standard), and under "Advanced" the detailed
+// sliders in points, grouped by pillar, then the occasion (big match, stakes, the top end).
+const PILLAR_SLIDERS = Object.entries(PILLARS).map(([key, p]) => ({ key, kind: 'pillar', ...p }));
+const SLIDERS = [...Object.entries(TWEAK_GROUPS).map(([key, g]) => ({ key, kind: 'detail', ...g })),
+  { key: 'curve', kind: 'curve', pillar: null, label: 'Top end', hint: 'Left: high scores are rarer. Right: more generous.', keys: ['curveFrom'] }];
+const ALL_SLIDERS = [...PILLAR_SLIDERS, ...SLIDERS];
+// A detailed slider shows points (see SCALE_MAX in scoring.js): its multiplier times where it stands by
+// standard. Without a scale (an older events.json) it falls back to the plain multiplier.
 const scaleOf = (key) => sliderScale[key] || 1;
 const sliderText = (key, v) => (v === 0 ? 'Off' : `${v.toFixed(1)} points${key === 'oneSided' ? ' off' : ''}`);
+const pillarText = (v) => (v === 0 ? 'Off' : v === 1 ? '×1.0 (standard)' : `×${v.toFixed(1)}`);
 const multiplierOf = (key, v) => (Math.abs(v - scaleOf(key)) < SCALE_STEP / 2 ? 1 : v / scaleOf(key)); // on the mark: exactly standard
 function curveText(v) {
   const std = footballWeights?.curveFrom;
   return v === std ? `Standard (${v})` : std != null && v < std ? `Stricter (${v})` : `More generous (${v})`;
 }
-const curveValue = () => prefs.tweaks.curveFrom ?? footballWeights?.curveFrom ?? 2.5;
+const curveValue = () => prefs.tweaks.curveFrom ?? footballWeights?.curveFrom ?? 2;
+const valueText = (s, v) => (s.kind === 'pillar' ? pillarText(v) : s.kind === 'curve' ? curveText(v) : sliderText(s.key, v));
+const RANGES = { pillar: { min: 0, max: PILLAR_MAX, step: PILLAR_STEP }, curve: { min: 0, max: 9, step: CURVE_STEP }, detail: { min: 0, max: SCALE_MAX, step: SCALE_STEP } };
+
+function makeSlider(s) {
+  const row = Object.assign(document.createElement('div'), { className: `slider${s.kind === 'pillar' ? ' pillar' : ''}` });
+  row.dataset.key = s.key;
+  row.dataset.kind = s.kind;
+  const id = `t-${s.kind === 'pillar' ? 'p' : 's'}-${s.key}`;
+  const input = Object.assign(document.createElement('input'), { type: 'range', id, ...RANGES[s.kind] });
+  // The description stays folded away behind ⓘ (the owner found the panel too wordy).
+  const hint = Object.assign(document.createElement('p'), { className: 'small s-hint', textContent: s.hint, hidden: true, id: `${id}-hint` });
+  const info = Object.assign(document.createElement('button'), { type: 'button', className: 's-info', textContent: 'ⓘ' });
+  info.setAttribute('aria-label', `What is ${s.label}?`);
+  info.setAttribute('aria-expanded', 'false');
+  info.setAttribute('aria-controls', hint.id);
+  info.onclick = () => { hint.hidden = !hint.hidden; info.setAttribute('aria-expanded', String(!hint.hidden)); };
+  const name = Object.assign(document.createElement('span'), { className: 's-name' });
+  name.append(Object.assign(document.createElement('label'), { htmlFor: id, className: 's-label', textContent: s.label }), info);
+  const head = Object.assign(document.createElement('div'), { className: 's-head' });
+  head.append(name, Object.assign(document.createElement('output'), { className: 's-val', htmlFor: id }));
+  const track = Object.assign(document.createElement('div'), { className: 's-track' });
+  track.append(input, Object.assign(document.createElement('span'), { className: 's-std', textContent: 'standard', ariaHidden: 'true' }));
+  row.append(head, track, hint, Object.assign(document.createElement('p'), { className: 'small s-weights', hidden: true }));
+  const show = () => { row.querySelector('.s-val').textContent = valueText(s, Number(input.value)); fill(input); };
+  input.oninput = show;
+  guardSlider(track, input);
+  input.onchange = () => {
+    const v = Number(input.value);
+    if (s.kind === 'pillar') prefs.tweaks.pillars[s.key] = v;
+    else if (s.kind === 'curve') prefs.tweaks.curveFrom = v === footballWeights?.curveFrom ? null : v;
+    else prefs.tweaks.sliders[s.key] = multiplierOf(s.key, v);
+    prefs.tweaks = cleanTweaks(prefs.tweaks);
+    tuningChanged();
+  };
+  return row;
+}
 
 function buildTuning() {
-  const box = $('#t-sliders');
-  box.replaceChildren(...SLIDERS.map((s) => {
-    const row = Object.assign(document.createElement('div'), { className: 'slider' });
-    row.dataset.key = s.key;
-    const id = `t-s-${s.key}`;
-    const input = Object.assign(document.createElement('input'), { type: 'range', id });
-    Object.assign(input, s.key === 'curve' ? { min: 0, max: 9, step: CURVE_STEP } : { min: 0, max: SCALE_MAX, step: SCALE_STEP });
-    const head = Object.assign(document.createElement('div'), { className: 's-head' });
-    head.append(Object.assign(document.createElement('label'), { htmlFor: id, className: 's-label', textContent: s.label }), Object.assign(document.createElement('output'), { className: 's-val', htmlFor: id }));
-    const track = Object.assign(document.createElement('div'), { className: 's-track' });
-    track.append(input, Object.assign(document.createElement('span'), { className: 's-std', textContent: 'standard', ariaHidden: 'true' }));
-    row.append(head, track, Object.assign(document.createElement('p'), { className: 'small s-hint', textContent: s.hint }), Object.assign(document.createElement('p'), { className: 'small s-weights', hidden: true }));
-    const show = () => { row.querySelector('.s-val').textContent = s.key === 'curve' ? curveText(Number(input.value)) : sliderText(s.key, Number(input.value)); fill(input); };
-    input.oninput = show;
-    guardSlider(track, input);
-    input.onchange = () => {
-      const v = Number(input.value);
-      if (s.key === 'curve') prefs.tweaks.curveFrom = v === footballWeights?.curveFrom ? null : v;
-      else prefs.tweaks.sliders[s.key] = multiplierOf(s.key, v);
+  $('#t-presets').replaceChildren(...Object.entries(PRESETS).map(([key, p]) => {
+    const b = Object.assign(document.createElement('button'), { type: 'button', className: 'chip', textContent: p.label });
+    b.dataset.preset = key;
+    b.onclick = () => {
+      prefs.tweaks.pillars = { ...p.pillars };
       prefs.tweaks = cleanTweaks(prefs.tweaks);
       tuningChanged();
     };
-    return row;
+    return b;
+  }));
+  $('#t-pillars').replaceChildren(...PILLAR_SLIDERS.map(makeSlider));
+  // The detailed sliders, one section per pillar, then the occasion.
+  const sections = [...Object.entries(PILLARS).map(([key, p]) => [key, p.label]), [null, 'The occasion']];
+  $('#t-sliders').replaceChildren(...sections.map(([pillar, label]) => {
+    const sec = Object.assign(document.createElement('section'), { className: 't-group' });
+    sec.append(Object.assign(document.createElement('h4'), { textContent: label }));
+    const grid = Object.assign(document.createElement('div'), { className: 'sliders' });
+    grid.append(...SLIDERS.filter((s) => s.pillar === pillar).map(makeSlider));
+    sec.append(grid);
+    return sec;
   }));
 }
 
@@ -1034,17 +1097,27 @@ function renderTuning() {
   $('#t-count').hidden = !t.on && !calibrating;
   $('#t-count').textContent = calibrating ? (t.on ? 'on, calibrating' : 'calibrating') : 'on';
   const W = customW ?? footballWeights ?? {};
-  for (const row of document.querySelectorAll('#t-sliders .slider')) {
-    const s = SLIDERS.find((x) => x.key === row.dataset.key);
+  for (const b of document.querySelectorAll('#t-presets button')) {
+    b.disabled = !t.on;
+    b.setAttribute('aria-pressed', String(Object.entries(PRESETS[b.dataset.preset].pillars).every(([k, v]) => t.pillars[k] === v)));
+  }
+  const shares = t.on && mixRows.length ? mixShares(mixRows, t.pillars) : null;
+  $('#t-mix').hidden = !shares;
+  if (shares) $('#t-mix').textContent = `Your mix: ${Object.entries(PILLARS).map(([k, p]) => `${p.label} ${shares[k]}%`).join(' · ')}`;
+  for (const row of document.querySelectorAll('#tuning .slider')) {
+    const s = ALL_SLIDERS.find((x) => x.key === row.dataset.key && x.kind === row.dataset.kind);
     const input = row.querySelector('input');
-    if (document.activeElement !== input || !input.matches(':active')) input.value = String(s.key === 'curve' ? curveValue() : t.sliders[s.key] * scaleOf(s.key));
+    const value = s.kind === 'pillar' ? t.pillars[s.key] : s.kind === 'curve' ? curveValue() : t.sliders[s.key] * scaleOf(s.key);
+    if (document.activeElement !== input || !input.matches(':active')) input.value = String(value);
     input.disabled = !t.on;
-    row.querySelector('.s-val').textContent = s.key === 'curve' ? curveText(Number(input.value)) : sliderText(s.key, Number(input.value));
+    row.querySelector('.s-val').textContent = valueText(s, Number(input.value));
     fill(input);
-    if (s.key === 'curve') placeStd(row, footballWeights?.curveFrom ?? 2.5, 0, 9); else placeStd(row, scaleOf(s.key), 0, SCALE_MAX);
+    if (s.kind === 'pillar') placeStd(row, 1, 0, PILLAR_MAX);
+    else if (s.kind === 'curve') placeStd(row, footballWeights?.curveFrom ?? 2, 0, 9);
+    else placeStd(row, scaleOf(s.key), 0, SCALE_MAX);
     // Calibration mode: the weights each slider moves, standard and yours.
     const weights = row.querySelector('.s-weights');
-    weights.hidden = !calibrating || !footballWeights;
+    weights.hidden = !calibrating || !footballWeights || s.kind === 'pillar';
     if (!weights.hidden) {
       const live = s.keys.filter((k) => !(k in footballWeights) && liveWeights && k in liveWeights);
       const liveW = live.length && applyTweaks(liveWeights, t.on ? t : DEFAULT_TWEAKS);

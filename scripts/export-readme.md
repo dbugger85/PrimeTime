@@ -29,7 +29,7 @@ Fields common to every sport:
 | `primetime.scoringVersion` | Formula version and weight fingerprint, e.g. `18.c0368165` (football formula 18). Scores from different versions aren't directly comparable |
 | `primetime.timeline` | The heat strip: one value per part of the event, 0 (nothing) to 3 (hottest part of *this* event, relative). Football: 6 blocks of 15 minutes; F1: 10 equal lap chunks; tennis: none; winter: per run/leg/shooting |
 | `primetime.skip` | Skip advice `{ code, unit, ranges }`. `code`: `full` (watch it all), `highlights`, `skip` (skip the `ranges`). `unit`: `min`, `lap`, `set`, `run`, `leg`… Ranges are `[from, to)` |
-| `primetime.breakdown` | The score explained: each line's points and a plain-English label, in calculation order. The last lines (big-match factor, "Higher scores are harder to reach") scale the total |
+| `primetime.breakdown` | The score explained: each line's points and a plain-English label, in calculation order. The last lines (big-match factor, "Higher scores are harder to reach") scale the total. Football from version 19 also has `pillar`: `chances`, `tempo`, `tension`, `drama` or `occasion` |
 | `services` | Norwegian streaming services carrying the event |
 | `recoveredFromGitHistory` | `false`, or the commit it was recovered from when the event had dropped out of the live files (football is kept 30 days). Those were scored with the formula of that time |
 | `sources` | Field path → source (see the list at the end). `x.*` covers every field under `x` |
@@ -59,6 +59,11 @@ Fields common to every sport:
 | `stats.bigChances`, `stats.xgot`, `stats.touchesInBox` | Big chances (scored or missed), xG on target, touches in the opposition box, per team | FotMob team stats |
 | `strength` | Team strength 0–1 used for the "big match" factor: half the team's rank within its league's field, half the worldwide Elo scale (national teams: world Elo, 1400 = 0, 2100 = 1) | PrimeTime, from Elo + league table |
 | `stakes` | As above | ESPN standings |
+| `redsBy` | Red cards with the team that got them, `[{ min, side }]` (since football 19) | ESPN keyEvents |
+| `stoppage` | Stoppage time played in each half, `[first, second]` in minutes, from the "45'+3'" clocks (since football 19) | ESPN commentary |
+| `passes` | Passes per team `{ home, away }` (since football 19) | ESPN boxscore |
+| `bangers` | Minutes of great goals: from outside the box, or xG 0.05 or less with xG on target 0.6 or more (since football 19) | FotMob shot map |
+| `bigMisses` | Minutes of big chances not scored: xG 0.3 or more, penalties left out (since football 19) | FotMob shot map |
 
 ### Tennis extras
 

@@ -62,7 +62,10 @@ const minuteOf = (s) => {
 };
 
 // Turns a matchDetails answer into xG facts, or null when there's no shot map with xG.
-//   { home: 1.45, away: 0.75, shots: [{ min, side, xg }] }   (penalty shootouts left out)
+//   { home: 1.45, away: 0.75, shots: [{ min, side, xg }], bangers: [min], bigMisses: [min] }
+// (penalty shootouts left out). `bangers`: goals from outside the box, or unlikely chances struck so
+// well they went in (xG 0.05 or less, xG on target 0.6 or more). `bigMisses`: big chances (xG 0.3 or
+// more, not penalties) that weren't scored. Minutes only, for the "late drama" and "great goals" lines.
 export function xgFromDetails(details) {
   const shots = details?.content?.shotmap?.shots;
   const homeId = details?.general?.homeTeam?.id;
@@ -71,11 +74,15 @@ export function xgFromDetails(details) {
   const missing = shots.filter((s) => !Number.isFinite(s.expectedGoals)).length;
   if (missing > 2 || missing === shots.length) return null;
   const inPlay = shots.filter((s) => Number.isFinite(s.expectedGoals) && !/shootout|penalt/i.test(s.period ?? ''));
-  const out = { home: 0, away: 0, shots: [] };
+  const out = { home: 0, away: 0, shots: [], bangers: [], bigMisses: [] };
   for (const s of inPlay) {
     const side = s.teamId === homeId ? 'home' : 'away';
     out[side] += s.expectedGoals;
     out.shots.push({ min: minuteOf(s), side, xg: s.expectedGoals });
+    const goal = s.eventType === 'Goal' && !s.isOwnGoal;
+    const pen = /penalty/i.test(s.situation ?? '');
+    if (goal && !pen && (s.isFromInsideBox === false || (s.expectedGoals <= 0.05 && s.expectedGoalsOnTarget >= 0.6))) out.bangers.push(minuteOf(s));
+    if (!goal && !pen && s.expectedGoals >= 0.3) out.bigMisses.push(minuteOf(s));
   }
   out.home = Math.round(out.home * 100) / 100;
   out.away = Math.round(out.away * 100) / 100;

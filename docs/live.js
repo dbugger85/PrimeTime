@@ -89,6 +89,7 @@ export function liveFacts(summary) {
     played: playedOf(clock),
     goals: goals.map(({ min, side }) => ({ min, side })),
     reds: events.filter((e) => /red card/i.test(e.type?.text ?? '')).length,
+    redsBy: events.filter((e) => /red card/i.test(e.type?.text ?? '')).map((e) => ({ min: minuteOf(e), side: sides[e.team?.id] ?? null })),
     pens: typed(/^penalty/i).length,
     disallowed: typed(/deleted after review/i).length,
     woodwork: typed(/woodwork/i).length,
@@ -112,6 +113,72 @@ export const bigMatchFactor = (st, bigMatch, smallMatch = bigMatch) => {
   return 1 + (x >= 0 ? bigMatch : smallMatch) * x;
 };
 
+// ── Win chances through a match (for "suspense" and "swing", football 19) ──────────────────────
+// A simple model: each team scores at a steady rate (goals per 90 minutes), fitted to the pre-match
+// win/draw/win chances from the odds (equal rates without odds). From the score and the time left it
+// gives the chances of a home win, a draw and an away win at any minute.
+const poissons = (l) => { const p = [Math.exp(-l)]; for (let k = 1; k <= 10; k++) p.push((p[k - 1] * l) / k); return p; };
+// [home win, draw, away win] when `d` is the home team's lead now and the rates are for the time left.
+export function resultChances(lh, la, d) {
+  const ph = poissons(lh), pa = poissons(la);
+  let h = 0, dr = 0, a = 0;
+  for (let i = 0; i <= 10; i++) for (let j = 0; j <= 10; j++) {
+    const p = ph[i] * pa[j], end = d + i - j;
+    if (end > 0) h += p; else if (end < 0) a += p; else dr += p;
+  }
+  return [h, dr, a];
+}
+const rateCache = new Map();
+export function ratesFromOdds(odds) {
+  if (!odds || ![odds.home, odds.draw, odds.away].every(Number.isFinite)) return [1.35, 1.35];
+  const key = `${odds.home.toFixed(3)}|${odds.away.toFixed(3)}`;
+  if (rateCache.has(key)) return rateCache.get(key);
+  const err = (lh, la) => { const [h, d, a] = resultChances(lh, la, 0); return (h - odds.home) ** 2 + (d - odds.draw) ** 2 + (a - odds.away) ** 2; };
+  let best = [1.35, 1.35], e = Infinity;
+  const search = (h0, h1, a0, a1, step) => {
+    for (let lh = h0; lh <= h1 + 1e-9; lh += step) for (let la = a0; la <= a1 + 1e-9; la += step) {
+      const x = err(lh, la);
+      if (x < e) { e = x; best = [lh, la]; }
+    }
+  };
+  search(0.2, 4, 0.2, 4, 0.1); // coarse, then fine around the best
+  const [h, a] = best;
+  search(Math.max(0.05, h - 0.1), h + 0.1, Math.max(0.05, a - 0.1), a + 0.1, 0.01);
+  const out = best.map((x) => Math.round(x * 100) / 100);
+  rateCache.set(key, out);
+  return out;
+}
+
+// Suspense: the average doubt about the result, minute by minute (1 minus the likeliest result's
+// chance; about 0.2 for a match decided early, 0.4+ for one open to the end). Swing: how much the
+// goals moved the win chances in total (home win and away win, 1 = 100 points).
+// `goals`: [{ t, side }] in real minutes (stoppage time included), sorted; `end`: the real length.
+export function suspenseOf(goals, odds, end, upTo = end) {
+  const [lh, la] = ratesFromOdds(odds);
+  const left = (m) => Math.max(0, end - m) / 90;
+  let d = 0, gi = 0, sum = 0, swing = 0, n = 0;
+  const next = () => {
+    const t = goals[gi].t;
+    const before = resultChances(lh * left(t), la * left(t), d);
+    d += goals[gi].side === 'home' ? 1 : -1;
+    const after = resultChances(lh * left(t), la * left(t), d);
+    swing += Math.abs(after[0] - before[0]) + Math.abs(after[2] - before[2]);
+    gi++;
+  };
+  for (let m = 0; m < upTo; m++) {
+    while (gi < goals.length && goals[gi].t <= m) next();
+    sum += 1 - Math.max(...resultChances(lh * left(m), la * left(m), d));
+    n++;
+  }
+  while (gi < goals.length && goals[gi].t <= upTo) next(); // a goal in the very last minute still swings it
+  return { suspense: n ? sum / n : 0, swing };
+}
+// The points for them (the same on replays and live): full suspense at 0.5, nothing at 0.2 or less;
+// full swing at 1.5 (150 points of win chance moved by the goals).
+// (0 when the weights are older than football 19, e.g. a cached events.json.)
+export const suspensePoints = (w, s) => (w.suspense ?? 0) * Math.min(1, Math.max(0, (s.suspense - 0.2) / 0.3));
+export const swingPoints = (w, s) => (w.swing ?? 0) * Math.min(1, s.swing / 1.5);
+
 export const LIVE_FROM = 15; // no number before this minute: too little to go on
 export const ROUGH_UNTIL = 30; // "early, rough" until this minute
 
@@ -120,7 +187,9 @@ export const ROUGH_UNTIL = 30; // "early, rough" until this minute
 // `w` holds the weights (FOOTBALL plus FOOTBALL_LIVE from src/scoring/weights.mjs; the page
 // gets them from events.json). `factor` is the big-match factor. `boost`: the page's own points for
 // the competition ("Custom scoring"), added before the curve as on replays. Returns { pace, rough } or null.
-export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0 } = {}) {
+// `odds`: the pre-match { home, draw, away } chances (for suspense), or null. `mix`: { a, k } from
+// mixFrom() in scoring.js when the four pillar sliders aren't level (the page only).
+export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0, odds = null, mix = null } = {}) {
   const played = f?.played ?? 0;
   if (!w || played < LIVE_FROM) return null;
   const goals = [...f.goals].sort((a, b) => a.min - b.min);
@@ -143,13 +212,21 @@ export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0 } = {}) {
   if (Math.abs(diff) <= 1) closeMinutes += played - prevMin;
   rate += w.equaliser * equalisers + w.leadChange * Math.min(leadChanges, 3);
   rate += w.redCard * Math.min(f.reds, 2) + w.penalty * Math.min(f.pens, 2);
+  // A red card for the team ahead, or for either team when level from 60' (as on replays).
+  const leadAt = (m) => goals.filter((g) => g.min < m).reduce((d, g) => d + (g.side === 'home' ? 1 : -1), 0);
+  const opening = (f.redsBy ?? []).filter((r) => { const d = leadAt(r.min) * (r.side === 'home' ? 1 : r.side === 'away' ? -1 : 0); return r.side && (d > 0 || (d === 0 && r.min >= 60)); }).length;
+  rate += (w.redCardAhead ?? 0) * Math.min(opening, 2);
   rate += w.varDisallowed * Math.min(f.disallowed, 2) + w.woodwork * Math.min(f.woodwork, 3);
   rate += w.shotOnTarget * f.shotsOn + w.shotOffTarget * f.shotsOff;
 
   // How things stand: not scaled.
   const stakesPoints = stakes === 'title' ? w.titleRace : stakes === 'relegation' ? w.relegationBattle : stakes ? w.otherRace : 0;
   const oneSided = Math.abs(diff) >= 3 ? w.blowout : 0; // 3+ goals up: less worth tuning in for
-  const raw = (rate * 90) / played + w.closeMatch * (closeMinutes / played) + stakesPoints - oneSided;
+  // Suspense so far (how things stand) and swing so far (scaled up like the goals).
+  const s = suspenseOf(goals.map((g) => ({ t: g.min, side: g.side })), odds, 90, Math.min(played, 90));
+  const sw = swingPoints(w, { swing: (s.swing * 90) / played });
+  const pillars = (rate * 90) / played + w.closeMatch * (closeMinutes / played) - oneSided + (Number.isFinite(sw) ? sw : 0) + (suspensePoints(w, s) || 0);
+  const raw = (mix ? mix.a + mix.k * pillars : pillars) + stakesPoints;
 
   // Early on, a typical match counts for `settleMinutes` minutes of play, shrinking to nothing at 90'.
   const prior = Math.max(0, w.settleMinutes * (1 - played / 90));
@@ -162,6 +239,6 @@ export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0 } = {}) {
 // The weights scoreLivePace uses, picked from the football weights (published in events.json,
 // so weights.mjs stays the only place they're set).
 export const LIVE_WEIGHT_KEYS = ['goal', 'extraGoal', 'alreadyDecided', 'nearlyDecided', 'closeMatch', 'blowout', 'equaliser', 'leadChange',
-  'redCard', 'penalty', 'varDisallowed', 'woodwork', 'titleRace', 'relegationBattle', 'otherRace', 'curveFrom'];
+  'redCard', 'penalty', 'varDisallowed', 'woodwork', 'titleRace', 'relegationBattle', 'otherRace', 'curveFrom', 'suspense', 'swing', 'redCardAhead'];
 export const liveWeightsFrom = (football, live) =>
   ({ ...Object.fromEntries(LIVE_WEIGHT_KEYS.map((k) => [k, football[k]])), ...live });

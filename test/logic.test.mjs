@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chancesLine, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel, prematchLine } from '../docs/logic.js';
+import { chancesLine, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel, prematchLine } from '../docs/logic.js';
 
 const now = Date.parse('2026-09-26T12:00:00Z');
 const ev = (o) => ({ services: [], segments: [], advice: { code: 'full' }, compName: 'X', ...o });
@@ -253,4 +253,13 @@ test('"Show win chances": one line from the pre-match chances, football only', (
   assert.equal(chancesLine(e), 'Win chance: SK Brann 45% · draw 27% · Viking FK 28%');
   assert.equal(chancesLine({ ...e, chances: undefined }), '');
   assert.equal(chancesLine({ sport: 'tennis', players: ['A', 'B'] }), '');
+});
+
+test('"Why this score?" groups football lines by pillar, with a subtotal each', () => {
+  const labels = { chances: 'Chances', tempo: 'Tempo', tension: 'Tension', drama: 'Drama', occasion: 'The occasion' };
+  const groups = reasonGroups([[2.4, '2 goals', 'drama'], [-3.1, 'Higher scores are harder to reach', 'occasion'], [0.5, 'Hit the woodwork', 'chances'],
+    [0.9, 'Big match: two strong teams (×1.15)', 'occasion'], [-0.7, 'One-sided: won by 3 goals', 'drama'], [0.3, 'Your mix of the four pillars, evened out to the usual level', 'mix']], labels);
+  assert.deepEqual(groups.map((g) => [g.label, g.total]), [['Chances', '+0.5'], ['Drama', '+1.7'], ['The occasion', '-1.9']]);
+  assert.deepEqual(groups[2].lines.map((l) => l.label.slice(0, 9)), ['Your mix ', 'Big match', 'Higher sc']);
+  assert.equal(reasonGroups([[1, 'x']], labels), null, 'older reasons keep the flat list');
 });

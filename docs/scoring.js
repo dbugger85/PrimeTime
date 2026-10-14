@@ -3,7 +3,7 @@
 // as a parameter (src/scoring/weights.mjs on the bot; events.json's `footballWeights` on the page).
 // The general helpers live here too, so tennis, F1 and winter (via src/scoring/common.mjs) share them.
 
-import { curve, bigMatchFactor } from './live.js';
+import { curve, bigMatchFactor, suspenseOf, suspensePoints, swingPoints } from './live.js';
 
 export const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 export const round1 = (x) => Math.round(x * 10) / 10;
@@ -16,23 +16,28 @@ export function finalScore(x) {
 // Adds up a score and remembers why, for the "Why this score?" spoiler button.
 // `keys` (optional) names the weights behind a line, for "Calibration mode": `lines` keeps
 // every line with its exact points, its weights and the running total.
-export function tally() {
+// `pillarOf` (optional, football): keys -> the pillar a line belongs to, added to each reason as a
+// third item ([points, label, pillar]) so "Why this score?" can group the lines.
+export function tally(pillarOf = null) {
   let total = 0;
   const reasons = [];
   const lines = [];
+  const sums = {}; // exact points per pillar, tiny lines included
   return {
-    add(points, label, keys = []) {
+    add(points, label, keys = [], pillar = pillarOf?.(keys)) {
       if (!Number.isFinite(points)) { // a missing fact: leave this line out rather than break the score
         console.log(`::warning::scoring: "${label}" is not a number (${points}), left out`);
         return;
       }
       total += points;
+      if (pillar) sums[pillar] = (sums[pillar] ?? 0) + points;
       if (round1(points)) { // no "+0.0" lines
-        reasons.push([round1(points), label]);
-        lines.push({ points, label, keys, total });
+        reasons.push(pillar ? [round1(points), label, pillar] : [round1(points), label]);
+        lines.push({ points, label, keys, total, ...(pillar ? { pillar } : {}) });
       }
     },
     get total() { return total; },
+    sums,
     reasons,
     lines,
   };
@@ -85,11 +90,16 @@ const SEGMENTS = 6; // 15-minute blocks; extra time counts toward the last one
 // `f`: the facts from factsFromSummary() in src/sources/espn-football.mjs (or the trimmed copy
 // in docs/data/facts.json, which has no shot-by-shot lists: then the strip is left empty).
 // `W`: the FOOTBALL weights. `boost`: the page's own points for this competition ("Custom scoring").
-export function scoreFootball(f, W, { boost = 0, boostLabel = 'This competition' } = {}) {
+// `mix`: { a, k } from mixFrom() when the four pillar sliders aren't level (the page only).
+export function scoreFootball(f, W, { boost = 0, boostLabel = 'This competition', mix = null } = {}) {
   const goals = [...f.goals].sort((a, b) => a.min - b.min);
   const n = goals.length;
-  const end = f.extraTime ? 120 : 90;
-  const t = tally();
+  // Real time, stoppage included (football 19): 45+2' is the 47th minute, and the second half starts
+  // after the first half's stoppage. Facts saved before football 19 have no stoppage: then it's 90.
+  const [s1, s2] = Array.isArray(f.stoppage) ? f.stoppage : [0, 0];
+  const end = (f.extraTime ? 120 : 90) + s1 + s2;
+  const timeline = goals.map((g) => ({ t: Math.min(realMinute(g, s1, s2), end), side: g.side })); // same order as `goals`
+  const t = tally(pillarOfKeys);
 
   // Goals: the first four count most.
   t.add(W.goal * Math.min(n, 4) + W.extraGoal * Math.max(0, n - 4), plural(n, 'goal'), ['goal', 'extraGoal']);
@@ -128,8 +138,8 @@ export function scoreFootball(f, W, { boost = 0, boostLabel = 'This competition'
 
   // Balance and swings: walk through the match tracking the goal difference.
   let diff = 0, prevMin = 0, closeMinutes = 0, equalisers = 0, leadChanges = 0, leader = 0;
-  for (const g of goals) {
-    const min = Math.min(g.min, end);
+  for (const [i, g] of goals.entries()) {
+    const min = timeline[i].t;
     if (Math.abs(diff) <= 1) closeMinutes += min - prevMin;
     prevMin = min;
     diff += g.side === 'home' ? 1 : -1;
@@ -211,13 +221,46 @@ export function scoreFootball(f, W, { boost = 0, boostLabel = 'This competition'
   if (f.corners >= 12) t.add(W.manyCorners, `${f.corners} corners`, ['manyCorners']);
   t.add(f.yellows >= 9 ? W.lotsOfYellows : f.yellows >= 6 ? W.manyYellows : 0, `${f.yellows} yellow cards`, ['manyYellows', 'lotsOfYellows']);
 
+  if (f.extraTime) t.add(W.extraTime, 'Went to extra time', ['extraTime']);
+  if (f.shootout) t.add(W.shootout, 'Decided on penalties', ['shootout']);
+
+  // Football 19. Suspense and swing, from the win chances minute by minute (the odds before kick-off,
+  // the score and the time left; see suspenseOf in live.js). They know a 1–0 lead for a big favorite
+  // is nearly over at 60' while a 1–0 for the underdog is a nail-biter.
+  const sus = suspenseOf(timeline, ts ? odds : null, end); // teamStrength 0: no odds, even rates
+  t.add(suspensePoints(W, sus), `How open the result looked, minute by minute (${sus.suspense.toFixed(2)})`, ['suspense']);
+  t.add(swingPoints(W, sus), `Goals moved the win chances by ${Math.round(100 * sus.swing)} points`, ['swing']);
+  // Directness: shots and corners for every 100 passes (ESPN). Nothing at 2.8 or less, the full amount at 5.
+  const passes = f.passes && Number.isFinite(f.passes.home) && Number.isFinite(f.passes.away) ? f.passes.home + f.passes.away : 0;
+  if (passes >= 300 && Number.isFinite(f.totalShots) && Number.isFinite(f.corners)) {
+    const direct = ((f.totalShots + f.corners) / passes) * 100;
+    t.add((W.directness ?? 0) * clamp((direct - 2.8) / 2.2, 0, 1), `Direct play: ${direct.toFixed(1)} shots and corners per 100 passes`, ['directness']);
+  }
+  // Great goals (FotMob): from outside the box, or an unlikely chance struck so well it went in.
+  // (The bot's facts keep these inside `xg`; trimFacts moves them up for the page.)
+  const bangers = f.bangers ?? f.xg?.bangers, bigMisses = f.bigMisses ?? f.xg?.bigMisses;
+  if (Array.isArray(bangers)) t.add((W.banger ?? 0) * Math.min(bangers.length, 2), plural(bangers.length, 'great goal'), ['banger']);
+  // Big chances missed from 80' while the result was within one goal (FotMob, xG 0.3 or more).
+  if (Array.isArray(bigMisses)) {
+    const late = bigMisses.filter((m) => m >= 80 && Math.abs(leadAt(goals, m)) <= 1).length;
+    t.add((W.lateChance ?? 0) * Math.min(late, 2), `${plural(late, 'big chance')} missed from 80' while it was close`, ['lateChance']);
+  }
+  // A red card for the team ahead (or for either team when level from 60') opens a match up; one for the
+  // team behind usually ends it, but gets no penalty: Spurs, behind and down to ten, still equalised.
+  if (Array.isArray(f.redsBy)) {
+    const opening = f.redsBy.filter((r) => { const d = leadAt(goals, r.min) * (r.side === 'home' ? 1 : -1); return d > 0 || (d === 0 && r.min >= 60); }).length;
+    t.add((W.redCardAhead ?? 0) * Math.min(opening, 2), `${plural(opening, 'red card')} for a team ahead, or level after 60'`, ['redCardAhead']);
+  }
+
+  const pillars = Object.fromEntries(Object.keys(PILLARS).map((p) => [p, t.sums[p] ?? 0]));
+  // Your mix of the four pillars ("Custom scoring"), evened out so the average and the spread of the
+  // scores stay as they are: only the order of the matches changes.
+  if (mix) t.add(mix.a + (mix.k - 1) * t.total, 'Your mix of the four pillars, evened out to the usual level', [], 'mix');
+
   if (f.stakes) {
     const [points, key] = f.stakes === 'title' ? [W.titleRace, 'titleRace'] : f.stakes === 'relegation' ? [W.relegationBattle, 'relegationBattle'] : [W.otherRace, 'otherRace'];
     t.add(points, `${STAKES[f.stakes] ?? 'Something at stake'} before kick-off`, [key]);
   }
-
-  if (f.extraTime) t.add(W.extraTime, 'Went to extra time', ['extraTime']);
-  if (f.shootout) t.add(W.shootout, 'Decided on penalties', ['shootout']);
 
   // Big match: a thriller between two strong teams is worth more than the same match between
   // two weaker ones. `f.strength` is each team's strength from 0 to 1 (clubs against their own
@@ -259,8 +302,21 @@ export function scoreFootball(f, W, { boost = 0, boostLabel = 'This competition'
   const blocks = new Array(SEGMENTS).fill(0).map((_, b) => slots[b * 3] + slots[b * 3 + 1] + slots[b * 3 + 2]);
   // Full heat needs about a goal's worth (4: a goal and a shot or two) in the block.
   // `limited`: scored without xG (FotMob had none), so from shot counts only. Shown on the card.
-  return { score, segments: heat(blocks, { floor: 4 }), advice: footballAdvice(score, slots), reasons: t.reasons, lines: t.lines, result: f.result, limited: !xg };
+  return { score, segments: heat(blocks, { floor: 4 }), advice: footballAdvice(score, slots), reasons: t.reasons, lines: t.lines, pillars, result: f.result, limited: !xg };
 }
+
+// The minute a goal went in, in real time: "45+2'" is 47, and the second half starts after the first
+// half's stoppage (`s1`). Without a clock (older facts) the stored minute is used.
+function realMinute(g, s1, s2) {
+  const plus = Number(/\+(\d+)/.exec(g.clock ?? '')?.[1] ?? 0);
+  // Within the half's known stoppage, so a 45+3' goal never lands after the second half has started.
+  if (g.min < 45) return plus ? 45 + (s1 ? Math.min(plus, s1) : plus) : g.min;
+  if (g.min < 90) return s1 + (plus ? 90 + (s2 ? Math.min(plus, s2) : plus) : g.min);
+  return s1 + s2 + (plus ? (g.min < 105 ? 105 : 120) + plus : g.min);
+}
+
+// The home team's lead just before `min` (goals sorted by minute).
+const leadAt = (goals, min) => goals.filter((g) => g.min < min).reduce((d, g) => d + (g.side === 'home' ? 1 : -1), 0);
 
 // Skip windows in whole minutes. The last 15 minutes are never skipped: whether
 // the ending matters is the one thing a skip tip must not give away.
@@ -272,29 +328,56 @@ export function footballAdvice(score, slots) {
   return { code: 'skip', unit: 'min', ranges: runs.map(([a, b]) => [a * 5, b * 5]) };
 }
 
-// ── Custom scoring: the page's 10 sliders ───────────────────────────────────
-// Each slider multiplies a group of FOOTBALL weights (0 = off, 1 = the standard, 2 = double),
-// except `curveFrom`, which sets the top end directly. The live keys (shotOnTarget, shotOffTarget)
-// are FOOTBALL_LIVE weights for "Excitement so far". Every FOOTBALL weight belongs to exactly one
-// group, or to TWEAK_FIXED (a test checks this): `teamStrength` is already the master dial for
-// the other odds weights, and `leagueLevel` is used by the bot before the facts are saved.
-export const TWEAK_GROUPS = {
-  goals: { label: 'Goals', hint: 'Each goal scored', keys: ['goal', 'extraGoal'] },
-  tight: { label: 'Tight match and swings', hint: 'Close all the way, equalisers, the lead changing hands', keys: ['closeMatch', 'equaliser', 'leadChange'] },
-  late: { label: 'Late drama', hint: 'Late goals while it was open, extra time, penalty shootouts', keys: ['lateGoal', 'veryLateGoal', 'lateDecider', 'lateGoalsMax', 'extraTime', 'shootout'] },
-  chances: { label: 'Chances and intensity', hint: 'xG, big chances, shots, end to end play, corners', keys: ['chances', 'bigChances', 'shotQuality', 'boxTouches', 'endToEnd', 'againstTheRun', 'shotsOnTarget7', 'shotsOnTarget10', 'manyShots', 'manyCorners', 'shotOnTarget', 'shotOffTarget'] },
-  cards: { label: 'Cards, penalties and VAR', hint: 'Red cards, penalties, goals ruled out, the woodwork, bookings', keys: ['redCard', 'penalty', 'varDisallowed', 'woodwork', 'manyYellows', 'lotsOfYellows'] },
-  oneSided: { label: 'Punish one-sided matches', hint: 'Points taken off for routs and dull 0–0s', keys: ['alreadyDecided', 'nearlyDecided', 'blowout', 'dullGoalless'] },
-  upsets: { label: 'Upsets and team strength', hint: 'Underdogs winning or holding on, evenly matched teams', keys: ['teamStrength'] },
-  bigMatch: { label: 'Big match', hint: 'Two strong teams count more, two weak ones less', keys: ['bigMatch', 'smallMatch'] },
-  stakes: { label: 'What was at stake', hint: 'Title races, relegation battles and other races', keys: ['titleRace', 'relegationBattle', 'otherRace'] },
+// ── Custom scoring: four pillars, and detailed sliders under each ───────────────────────────────
+// Every scoring line belongs to one of four pillars (Chances, Tempo, Tension, Drama) or to the
+// occasion (big match, what was at stake, your competition boosts, the top end). The page has one
+// slider per pillar, 0 to PILLAR_MAX: a weighting relative to the other pillars, not points. The mix
+// is evened out (mixFrom) so the average and the spread of the scores stay the same; only the order
+// of the matches changes. Under "Advanced", each pillar has its detailed sliders in points (below).
+export const PILLARS = {
+  chances: { label: 'Chances', hint: 'How many good chances both teams created: expected goals, big chances, shots that tested the keeper, the woodwork and goals ruled out.' },
+  tempo: { label: 'Tempo', hint: 'How the match flowed: both teams going forward, end to end, and how directly they went for goal.' },
+  tension: { label: 'Tension', hint: 'How long the result was in the balance: close all the way, equalisers, the lead changing hands, and how open it looked from the odds.' },
+  drama: { label: 'Drama', hint: 'What actually happened: goals, great goals, late drama, red cards and upsets.' },
 };
-export const TWEAK_FIXED = ['favoriteDiscount', 'underdogBonus', 'upsetWin', 'upsetDraw', 'upsetShootout', 'evenMatch', 'leagueLevel', 'curveFrom'];
+export const PILLAR_MAX = 3;
+export const PILLAR_STEP = 0.1;
+// Ready-made mixes (relative weights, like the sliders).
+export const PRESETS = {
+  standard: { label: 'Standard', pillars: { chances: 1, tempo: 1, tension: 1, drama: 1 } },
+  goals: { label: 'Goals and drama', pillars: { chances: 0.7, tempo: 0.7, tension: 1, drama: 1.5 } },
+  chances: { label: 'Chances and tempo', pillars: { chances: 1.7, tempo: 1.7, tension: 1, drama: 0.6 } },
+  nailBiters: { label: 'Nail-biters', pillars: { chances: 1, tempo: 1, tension: 1.6, drama: 0.7 } },
+};
+
+// The detailed sliders. Each multiplies a group of FOOTBALL weights (0 = off, 1 = the standard, 2 =
+// double), except `curveFrom`, which sets the top end directly. The live keys (shotOnTarget,
+// shotOffTarget) are FOOTBALL_LIVE weights for "Excitement so far". Every FOOTBALL weight belongs to
+// exactly one group, or to TWEAK_FIXED (a test checks this): `teamStrength` is the master dial for
+// the odds weights, and `leagueLevel` is used by the bot before the facts are saved.
+export const TWEAK_GROUPS = {
+  chances: { pillar: 'chances', label: 'Chances and xG', hint: 'Expected goals, big chances, shots on target, play in the boxes; points off for a dull 0–0', keys: ['chances', 'bigChances', 'shotQuality', 'boxTouches', 'shotsOnTarget7', 'shotsOnTarget10', 'manyShots', 'dullGoalless', 'shotOnTarget', 'shotOffTarget'] },
+  nearMisses: { pillar: 'chances', label: 'Near misses', hint: 'The woodwork, goals ruled out by VAR, penalties', keys: ['woodwork', 'varDisallowed', 'penalty'] },
+  endToEnd: { pillar: 'tempo', label: 'End to end', hint: 'Both teams attacking about as much as each other', keys: ['endToEnd'] },
+  directness: { pillar: 'tempo', label: 'Directness and corners', hint: 'Shots and corners for every 100 passes, lots of corners', keys: ['directness', 'manyCorners'] },
+  tight: { pillar: 'tension', label: 'Tight match and swings', hint: 'Close all the way, equalisers, the lead changing hands', keys: ['closeMatch', 'equaliser', 'leadChange'] },
+  suspense: { pillar: 'tension', label: 'Suspense', hint: 'How open the result looked minute by minute, from the odds and the score; evenly matched teams; a result against the run of play', keys: ['suspense', 'swing', 'evenMatch', 'againstTheRun'] },
+  goals: { pillar: 'drama', label: 'Goals', hint: 'Each goal scored, and great goals from distance', keys: ['goal', 'extraGoal', 'banger'] },
+  late: { pillar: 'drama', label: 'Late drama', hint: 'Late goals and big chances while it was open, extra time, penalty shootouts', keys: ['lateGoal', 'veryLateGoal', 'lateDecider', 'lateGoalsMax', 'lateChance', 'extraTime', 'shootout'] },
+  cards: { pillar: 'drama', label: 'Cards', hint: 'Red cards (more when the team ahead gets one) and lots of bookings', keys: ['redCard', 'redCardAhead', 'manyYellows', 'lotsOfYellows'] },
+  upsets: { pillar: 'drama', label: 'Upsets', hint: 'Underdogs winning or holding on, and their goals counting more', keys: ['upsetWin', 'upsetDraw', 'upsetShootout', 'underdogBonus', 'favoriteDiscount'] },
+  oneSided: { pillar: 'drama', label: 'Punish one-sided matches', hint: 'Points taken off for routs', keys: ['alreadyDecided', 'nearlyDecided', 'blowout'] },
+  bigMatch: { pillar: null, label: 'Big match', hint: 'Two strong teams count more, two weak ones less', keys: ['bigMatch', 'smallMatch'] },
+  stakes: { pillar: null, label: 'What was at stake', hint: 'Title races, relegation battles and other races', keys: ['titleRace', 'relegationBattle', 'otherRace'] },
+};
+export const TWEAK_FIXED = ['teamStrength', 'leagueLevel', 'curveFrom'];
 const SHARES = ['alreadyDecided', 'nearlyDecided', 'smallMatch']; // parts of 1: never more than all of it
-// The sliders are in points, on one scale for all of them: about how much that part typically adds to
-// (or takes off) a match's score when it happens, from 0 to SCALE_MAX. The bot measures where each part
-// stands with the standard weights (`sliderScale()`, published in events.json), so the "standard" marks
-// sit at different places. Saved settings are the multipliers behind the points (1 = standard).
+// Shares of a goal's points: the goal weights already carry the Drama pillar, so these don't again.
+const NOT_BY_PILLAR = ['alreadyDecided', 'nearlyDecided', 'favoriteDiscount', 'underdogBonus'];
+// The detailed sliders are in points, on one scale for all of them: about how much that part typically
+// adds to (or takes off) a match's score when it happens, from 0 to SCALE_MAX. The bot measures where
+// each part stands with the standard weights (`sliderScale()`, published in events.json), so the
+// "standard" marks sit at different places. Saved settings are the multipliers behind the points.
 export const SCALE_MAX = 7;
 export const SCALE_STEP = 0.1;
 export const MULT_MAX = 50; // a rare part (what was at stake, 0.35 points) can still be made worth the whole scale
@@ -302,8 +385,9 @@ export const CURVE_STEP = 0.5;
 export const BOOST_STEP = 0.5;
 export const BOOST_MAX = 2;
 export const DEFAULT_TWEAKS = {
-  v: 2, // 2: sliders in points (2026-10-11). Older saved sliders (0× to 2× each) go back to standard once
+  v: 3, // 3: four pillars, detailed sliders regrouped (football 19, 2026-10-14). Older saved sliders go back to standard once
   on: false,
+  pillars: { chances: 1, tempo: 1, tension: 1, drama: 1 },
   sliders: Object.fromEntries(Object.keys(TWEAK_GROUPS).map((k) => [k, 1])),
   curveFrom: null, // null: the standard top end from the weights
   comps: {}, // { 'eng.1': 1 }: points added for that competition
@@ -317,9 +401,15 @@ export function cleanTweaks(x) {
   const out = structuredClone(DEFAULT_TWEAKS);
   if (!x || typeof x !== 'object') return out;
   out.on = x.on === true;
-  if (x.v === out.v) for (const k of Object.keys(out.sliders)) {
-    const v = x.sliders?.[k];
-    if (typeof v === 'number' && Number.isFinite(v)) out.sliders[k] = Math.round(clamp(v, 0, MULT_MAX) * 1000) / 1000;
+  if (x.v === out.v) {
+    for (const k of Object.keys(out.sliders)) {
+      const v = x.sliders?.[k];
+      if (typeof v === 'number' && Number.isFinite(v)) out.sliders[k] = Math.round(clamp(v, 0, MULT_MAX) * 1000) / 1000;
+    }
+    for (const k of Object.keys(out.pillars)) {
+      const v = x.pillars?.[k];
+      if (typeof v === 'number' && Number.isFinite(v)) out.pillars[k] = tidy(clamp(v, 0, PILLAR_MAX));
+    }
   }
   if (typeof x.curveFrom === 'number' && Number.isFinite(x.curveFrom)) out.curveFrom = tidy(snap(x.curveFrom, CURVE_STEP, 0, 9));
   for (const [comp, v] of Object.entries(x.comps && typeof x.comps === 'object' ? x.comps : {})) {
@@ -331,25 +421,66 @@ export function cleanTweaks(x) {
 }
 
 // The weights with the sliders applied: the replay FOOTBALL weights or the live ones alike.
-export function applyTweaks(W, tweaks) {
+// `pillars: false` leaves out the four pillar sliders (to measure the pillars for mixFrom).
+export function applyTweaks(W, tweaks, { pillars = true } = {}) {
   const out = { ...W };
-  for (const [group, { keys }] of Object.entries(TWEAK_GROUPS)) {
+  for (const [group, { keys, pillar }] of Object.entries(TWEAK_GROUPS)) {
     const s = tweaks.sliders[group] ?? 1;
-    for (const k of keys) if (k in out) out[k] = SHARES.includes(k) ? Math.min(1, out[k] * s) : out[k] * s;
+    for (const k of keys) {
+      if (!(k in out)) continue;
+      const p = pillars && pillar && !NOT_BY_PILLAR.includes(k) && !allOff(tweaks) ? tweaks.pillars?.[pillar] ?? 1 : 1;
+      out[k] = (SHARES.includes(k) ? Math.min(1, out[k] * s) : out[k] * s) * p;
+    }
   }
   if (tweaks.curveFrom != null) out.curveFrom = tweaks.curveFrom;
   return out;
 }
 
+// All four pillars at 0 would leave nothing to score: it counts as level (the standard mix).
+const allOff = (tweaks) => Object.values(tweaks.pillars ?? {}).every((v) => v === 0);
+const level = (tweaks) => Object.values(tweaks.pillars ?? {}).every((v) => v === 1);
 // True when the tweaks change nothing (the standard scoring), apart from the switch.
-export const isStandard = (tweaks) => Object.values(tweaks.sliders).every((v) => v === 1) && tweaks.curveFrom == null && !Object.keys(tweaks.comps).length;
+export const isStandard = (tweaks) => level(tweaks) && Object.values(tweaks.sliders).every((v) => v === 1) && tweaks.curveFrom == null && !Object.keys(tweaks.comps).length;
 
 // Which slider a scoring line belongs to, from the weights behind it ('boost' and 'curve' have none).
 export function groupOfKeys(keys) {
   if (!keys.length) return 'boost';
   if (keys.includes('curveFrom')) return 'curve';
   const g = Object.entries(TWEAK_GROUPS).find(([, x]) => keys.some((k) => x.keys.includes(k)));
-  return g ? g[0] : keys.some((k) => TWEAK_FIXED.includes(k)) ? 'upsets' : null;
+  return g ? g[0] : null;
+}
+// Which pillar a line belongs to: 'chances', 'tempo', 'tension', 'drama', or 'occasion' (big match,
+// stakes, boost, the top end).
+export function pillarOfKeys(keys) {
+  const g = groupOfKeys(keys);
+  return TWEAK_GROUPS[g]?.pillar ?? 'occasion';
+}
+
+// Evens out a mix of the pillar sliders over a set of matches: `rows` are scoreFootball(…).pillars,
+// scored with the detailed sliders but level pillars. The mixed total T is then turned into a + k·T, with the same
+// average and spread as the level total. Null when the pillars are level (nothing to do) or all off.
+export function mixFrom(rows, pillars) {
+  const keys = Object.keys(PILLARS);
+  if (!rows.length || keys.every((p) => (pillars[p] ?? 1) === 1) || keys.every((p) => pillars[p] === 0)) return null;
+  const stats = (w) => {
+    const xs = rows.map((r) => keys.reduce((a, p) => a + w(p) * r[p], 0));
+    const mean = xs.reduce((a, b) => a + b, 0) / xs.length;
+    return { mean, sd: Math.sqrt(xs.reduce((a, x) => a + (x - mean) ** 2, 0) / xs.length) };
+  };
+  const std = stats(() => 1), mine = stats((p) => pillars[p] ?? 1);
+  if (!(mine.sd > 1e-6)) return null;
+  const k = Math.min(10, std.sd / mine.sd);
+  return { a: std.mean - k * mine.mean, k };
+}
+
+// How much each pillar counts in a mix, in % (for "Your mix: Chances 22% · …"): its slider times its
+// typical size over the matches (`rows` as for mixFrom).
+export function mixShares(rows, pillars) {
+  const keys = Object.keys(PILLARS);
+  const size = Object.fromEntries(keys.map((p) => [p, rows.reduce((a, r) => a + Math.abs(r[p]), 0) / Math.max(1, rows.length)]));
+  const w = Object.fromEntries(keys.map((p) => [p, (pillars[p] ?? 1) * size[p]]));
+  const sum = Object.values(w).reduce((a, b) => a + b, 0) || 1;
+  return Object.fromEntries(keys.map((p) => [p, Math.round((100 * w[p]) / sum)]));
 }
 
 // Where each slider stands with the standard weights: the points its lines typically add up to (as a

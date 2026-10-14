@@ -301,6 +301,23 @@ export function reasonLines(reasons) {
   return { lines, note };
 }
 
+// Football since football 19: each reason carries its pillar ([points, label, pillar]). Then the lines
+// come in groups with a subtotal each: the four pillars, then the occasion (your mix, what was at
+// stake, big match, your boost, the top end). `labels`: { chances: 'Chances', … }. Null for older
+// reasons (no pillars), which keep the flat list.
+const GROUP_ORDER = ['chances', 'tempo', 'tension', 'drama', 'occasion'];
+export function reasonGroups(reasons, labels) {
+  if (!reasons.length || !reasons.every((r) => typeof r[2] === 'string')) return null;
+  const groups = [];
+  for (const key of GROUP_ORDER) {
+    const mine = reasons.filter((r) => (key === 'occasion' ? !GROUP_ORDER.slice(0, 4).includes(r[2]) : r[2] === key));
+    if (!mine.length) continue;
+    const total = Math.round(mine.reduce((a, [p]) => a + p, 0) * 10) / 10;
+    groups.push({ key, label: labels[key] ?? key, total: `${total > 0 ? '+' : ''}${total.toFixed(1)}`, lines: reasonLines(mine).lines });
+  }
+  return groups;
+}
+
 // "Share my settings": the settings travel inside the link itself (after the #, which
 // browsers never send to a server), so there are no accounts and nothing is stored anywhere.
 // Only "watched" marks for events from the last `days` days go along, to keep the link short.

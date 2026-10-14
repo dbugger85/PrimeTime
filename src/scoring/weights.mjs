@@ -18,13 +18,14 @@ export const FOOTBALL = {
   // Goals
   goal: 1.2, //               each of the first 4 goals
   extraGoal: 0.6, //          each goal after the 4th
-  closeMatch: 2.0, //         if it was within one goal the whole match (less if only part of it)
+  closeMatch: 1.2, //         if it was within one goal the whole match, stoppage time included (less if only part of it)
   equaliser: 0.8, //          each equaliser
   leadChange: 1.0, //         each time the lead changed hands (up to 3 times)
   lateGoal: 0.5, //           each goal from 75' to 85', while the result was still open
   veryLateGoal: 1.0, //       each goal from 85', while the result was still open
   lateDecider: 0.6, //        extra for each goal from 85' that changed the result: an equaliser, or a winner from level (up to 2)
   lateGoalsMax: 2.5, //       at most this much for late goals in total
+  lateChance: 0.3, //         each big chance missed from 80' while the result was within one goal (up to 2; needs FotMob)
 
   // One-sided matches
   alreadyDecided: 0.25, //    taken off: share of a goal's points when the team was already 3+ up (0.5 = half)
@@ -40,8 +41,13 @@ export const FOOTBALL = {
   upsetShootout: 2.0, //      the underdog won on penalties (same scale)
   evenMatch: 0.5, //          the teams were evenly matched on paper
 
+  // Suspense, from the win chances minute by minute (the odds before kick-off, the score and the time left)
+  suspense: 0.8, //           the result looked open for most of the match (nothing when it was decided early)
+  swing: 0.5, //              the goals moved the win chances a lot (the full amount at 150 points in total)
+
   // Intensity and drama
   chances: 1.25, //           with xG: an open match full of good chances (nothing under 1.5 expected goals in total, the full amount at 4.0)
+  directness: 0.5, //         direct play: lots of shots and corners for the passes played (nothing at 2.8 per 100 passes, the full amount at 5)
   endToEnd: 1.0, //           both teams attacking about equally (by shots), not one-way traffic (nothing under 40%, the full amount from 90%)
   bigChances: 0.8, //         with FotMob's stats: lots of big chances, scored or missed (nothing for 3 or fewer in total, the full amount at 9)
   shotQuality: 0.8, //        with FotMob's stats: shots that tested the keeper, by xG on target (nothing under 2.0 xGOT in total, the full amount at 4.5)
@@ -52,6 +58,8 @@ export const FOOTBALL = {
   manyShots: 0.5, //          without xG only: 30 or more shots in total
   dullGoalless: 0.5, //       taken off: 0–0 with chances worth under 1.5 expected goals (without xG: 4 or fewer shots on target)
   redCard: 0.6, //            each red card (up to 2)
+  redCardAhead: 0.3, //       extra for each red card to the team ahead, or to either team when level from 60' (up to 2)
+  banger: 0.3, //             each great goal: from outside the box, or an unlikely chance struck so well it went in (up to 2; needs FotMob)
   penalty: 0.3, //            each penalty (up to 2)
   varDisallowed: 0.6, //      each goal ruled out by VAR (up to 2)
   woodwork: 0.4, //           each shot off the post or bar (up to 3)
@@ -74,7 +82,7 @@ export const FOOTBALL = {
   leagueLevel: 0.5, //        how much the league's level counts in a club's strength: 0 = clubs only against their own league (the best of Eliteserien = the best of the Premier League), 1 = only the worldwide Elo scale (from 0 to 1)
 
   // The top end
-  curveFrom: 2.5, //          above this, each point counts a bit less than the one before, so scores bend towards 10 and a 10 is almost impossible (lower = stricter; from 0 to 9)
+  curveFrom: 2.0, //          above this, each point counts a bit less than the one before, so scores bend towards 10 and a 10 is almost impossible (lower = stricter; from 0 to 9)
 };
 
 export const TENNIS = {
@@ -182,8 +190,8 @@ export const FOOTBALL_OUTLOOK = {
 // goal, equaliser, card, VAR, woodwork, close-match, stakes and curve weights from FOOTBALL above,
 // plus these. Nothing here changes a replay score, so editing them doesn't re-score anything.
 export const FOOTBALL_LIVE = {
-  shotOnTarget: 0.08, //      each shot on target so far
-  shotOffTarget: 0.025, //    each shot off target or blocked so far
+  shotOnTarget: 0.2, //      each shot on target so far
+  shotOffTarget: 0.06, //    each shot off target or blocked so far
   typicalMatch: 5.5, //       early on, the number is pulled towards this (a typical match, before the curve; from 0 to 9)
   settleMinutes: 45, //       how many minutes of play the "typical match" counts for at kick-off (it fades to nothing at 90'; from 0 to 90)
 };

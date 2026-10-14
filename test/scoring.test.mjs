@@ -667,7 +667,7 @@ test('football: the trimmed facts (facts.json) give exactly the same score and r
     stats: { bigChances: { home: 3, away: 2 }, xgot: { home: 1.1, away: 0.7 }, touchesInBox: { home: 30, away: 21 } }, strength: { home: 0.81234, away: 0.4321 } };
   for (const file of readdirSync(new URL('./fixtures/football/', import.meta.url)).filter((f) => /^\d+\.json$/.test(f))) {
     const facts = factsFromSummary(fixture(`football/${file}`));
-    for (const f of [facts, { ...facts, ...extra }]) {
+    for (const f of [facts, { ...facts, ...extra }, { ...facts, ...extra, xg: { ...extra.xg, bangers: [12], bigMisses: [88] } }]) {
       const bot = scoreFootball(f);
       const page = scoreFootball(JSON.parse(JSON.stringify(trimFacts(f)))); // through JSON, like the file
       assert.equal(page.score, bot.score, `${file}: score`);
@@ -705,11 +705,11 @@ test('custom scoring: sliders, boosts and the clean-up of saved settings', async
   const f = factsFromSummary(fixture('football/760516.json')); // France 4-6 England
   assert.equal(scoreFootball(f, applyTweaks(W, std)).score, scoreFootball(f).score);
 
-  const noGoals = cleanTweaks({ v: 2, sliders: { goals: 0 } });
+  const noGoals = cleanTweaks({ v: 3, sliders: { goals: 0 } });
   const s0 = scoreFootball(f, applyTweaks(W, noGoals));
   assert.ok(!s0.reasons.some(([, l]) => /^10 goals$/.test(l)), 'Goals off: no goal line');
   assert.ok(s0.score < scoreFootball(f).score);
-  const tw = applyTweaks(W, cleanTweaks({ v: 2, sliders: { oneSided: 2, bigMatch: 2 } }));
+  const tw = applyTweaks(W, cleanTweaks({ v: 3, sliders: { oneSided: 2, bigMatch: 2 } }));
   assert.ok(tw.alreadyDecided <= 1 && tw.nearlyDecided <= 1 && tw.smallMatch <= 1, 'shares stay parts of 1');
   assert.equal(tw.blowout, W.blowout * 2);
   assert.equal(applyTweaks(W, cleanTweaks({ curveFrom: 6 })).curveFrom, 6);
@@ -722,16 +722,78 @@ test('custom scoring: sliders, boosts and the clean-up of saved settings', async
   assert.ok(scoreFootball(dull, W, { boost: -2 }).score >= 0);
 
   // Junk in, defaults out; numbers snap to the slider steps.
-  assert.deepEqual(cleanTweaks({ v: 2, on: 'yes', sliders: { goals: 70, tight: -1, late: 'x', nope: 1 }, curveFrom: 99, comps: { 'eng.1': 1.3, 'nor.1': 0, bad: 'x' } }),
+  assert.deepEqual(cleanTweaks({ v: 3, on: 'yes', sliders: { goals: 70, tight: -1, late: 'x', nope: 1 }, curveFrom: 99, comps: { 'eng.1': 1.3, 'nor.1': 0, bad: 'x' } }),
     { ...DEFAULT_TWEAKS, sliders: { ...DEFAULT_TWEAKS.sliders, goals: 50, tight: 0 }, curveFrom: 9, comps: { 'eng.1': 1.5 } });
-  assert.equal(cleanTweaks({ v: 2, sliders: { goals: 1.13456 } }).sliders.goals, 1.135, 'multipliers behind the points, not snapped');
-  assert.equal(cleanTweaks({ on: true, sliders: { goals: 2 }, comps: { 'eng.1': 1 } }).sliders.goals, 1, 'sliders saved before the points scale go back to standard');
-  assert.deepEqual(cleanTweaks({ on: true, sliders: { goals: 2 }, comps: { 'eng.1': 1 } }).comps, { 'eng.1': 1 }, 'boosts are kept');
+  assert.equal(cleanTweaks({ v: 3, sliders: { goals: 1.13456 } }).sliders.goals, 1.135, 'multipliers behind the points, not snapped');
+  assert.equal(cleanTweaks({ v: 2, on: true, sliders: { goals: 2 }, comps: { 'eng.1': 1 } }).sliders.goals, 1, 'sliders saved before the four pillars go back to standard');
+  assert.deepEqual(cleanTweaks({ v: 2, on: true, sliders: { goals: 2 }, comps: { 'eng.1': 1 } }).comps, { 'eng.1': 1 }, 'boosts are kept');
 
   // The scale: each slider's typical points with the standard weights, from the fixtures.
   const { sliderScale } = await import('../docs/scoring.js');
   const all = ['760516', '401843437', '401879276', '760512'].map((id) => factsFromSummary(fixture(`football/${id}.json`)));
   const scale = sliderScale(all, W);
-  assert.ok(scale.goals > scale.cards && scale.goals > 1, `goals ${scale.goals} vs cards ${scale.cards}`);
+  assert.ok(scale.goals > scale.endToEnd && scale.goals > 1, `goals ${scale.goals} vs end to end ${scale.endToEnd}`);
   assert.ok(Object.values(scale).every((v) => v > 0));
+});
+
+test('football 19: four pillars, a weighting that keeps the level', async () => {
+  const { applyTweaks, cleanTweaks, mixFrom, mixShares, PILLARS, PILLAR_MAX, TWEAK_GROUPS } = await import('../docs/scoring.js');
+  const W = WEIGHTS.FOOTBALL;
+  // Every detailed slider sits in a pillar, apart from the occasion (big match, stakes).
+  for (const [k, g] of Object.entries(TWEAK_GROUPS)) assert.ok(g.pillar in PILLARS || ['bigMatch', 'stakes'].includes(k), k);
+  assert.ok(Object.values(PILLARS).every((p) => p.label && p.hint.length > 20), 'each pillar has a description');
+  // Continuous: 2.13 stays 2.13, anything outside 0–3 is clamped.
+  assert.deepEqual(cleanTweaks({ v: 3, pillars: { chances: 2.13, tempo: 9, tension: -1, drama: 'x' } }).pillars, { chances: 2.13, tempo: PILLAR_MAX, tension: 0, drama: 1 });
+  const all = ['760516', '401843437', '401879276', '760512', '401843444'].filter((id) => existsSync(new URL(`./fixtures/football/${id}.json`, import.meta.url)))
+    .map((id) => factsFromSummary(fixture(`football/${id}.json`)));
+  const rows = all.map((f) => scoreFootball(f, W).pillars);
+  const level = (p) => all.map((f) => scoreFootball(f, applyTweaks(W, cleanTweaks({ v: 3, pillars: p })), { mix: mixFrom(rows, p) }).score);
+  // Level pillars at any height are the standard scores.
+  assert.equal(mixFrom(rows, { chances: 1, tempo: 1, tension: 1, drama: 1 }), null);
+  assert.deepEqual(level({ chances: 3, tempo: 3, tension: 3, drama: 3 }), all.map((f) => scoreFootball(f).score));
+  // A mix keeps the average (before the occasion lines and the curve) and changes the order.
+  const pre = (p) => all.map((f) => { const s = scoreFootball(f, applyTweaks(W, cleanTweaks({ v: 3, pillars: p })), { mix: mixFrom(rows, p) }); return Object.values(s.pillars).reduce((a, b) => a + b, 0) * (mixFrom(rows, p)?.k ?? 1) + (mixFrom(rows, p)?.a ?? 0); });
+  const mean = (xs) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  const goals = { chances: 0.5, tempo: 0, tension: 1, drama: 3 };
+  assert.ok(Math.abs(mean(pre(goals)) - mean(pre({ chances: 1, tempo: 1, tension: 1, drama: 1 }))) < 1e-9, 'same average');
+  assert.ok(Object.values(mixShares(rows, goals)).reduce((a, b) => a + b, 0) >= 99);
+  // "Why this score?" lines carry their pillar.
+  assert.ok(scoreFootball(all[0]).reasons.every((r) => r.length === 3 && (r[2] in PILLARS || r[2] === 'occasion')));
+});
+
+test('football 19: suspense, swing, red cards for the team ahead, great goals, stoppage time', async () => {
+  const { suspenseOf, ratesFromOdds } = await import('../docs/live.js');
+  const W = WEIGHTS.FOOTBALL;
+  // The favorite's rate is higher; a 1–0 for a big favorite is less open than a 1–0 for the underdog.
+  const fav = { home: 0.75, draw: 0.17, away: 0.08 };
+  const [lh, la] = ratesFromOdds(fav);
+  assert.ok(lh > la);
+  const favLeads = suspenseOf([{ t: 20, side: 'home' }], fav, 90).suspense;
+  const dogLeads = suspenseOf([{ t: 20, side: 'away' }], fav, 90).suspense;
+  assert.ok(dogLeads > favLeads, `${dogLeads} > ${favLeads}`);
+  assert.ok(suspenseOf([], fav, 90).swing === 0);
+  // A 0–0 between equals is more open than a favorite's 3–0.
+  const even = { home: 0.37, draw: 0.28, away: 0.35 };
+  assert.ok(suspenseOf([], even, 90).suspense > suspenseOf([10, 30, 50].map((t) => ({ t, side: 'home' })), fav, 90).suspense);
+
+  const base = { goals: [{ min: 30, side: 'home' }], odds: even, reds: [70], pens: [], disallowed: [], woodwork: [], corners: 8, yellows: 3, shotsOnTarget: 8, totalShots: 24, extraTime: false, shootout: false };
+  const ahead = scoreFootball({ ...base, redsBy: [{ min: 70, side: 'home' }] }, W);
+  const behind = scoreFootball({ ...base, redsBy: [{ min: 70, side: 'away' }] }, W);
+  assert.ok(Math.abs(ahead.score - behind.score - W.redCardAhead) < 0.11, 'a red for the team ahead opens it up');
+  assert.ok(behind.score >= scoreFootball(base, W).score, 'a red for the team behind is never a penalty');
+  assert.ok(scoreFootball({ ...base, bangers: [30] }, W).score > scoreFootball({ ...base, bangers: [] }, W).score);
+  assert.ok(scoreFootball({ ...base, bigMisses: [88] }, W).score > scoreFootball({ ...base, bigMisses: [20] }, W).score, 'a late big chance while close');
+  // A winner in the very last minute still swings the win chances.
+  assert.ok(suspenseOf([{ t: 95, side: 'home' }], even, 95).swing > 0.5);
+  // Old saved settings (before the pillars) come back level; all four pillars off counts as level too.
+  const { cleanTweaks, applyTweaks, mixFrom } = await import('../docs/scoring.js');
+  assert.deepEqual(cleanTweaks({ v: 2, on: true, sliders: { goals: 2 } }).pillars, { chances: 1, tempo: 1, tension: 1, drama: 1 });
+  const off = cleanTweaks({ v: 3, pillars: { chances: 0, tempo: 0, tension: 0, drama: 0 } });
+  assert.deepEqual(applyTweaks(W, off), W);
+  assert.equal(mixFrom([{ chances: 1, tempo: 1, tension: 1, drama: 1 }, { chances: 2, tempo: 0, tension: 1, drama: 3 }], off.pillars), null);
+  // ESPN's stoppage clocks.
+  const { stoppageOf } = await import('../src/sources/espn-football.mjs');
+  assert.deepEqual(stoppageOf([{ period: { number: 1 }, clock: { displayValue: "45'+3'" } }, { period: { number: 2 }, clock: { displayValue: "90'+6'" } }, { period: { number: 2 }, clock: { displayValue: "67'" } }]), [3, 6]);
+  // Stoppage time counts: a 1–0 at 30' is within one goal for the whole match either way, so the share is 100%.
+  assert.ok(scoreFootball({ ...base, stoppage: [3, 6] }, W).reasons.some(([, l]) => l === 'Within one goal for 100% of the match'));
 });

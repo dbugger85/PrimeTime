@@ -172,13 +172,16 @@ try {
     await page.click('#f-reset');
     assert.ok(await page.$eval('#filter-count', (e) => e.hidden));
 
-    // Services filter: with only HBO Max chosen (tennis), the F1 tab is empty.
+    // Services filter: with only HBO Max chosen (tennis), the F1 tab is empty. Between Grand Slams the
+    // default period can hold no tennis at all, and then there's no chip to choose.
     await page.click('#sports [data-sport="tennis"]');
-    await page.click('#services .chip:has-text("HBO Max")');
-    await page.click('#sports [data-sport="f1"]');
-    assert.equal(await page.$$eval('.card', (els) => els.length), 0);
-    await page.click('#sports [data-sport="tennis"]');
-    await page.click('#services .chip:has-text("HBO Max")');
+    if (await page.locator('#services .chip:has-text("HBO Max")').count()) {
+      await page.click('#services .chip:has-text("HBO Max")');
+      await page.click('#sports [data-sport="f1"]');
+      assert.equal(await page.$$eval('.card', (els) => els.length), 0);
+      await page.click('#sports [data-sport="tennis"]');
+      await page.click('#services .chip:has-text("HBO Max")');
+    } else console.log('no tennis in the default period: the services filter is not tested');
 
     // Skip tips can be switched off.
     await page.uncheck('#f-hints');
@@ -441,7 +444,13 @@ try {
     await page.waitForSelector('.card');
     await page.click('#tuning summary');
     assert.ok(await page.$eval('#t-s-goals', (e) => e.disabled), 'sliders work only when it is on');
-    assert.equal(await page.$$eval('#t-sliders .slider', (els) => els.length), 10, '10 sliders');
+    assert.equal(await page.$$eval('#t-pillars .slider', (els) => els.length), 4, 'four pillar sliders');
+    assert.equal(await page.$$eval('#t-pillars .s-hint', (els) => els.filter((e) => e.textContent.length > 20 && e.hidden).length), 4, 'each pillar has a description, folded away');
+    await page.click('#t-pillars .s-info');
+    assert.ok(await page.$eval('#t-pillars .s-hint', (e) => !e.hidden), 'ⓘ shows the description');
+    await page.click('#t-pillars .s-info');
+    assert.equal(await page.$$eval('#t-sliders .slider', (els) => els.length), 14, '13 detailed sliders and the top end');
+    assert.deepEqual(await page.$$eval('#t-sliders h4', (els) => els.map((e) => e.textContent)), ['Chances', 'Tempo', 'Tension', 'Drama', 'The occasion']);
     assert.equal(await page.$$eval('.card.custom', (els) => els.length), 0);
     await page.click('#t-on');
     await page.waitForSelector('#spoiler-dlg[open]');
@@ -458,23 +467,38 @@ try {
     await page.locator('#tuning').screenshot({ path: `${shots}/custom-scoring.png` });
     // Hard to move by accident: a tap on the track does nothing, a vertical swipe neither; dragging the knob does.
     {
-      const box = await page.locator('#t-s-chances').boundingBox();
-      const before = await page.$eval('#t-s-chances', (e) => e.value);
+      const box = await page.locator('#t-p-chances').boundingBox();
+      const before = await page.$eval('#t-p-chances', (e) => e.value);
       const y = box.y + box.height / 2;
       await page.mouse.click(box.x + box.width - 10, y);
-      assert.equal(await page.$eval('#t-s-chances', (e) => e.value), before, 'a tap on the track moved the slider');
-      const knob = box.x + 13 + (Number(before) / 7) * (box.width - 26);
+      assert.equal(await page.$eval('#t-p-chances', (e) => e.value), before, 'a tap on the track moved the slider');
+      const knob = box.x + 13 + (Number(before) / 3) * (box.width - 26);
       await page.mouse.move(knob, y);
       await page.mouse.down();
       await page.mouse.move(knob + 3, y + 40, { steps: 5 }); // mostly down: scrolling
       await page.mouse.up();
-      assert.equal(await page.$eval('#t-s-chances', (e) => e.value), before, 'a vertical swipe moved the slider');
+      assert.equal(await page.$eval('#t-p-chances', (e) => e.value), before, 'a vertical swipe moved the slider');
       await page.mouse.move(knob, y);
       await page.mouse.down();
       await page.mouse.move(knob + 80, y, { steps: 8 });
       await page.mouse.up();
-      assert.ok(Number(await page.$eval('#t-s-chances', (e) => e.value)) > Number(before), 'dragging the knob did not move it');
+      assert.ok(Number(await page.$eval('#t-p-chances', (e) => e.value)) > Number(before), 'dragging the knob did not move it');
       await page.click('#t-reset');
+    }
+    // The pillars: a preset reorders the matches but keeps the average; the mix is shown, pillar values never on a card.
+    {
+      await page.click('#t-presets [data-preset="goals"]');
+      await page.waitForFunction(() => !document.querySelector('#t-mix').hidden);
+      assert.match(await page.$eval('#t-mix', (e) => e.textContent), /^Your mix: Chances \d+% · Tempo \d+% · Tension \d+% · Drama \d+%/);
+      assert.equal(await page.$eval('#t-presets [data-preset="goals"]', (e) => e.getAttribute('aria-pressed')), 'true');
+      const p = await pairs();
+      assert.ok(p.some(([mine, std]) => mine !== std), 'a preset changes some scores');
+      const avg = (i) => p.reduce((a, x) => a + x[i], 0) / p.length;
+      assert.ok(Math.abs(avg(0) - avg(1)) < 0.4, `the average stays about the same (${avg(0).toFixed(2)} vs ${avg(1).toFixed(2)})`);
+      assert.doesNotMatch(await page.$eval('#cards', (e) => e.innerText), /Chances|Tension|Drama|Tempo/, 'pillar names on a card');
+      await page.locator('#tuning').screenshot({ path: `${shots}/pillars.png` });
+      await page.click('#t-reset');
+      assert.ok((await pairs()).every(([mine, std]) => mine === std), 'reset brings back the standard scores');
     }
     const setSlider = (key, v) => page.$eval(`#t-s-${key}`, (e, x) => { e.value = String(x); e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); }, v);
     await setSlider('goals', 0);
@@ -491,6 +515,7 @@ try {
     await page.waitForSelector(`.card[data-id="${first}"] .why li`);
     const whyText = await page.$eval(`.card[data-id="${first}"] .why`, (e) => e.textContent);
     assert.match(whyText, /: your boost/);
+    assert.ok(await page.$$eval(`.card[data-id="${first}"] .why li.group`, (els) => els.some((e) => /The occasion/.test(e.textContent))), 'lines grouped by pillar');
     await page.screenshot({ path: `${shots}/custom-cards.png` });
     // Best first follows your scores.
     await page.click('#filters summary');
@@ -513,6 +538,7 @@ try {
     await page.waitForSelector('.card .calib-result:not([hidden])');
     assert.match(await page.$eval('.card .calib-result', (e) => e.textContent), /^Result: /);
     assert.ok(!(await page.$eval('#t-sliders .s-weights', (e) => e.hidden)), 'the weights show under the sliders');
+    await page.click('#t-advanced summary');
     await page.locator('#tuning').screenshot({ path: `${shots}/calibration-panel.png` });
     await page.$eval('.card .calc-btn:not([hidden])', (b) => b.scrollIntoView({ block: 'start' }));
     const calcCard = await page.$eval('.card .calc-btn:not([hidden])', (b) => b.closest('.card').dataset.id);
@@ -586,7 +612,7 @@ try {
     // Custom scoring changes the live number too (Goals doubled, a boost for the Premier League).
     await page.evaluate(() => {
       const p = JSON.parse(localStorage.getItem('pt-prefs') ?? '{}');
-      p.tweaks = { v: 2, on: true, sliders: { goals: 2 }, curveFrom: null, comps: { 'eng.1': 1 } };
+      p.tweaks = { v: 3, on: true, sliders: { goals: 2 }, curveFrom: null, comps: { 'eng.1': 1 } };
       localStorage.setItem('pt-prefs', JSON.stringify(p));
     });
     await page.reload();

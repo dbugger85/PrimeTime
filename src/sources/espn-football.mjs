@@ -112,6 +112,9 @@ export function factsFromSummary(summary) {
     (summary.boxscore?.teams ?? []).reduce(
       (sum, t) => sum + Number(t.statistics?.find((s) => s.name === name)?.displayValue ?? 0), 0);
 
+  const perTeam = (name) => Object.fromEntries((summary.boxscore?.teams ?? []).map((t) => [sides[t.team?.id] ?? t.homeAway,
+    Number(t.statistics?.find((s) => s.name === name)?.displayValue ?? NaN)]));
+
   const team = (side) => comp.competitors.find((t) => t.homeAway === side);
   const teamOf = (e) => team(sides[e.team?.id])?.team.displayName;
   const [home, away] = [team('home'), team('away')];
@@ -144,6 +147,8 @@ export function factsFromSummary(summary) {
     goals,
     odds: winChances(summary),
     reds: events.filter((e) => /red card/i.test(e.type.text)).map((e) => minuteOf(e)),
+    // The same red cards with the team that got them: a red to the team ahead opens a match up.
+    redsBy: events.filter((e) => /red card/i.test(e.type.text)).map((e) => ({ min: minuteOf(e), side: sides[e.team?.id] ?? null })),
     pens: typed(/^penalty/i),
     vars: typed(/^VAR/i),
     disallowed: typed(/deleted after review/i), // goals ruled out by VAR
@@ -153,14 +158,27 @@ export function factsFromSummary(summary) {
     shotsOn: typed(/shot on target/i),
     shotsOff: typed(/shot off target|shot blocked/i),
     totalShots: stat('totalShots'),
-    shotsBy: Object.fromEntries((summary.boxscore?.teams ?? []).map((t) => [sides[t.team?.id] ?? t.homeAway,
-      Number(t.statistics?.find((s) => s.name === 'totalShots')?.displayValue ?? NaN)])), // { home, away }, for "end to end"
+    shotsBy: perTeam('totalShots'), // { home, away }, for "end to end"
     shotsOnTarget: stat('shotsOnTarget'),
+    passes: perTeam('totalPasses'), // { home, away }, for "directness" (shots and corners per 100 passes)
+    stoppage: stoppageOf(plays), // [first half, second half] minutes of stoppage time, from the "45'+3'" clocks
     extraTime: status === 'STATUS_FINAL_AET' || status === 'STATUS_FINAL_PEN' || events.some((e) => e.period?.number >= 3),
     shootout: status === 'STATUS_FINAL_PEN' || comp.competitors.some((t) => t.shootoutScore != null),
     shootoutWinner: home.shootoutScore != null && home.shootoutScore !== away.shootoutScore
       ? (Number(home.shootoutScore) > Number(away.shootoutScore) ? 'home' : 'away') : null,
   };
+}
+
+// The stoppage time played in each half: the biggest "+N" on any clock in the commentary
+// ("90'+4'" -> 4). [first half, second half]; 0 when nothing was played past the 45th or 90th minute.
+export function stoppageOf(plays) {
+  const out = [0, 0];
+  for (const p of plays) {
+    const half = p.period?.number;
+    const plus = String(p.clock?.displayValue ?? '').match(/\+\s*(\d+)/);
+    if ((half === 1 || half === 2) && plus) out[half - 1] = Math.max(out[half - 1], Math.min(Number(plus[1]), 20));
+  }
+  return out;
 }
 
 // Starting line-ups, published about 75 minutes before kick-off. Returns

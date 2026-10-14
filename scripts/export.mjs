@@ -138,6 +138,11 @@ function record({ ev, commit, reasons, result, facts, elo }) {
         'facts.xg': SRC.fotmob,
         'facts.stats': SRC.fotmob,
         'facts.strength': SRC.strength,
+        ...(facts.redsBy ? { 'facts.redsBy': SRC.espnKeyEvents } : {}),
+        ...(facts.stoppage ? { 'facts.stoppage': SRC.espnCommentary } : {}),
+        ...(facts.passes ? { 'facts.passes': SRC.espnBoxscore } : {}),
+        ...(facts.bangers ? { 'facts.bangers': SRC.fotmob } : {}),
+        ...(facts.bigMisses ? { 'facts.bigMisses': SRC.fotmob } : {}),
         ...(facts.stakes ? { 'facts.stakes': SRC.espnStandings } : {}),
       });
     }
@@ -163,7 +168,7 @@ function record({ ev, commit, reasons, result, facts, elo }) {
     scoringVersion: ev.v,
     timeline: { meaning: `heat 0 (nothing) to 3 (the hottest part of this event), ${TIMELINE[ev.sport]}`, values: ev.segments },
     skip: ev.advice,
-    breakdown: (reasons ?? []).map(([points, label]) => ({ points, label })),
+    breakdown: (reasons ?? []).map(([points, label, pillar]) => ({ points, label, ...(pillar ? { pillar } : {}) })), // pillar: football since version 19
   };
   r.services = ev.services;
   r.recoveredFromGitHistory = commit ? { commit, note: 'no longer in the live files; scored with the formula of that time' } : false;

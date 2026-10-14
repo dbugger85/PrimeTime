@@ -90,7 +90,7 @@ async function liveFootball() {
           let pace = old.pace != null ? { pace: old.pace, rough: old.rough } : null;
           try {
             const summary = await football.fetchSummary(compKey, m.espnId);
-            pace = scoreLivePace(liveFacts(summary), { w: liveWeightsFrom(FOOTBALL_W, FOOTBALL_LIVE), factor, stakes: old.stakes }) ?? pace;
+            pace = scoreLivePace(liveFacts(summary), { w: liveWeightsFrom(FOOTBALL_W, FOOTBALL_LIVE), factor, stakes: old.stakes, odds: chancesOf(old) }) ?? pace;
             old.lineups ??= football.lineupsFromSummary(summary) ?? undefined;
           } catch (err) {
             warn(`live football ${compKey} ${m.espnId}: ${err.message}`);

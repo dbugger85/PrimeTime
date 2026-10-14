@@ -123,3 +123,17 @@ Fable's plan, with the owner's choices. Football only. Advanced users tune the s
 3. **The page:** `applyTweaks`, `cleanTweaks` (also used by `decodeSettings`/import), `recompute()` + `viewEvents()` in app.js, lazy `ensureFacts()`, re-render on slider release only, a `<details id="tuning">` panel, markers, status line "140 of 149 matches re-scored". Tests: browser scorer equals bot score and reasons for every event with facts; applyTweaks/boost/clean unit tests; e2e (no facts.json request before consent, marker, Goals Off changes the score, boost line, Best first sorted, reset, reload keeps it), screenshots.
 4. Live "Excitement so far" with the sliders and boost; calibration mode (warning, results on cards, facts and calculation expander; e2e: nothing fetched before the warning, screenshots).
 5. CLAUDE.md section; later idea: presets.
+
+## Later decisions (2026-10-14): football 19, four pillars
+A friend proposed "Primetime Plus" (four pillars with fixed weights, 30/25/25/20, a sigmoid and a 6.8 blowout cap), then a Norwegian "MEI" version with xG. Fable reviewed both and back-tested them on 151 matches: good concept, but goals counted three times, pillars that saturate, too generous (30% at 8+), no team strength (Kazakhstan 2–2 Faroe Islands 9.6), fouls penalties that hit most matches, and a red-card penalty that would have punished Man Utd 1–1 Spurs.
+
+**Owner's decisions**
+- Pillars **Chances, Tempo, Tension, Drama**, with the existing lines sorted into them; big match, stakes, boosts and the curve are "the occasion".
+- Pillar sliders are **relative weights from 0 to 3, continuous** (2.1 allowed), not points, and **must not change the expected average**: the mix is evened out to the same average and spread.
+- New lines: suspense and swing from the odds (closeMatch lowered), a red-card bonus for the team ahead (never a penalty), directness (no fouls penalty), stoppage time, and from MEI: great goals ("bangers") and big chances missed late while it was close.
+- Rejected: the 6.8 cap, the friend's sigmoid, fouls/offsides penalties, ball speed, pressing and effective playing time (no free data).
+- Pillar values only in "Why this score?" (grouped, with subtotals) and calibration mode, never on cards.
+- Presets: Standard, Goals and drama, Chances and tempo, Nail-biters.
+- The detailed sliders are re-grouped under each pillar in an "Advanced" section (saved sliders reset once). Each pillar has a description, folded behind an ⓘ to keep the panel short.
+- Keep the level: mean about 5.8, about 1 in 10 matches at 8+ (curveFrom 2.5 → 2.0 did it).
+- Live "Excitement so far" follows the pillars too (suspense, swing and the red-card bonus live; great goals, late big chances and directness need FotMob, so replays only).
