@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-14T14:40:39.665Z",
+ "lastFull": "2026-10-14T17:30:57.110Z",
  "versions": {
   "football": "18.c0368165",
   "tennis": "9.c615cf94",
@@ -1587,12 +1587,6 @@
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/viking-kristiansund-crk0cw7h"
    }
   },
-  "fb-401873926": {
-   "start": "2026-09-12T16:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/rosenborg-tromsoe-950xg2ej"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -1882,6 +1876,12 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/ipswich-nottingham-forest/s26101412017099697",
     "until": "2026-10-25T21:30:00.000Z"
+   }
+  },
+  "fb-401843464": {
+   "start": "2026-10-17T14:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kristiansund-aalesund-qx9a8abx"
    }
   }
  },
