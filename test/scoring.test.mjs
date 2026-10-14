@@ -48,7 +48,6 @@ test('football: team strength from the odds, blowouts score below thrillers', ()
   assert.ok(bayernBodo50.score < 6.5, `5-0 got ${bayernBodo50.score}`); // football 17: the one-sided penalty was halved
   assert.ok(viking81.score > franceSweden30.score, 'nine goals beat a plain 3-0');
   assert.ok(spursVilla23.score >= viking81.score + 2, `even 2-3 got ${spursVilla23.score}`);
-  assert.ok(viking81.reasons.some(([, l]) => /favorite/.test(l)), 'the breakdown mentions the favorite');
   // The same match without odds still punishes the blowout, just less.
   const noOdds = scoreFootball({ ...factsFromSummary(fixture('football/401843437.json')), odds: null });
   assert.ok(noOdds.score < 7.5 && noOdds.score > viking81.score, `8-1 without odds got ${noOdds.score}`);
@@ -269,7 +268,7 @@ test('football: an underdog winning big is a shock, not a blowout', () => {
   const expected = scoreFootball({ ...facts, odds: { home: 0.74, draw: 0.17, away: 0.09 } });
   const shock = scoreFootball({ ...facts, odds: { home: 0.09, draw: 0.17, away: 0.74 } });
   assert.ok(!shock.reasons.some(([, l]) => /One-sided/.test(l)), 'no blowout penalty for the underdog');
-  assert.ok(shock.score >= expected.score + 1, `shock ${shock.score}, expected ${expected.score}`); // 1.3 since football 20 (Drama 25%)
+  assert.ok(shock.score >= expected.score + 0.5, `shock ${shock.score}, expected ${expected.score}`); // 0.8 since football 21 (no extra for the underdog's goals: the swing line counts them)
 });
 
 test('F1 sprints: a third of the distance, so overtakes count three times', () => {
@@ -712,9 +711,9 @@ test('custom scoring: sliders, boosts and the clean-up of saved settings', async
   const s0 = scoreFootball(f, applyTweaks(W, noGoals));
   assert.ok(!s0.reasons.some(([, l]) => /^10 goals$/.test(l)), 'Goals off: no goal line');
   assert.ok(s0.score < scoreFootball(f).score);
-  const tw = applyTweaks(W, cleanTweaks({ v: 4, sliders: { oneSided: 2, bigMatch: 2 } }));
-  assert.ok(tw.alreadyDecided <= 1 && tw.nearlyDecided <= 1 && tw.smallMatch <= 1, 'shares stay parts of 1');
-  assert.equal(tw.blowout, W.blowout * 2);
+  const tw = applyTweaks(W, cleanTweaks({ v: 4, sliders: { late: 2, bigMatch: 3 } }));
+  assert.ok(tw.smallMatch <= 1, 'shares stay parts of 1');
+  assert.equal(tw.lateGoal, W.lateGoal * 2);
   assert.equal(applyTweaks(W, cleanTweaks({ curveFrom: 6 })).curveFrom, 6);
 
   // Boost: before the curve, so +1 lifts a top match less than an ordinary one; always 0–10.
@@ -740,7 +739,7 @@ test('custom scoring: sliders, boosts and the clean-up of saved settings', async
 });
 
 test('football 20: four pillars scored 0–10, a weighted average, then the occasion', async () => {
-  const { applyTweaks, cleanTweaks, presetPillars, PILLARS, TWEAK_GROUPS } = await import('../docs/scoring.js');
+  const { applyTweaks, cleanTweaks, PILLARS, TWEAK_GROUPS } = await import('../docs/scoring.js');
   const { pillarScore, pillarShares, PILLAR_KEYS } = await import('../docs/live.js');
   const W = WEIGHTS.FOOTBALL;
   for (const [k, g] of Object.entries(TWEAK_GROUPS)) assert.ok(g.pillar in PILLARS || ['bigMatch', 'stakes'].includes(k), k);
@@ -769,9 +768,7 @@ test('football 20: four pillars scored 0–10, a weighted average, then the occa
   assert.equal(cleanTweaks({ v: 3, pillars: { chances: 2, tempo: 1, tension: 1, drama: 1 } }).pillars, null, 'football 19 sliders go back to standard');
   const doubled = Object.fromEntries(PILLAR_KEYS.map((p) => [p, Math.round(200 * W[`pillar${p[0].toUpperCase()}${p.slice(1)}`])]));
   assert.deepEqual(all.map((f) => scoreFootball(f, applyTweaks(W, cleanTweaks({ v: 4, pillars: doubled }))).score), all.map((f) => scoreFootball(f).score), 'only the shares count');
-  assert.deepEqual(presetPillars(W, 'standard'), null);
-  assert.equal(presetPillars(W, 'goals').drama, Math.round(100 * W.pillarDrama * 1.5));
-  assert.ok(scoreFootball(all[0], applyTweaks(W, cleanTweaks({ v: 4, pillars: presetPillars(W, 'goals') }))).score !== scoreFootball(all[0]).score);
+  assert.ok(scoreFootball(all[0], applyTweaks(W, cleanTweaks({ v: 4, pillars: { chances: 10, tempo: 10, tension: 20, drama: 60 } }))).score !== scoreFootball(all[0]).score);
 });
 
 test('football 20: comebacks, live shots per team, the transition', async () => {

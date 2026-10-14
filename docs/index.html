@@ -56,10 +56,6 @@
 
   <nav class="comps" id="comps" aria-label="Competition" hidden></nav>
 
-  <section class="services" aria-labelledby="services-label">
-    <h2 id="services-label">My services <span class="hint" id="services-hint">tap the ones you have</span></h2>
-    <div class="chips" id="services"></div>
-  </section>
 
   <section class="favs">
     <div class="favs-head">
@@ -84,7 +80,12 @@
   </section>
 
   <details class="filters" id="filters">
-    <summary><span>More filters/settings</span> <span class="count" id="filter-count" hidden></span></summary>
+    <summary><span>Filters and settings</span> <span class="count" id="filter-count" hidden></span></summary>
+    <section class="services" aria-labelledby="services-label">
+      <h3 class="t-head" id="services-label">My services <span class="hint" id="services-hint">tap the ones you have</span></h3>
+      <div class="chips" id="services"></div>
+    </section>
+    <h3 class="t-head">Filters and display</h3>
     <div class="grid">
       <label class="replay-only">Period <select id="f-days"></select></label>
       <label class="replay-only">Minimum rating <select id="f-min"></select></label>
@@ -135,31 +136,30 @@
     </div>
     <p class="small" data-for="tennis football all">Why hide names? In a tournament, just seeing who plays a later round tells you who won earlier. Tap a hidden name to reveal it.</p>
     <button type="button" class="reset" id="f-reset" hidden>Reset filters</button>
+    <!-- Custom scoring (football): re-scores matches on this device with your own weights (docs/scoring.js). -->
+    <details class="tuning" id="tuning" data-for="football all">
+      <summary><span>Custom scoring (football)</span> <span class="count" id="t-count" hidden></span></summary>
+      <p class="small">Decide what makes a match exciting for you. Your scores are worked out on this device only; everyone else sees the standard scores.</p>
+      <div class="grid">
+        <label class="check"><input type="checkbox" id="t-on"> Use my own scoring</label>
+        <label class="check"><input type="checkbox" id="t-calib"> Calibration mode (shows all results)</label>
+      </div>
+      <p class="small t-status" id="t-status" aria-live="polite"></p>
+      <h3 class="t-head">The four pillars</h3>
+      <p class="small">Each pillar scores the match from 0 to 10; the match score is their weighted average. Set how much each counts.</p>
+        <div class="sliders pillars" id="t-pillars"></div>
+      <button type="button" class="reset" id="t-standard">Standard (reset all custom scoring)</button>
+    <details class="t-advanced" id="t-advanced">
+        <summary>Advanced: the parts of each pillar</summary>
+        <p class="small">In points per match. These can raise or lower all the scores.</p>
+        <div id="t-sliders"></div>
+      </details>
+      <h3 class="t-head">Boost or lower competitions</h3>
+      <p class="small">Points added to every match in that competition, before the top end.</p>
+      <div class="grid boosts" id="t-boosts"></div>
+    </details>
   </details>
 
-  <!-- Custom scoring (football): re-scores matches on this device with your own weights (docs/scoring.js). -->
-  <details class="filters tuning" id="tuning" data-for="football all">
-    <summary><span>Custom scoring (football)</span> <span class="count" id="t-count" hidden></span></summary>
-    <p class="small">Decide what makes a match exciting for you. Your scores are worked out on this device only; everyone else sees the standard scores.</p>
-    <div class="grid">
-      <label class="check"><input type="checkbox" id="t-on"> Use my own scoring</label>
-      <label class="check"><input type="checkbox" id="t-calib"> Calibration mode (shows all results)</label>
-    </div>
-    <p class="small t-status" id="t-status" aria-live="polite"></p>
-    <h3 class="t-head">The four pillars</h3>
-    <p class="small">Each pillar scores the match from 0 to 10; the match score is their weighted average. Set how much each counts.</p>
-    <div class="chips presets" id="t-presets"></div>
-    <div class="sliders pillars" id="t-pillars"></div>
-    <details class="t-advanced" id="t-advanced">
-      <summary>Advanced: the parts of each pillar</summary>
-      <p class="small">In points per match. These can raise or lower all the scores.</p>
-      <div id="t-sliders"></div>
-    </details>
-    <h3 class="t-head">Boost or lower competitions</h3>
-    <p class="small">Points added to every match in that competition, before the top end.</p>
-    <div class="grid boosts" id="t-boosts"></div>
-    <button type="button" class="reset" id="t-reset">Reset to standard</button>
-  </details>
 
   <main>
     <p class="status" id="status" aria-live="polite">Loading…</p>

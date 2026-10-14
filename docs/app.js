@@ -1,6 +1,6 @@
 import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug } from './logic.js';
 import { ESPN, clockOf, liveClockText, espnDays, liveFacts, scoreLivePace, LIVE_FROM, elapsedText, PILLAR_KEYS, pillarShares, pillarWeightKey } from './live.js';
-import { scoreFootball, applyTweaks, cleanTweaks, isStandard, DEFAULT_TWEAKS, TWEAK_GROUPS, STAKES, SCALE_MAX, SCALE_STEP, CURVE_STEP, BOOST_STEP, BOOST_MAX, PILLARS, PILLAR_MAX, PILLAR_STEP, PRESETS, presetPillars } from './scoring.js';
+import { scoreFootball, applyTweaks, cleanTweaks, isStandard, DEFAULT_TWEAKS, TWEAK_GROUPS, STAKES, SCALE_MAX, SCALE_STEP, CURVE_STEP, BOOST_STEP, BOOST_MAX, PILLARS, PILLAR_MAX, PILLAR_STEP } from './scoring.js';
 
 const SERVICES = {
   viaplay: { name: 'Viaplay', url: 'https://viaplay.no/sport' },
@@ -947,7 +947,7 @@ const ALL_SLIDERS = [...PILLAR_SLIDERS, ...SLIDERS];
 // A detailed slider shows points (see SCALE_MAX in scoring.js): its multiplier times where it stands by
 // standard. Without a scale (an older events.json) it falls back to the plain multiplier.
 const scaleOf = (key) => sliderScale[key] || 1;
-const sliderText = (key, v) => (v === 0 ? 'Off' : `${v.toFixed(1)} points${key === 'oneSided' ? ' off' : ''}`);
+const sliderText = (key, v) => (v === 0 ? 'Off' : `${v.toFixed(1)} points`);
 // The pillars' weights now (yours or the standard ones), and a pillar's share of the match score.
 const stdPillars = () => Object.fromEntries(PILLAR_KEYS.map((p) => [p, Math.round(100 * (footballWeights?.[pillarWeightKey(p)] ?? 0.25))]));
 const pillarsNow = () => prefs.tweaks.pillars ?? stdPillars();
@@ -983,7 +983,19 @@ function makeSlider(s) {
   const head = Object.assign(document.createElement('div'), { className: 's-head' });
   head.append(name, Object.assign(document.createElement('output'), { className: 's-val', htmlFor: id }));
   const track = Object.assign(document.createElement('div'), { className: 's-track' });
-  track.append(input, Object.assign(document.createElement('span'), { className: 's-std', textContent: 'standard', ariaHidden: 'true' }));
+  // The "standard" mark under the track is a button: tap it to put this slider back on standard.
+  const std = Object.assign(document.createElement('button'), { type: 'button', className: 's-std', textContent: 'standard' });
+  std.setAttribute('aria-label', `${s.label}: back to standard`);
+  std.onclick = () => {
+    if (s.kind === 'pillar') {
+      const p = { ...pillarsNow(), [s.key]: stdPillars()[s.key] };
+      prefs.tweaks.pillars = PILLAR_KEYS.every((k) => p[k] === stdPillars()[k]) ? null : p;
+    } else if (s.kind === 'curve') prefs.tweaks.curveFrom = null;
+    else prefs.tweaks.sliders[s.key] = 1;
+    prefs.tweaks = cleanTweaks(prefs.tweaks);
+    tuningChanged();
+  };
+  track.append(input, std);
   row.append(head, track, hint, Object.assign(document.createElement('p'), { className: 'small s-weights', hidden: true }));
   const show = () => {
     if (s.kind === 'pillar') { // the shares of all four move together while you drag
@@ -1011,16 +1023,11 @@ function makeSlider(s) {
 }
 
 function buildTuning() {
-  $('#t-presets').replaceChildren(...Object.entries(PRESETS).map(([key, p]) => {
-    const b = Object.assign(document.createElement('button'), { type: 'button', className: 'chip', textContent: p.label });
-    b.dataset.preset = key;
-    b.onclick = () => {
-      prefs.tweaks.pillars = footballWeights ? presetPillars(footballWeights, key) : null;
-      prefs.tweaks = cleanTweaks(prefs.tweaks);
-      tuningChanged();
-    };
-    return b;
-  }));
+  // Standard resets all of custom scoring (pillars, detailed sliders, top end, boosts).
+  $('#t-standard').onclick = () => {
+    prefs.tweaks = { ...cleanTweaks(null), on: prefs.tweaks.on };
+    tuningChanged();
+  };
   $('#t-pillars').replaceChildren(...PILLAR_SLIDERS.map(makeSlider));
   // The detailed sliders, one section per pillar, then the occasion.
   const sections = [...Object.entries(PILLARS).map(([key, p]) => [key, p.label]), [null, 'The occasion']];
@@ -1108,17 +1115,14 @@ function renderTuning() {
   $('#t-count').hidden = !t.on && !calibrating;
   $('#t-count').textContent = calibrating ? (t.on ? 'on, calibrating' : 'calibrating') : 'on';
   const W = customW ?? footballWeights ?? {};
-  for (const b of document.querySelectorAll('#t-presets button')) {
-    b.disabled = !t.on;
-    const preset = footballWeights && presetPillars(footballWeights, b.dataset.preset);
-    b.setAttribute('aria-pressed', String(b.dataset.preset === 'standard' ? t.pillars == null : Boolean(preset) && PILLAR_KEYS.every((k) => t.pillars?.[k] === preset[k])));
-  }
+  $('#t-standard').disabled = !t.on || isStandard(t);
   for (const row of document.querySelectorAll('#tuning .slider')) {
     const s = ALL_SLIDERS.find((x) => x.key === row.dataset.key && x.kind === row.dataset.kind);
     const input = row.querySelector('input');
     const value = s.kind === 'pillar' ? pillarsNow()[s.key] : s.kind === 'curve' ? curveValue() : t.sliders[s.key] * scaleOf(s.key);
     if (document.activeElement !== input || !input.matches(':active')) input.value = String(value);
     input.disabled = !t.on;
+    row.querySelector('.s-std').disabled = !t.on;
     row.querySelector('.s-val').textContent = valueText(s, Number(input.value));
     fill(input);
     if (s.kind === 'pillar') placeStd(row, stdPillars()[s.key], 0, PILLAR_MAX);
@@ -1159,7 +1163,6 @@ function renderTuning() {
     sel.value = String(t.comps[sel.dataset.comp] ?? 0);
     sel.disabled = !t.on;
   }
-  $('#t-reset').disabled = !t.on || isStandard(t);
   // How many replays got your score.
   const football = events.filter((e) => e.sport === 'football').length;
   $('#t-status').textContent = !t.on
@@ -1201,10 +1204,6 @@ function bindTuning() {
       liveScore.clear();
       keepScroll(render);
     }
-  };
-  $('#t-reset').onclick = () => {
-    prefs.tweaks = { ...cleanTweaks(null), on: prefs.tweaks.on };
-    tuningChanged();
   };
 }
 

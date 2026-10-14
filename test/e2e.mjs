@@ -14,6 +14,8 @@ import { chromium } from 'playwright-core';
 import { liveWeightsFrom } from '../docs/live.js';
 import * as WEIGHTS from '../src/scoring/weights.mjs';
 
+// Services and custom scoring live inside "Filters and settings": open it first when it's closed.
+const openSettings = async (page) => { if (!(await page.$eval('#filters', (d) => d.open))) await page.click('#filters summary'); };
 const docs = fileURLToPath(new URL('../docs', import.meta.url));
 const shots = fileURLToPath(new URL('./screenshots', import.meta.url));
 mkdirSync(shots, { recursive: true });
@@ -175,6 +177,7 @@ try {
     // Services filter: with only HBO Max chosen (tennis), the F1 tab is empty. Between Grand Slams the
     // default period can hold no tennis at all, and then there's no chip to choose.
     await page.click('#sports [data-sport="tennis"]');
+    await openSettings(page);
     if (await page.locator('#services .chip:has-text("HBO Max")').count()) {
       await page.click('#services .chip:has-text("HBO Max")');
       await page.click('#sports [data-sport="f1"]');
@@ -442,6 +445,7 @@ try {
     await page.reload();
     await page.click('#sports [data-sport="football"]');
     await page.waitForSelector('.card');
+    await openSettings(page);
     await page.click('#tuning summary');
     assert.ok(await page.$eval('#t-s-goals', (e) => e.disabled), 'sliders work only when it is on');
     assert.equal(await page.$$eval('#t-pillars .slider', (els) => els.length), 4, 'four pillar sliders');
@@ -449,7 +453,7 @@ try {
     await page.click('#t-pillars .s-info');
     assert.ok(await page.$eval('#t-pillars .s-hint', (e) => !e.hidden), 'ⓘ shows the description');
     await page.click('#t-pillars .s-info');
-    assert.equal(await page.$$eval('#t-sliders .slider', (els) => els.length), 14, '13 detailed sliders and the top end');
+    assert.equal(await page.$$eval('#t-sliders .slider', (els) => els.length), 13, '12 detailed sliders and the top end');
     assert.deepEqual(await page.$$eval('#t-sliders h4', (els) => els.map((e) => e.textContent)), ['Chances', 'Tempo', 'Tension', 'Drama', 'The occasion']);
     assert.equal(await page.$$eval('.card.custom', (els) => els.length), 0);
     await page.click('#t-on');
@@ -483,25 +487,27 @@ try {
       await page.mouse.move(knob + 80, y, { steps: 8 });
       await page.mouse.up();
       assert.ok(Number(await page.$eval('#t-p-chances', (e) => e.value)) > Number(before), 'dragging the knob did not move it');
-      await page.click('#t-reset');
+      await page.click('#t-standard');
     }
-    // The pillars: shares in percent; a preset reorders the matches but keeps the average; pillar values never on a card.
+    // The pillars: shares in percent; more Drama reorders the matches but keeps the average; pillar values never on a card.
     {
       assert.match(await page.$eval('#t-p-drama', (e) => e.closest('.slider').querySelector('.s-val').textContent), /^\d+% \(standard\)$/);
-      assert.equal(await page.$eval('#t-presets [data-preset="standard"]', (e) => e.getAttribute('aria-pressed')), 'true');
-      await page.click('#t-presets [data-preset="goals"]');
+      assert.ok(await page.$eval('#t-standard', (e) => e.disabled), 'Standard is greyed out while it is standard');
+      await page.$eval('#t-p-drama', (e) => { e.value = '60'; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); });
       await page.waitForFunction(() => !/standard/.test(document.querySelector('#t-p-drama').closest('.slider').querySelector('.s-val').textContent));
       const pct = await page.$$eval('#t-pillars .s-val', (els) => els.map((e) => Number(e.textContent.match(/\d+/)[0])));
       assert.ok(Math.abs(pct.reduce((a, b) => a + b, 0) - 100) <= 2, `shares add up to 100: ${pct}`);
-      assert.equal(await page.$eval('#t-presets [data-preset="goals"]', (e) => e.getAttribute('aria-pressed')), 'true');
       const p = await pairs();
-      assert.ok(p.some(([mine, std]) => mine !== std), 'a preset changes some scores');
+      assert.ok(p.some(([mine, std]) => mine !== std), 'a different mix changes some scores');
       const avg = (i) => p.reduce((a, x) => a + x[i], 0) / p.length;
       assert.ok(Math.abs(avg(0) - avg(1)) < 0.4, `the average stays about the same (${avg(0).toFixed(2)} vs ${avg(1).toFixed(2)})`);
       assert.doesNotMatch(await page.$eval('#cards', (e) => e.innerText), /Chances|Tension|Drama|Tempo/, 'pillar names on a card');
       await page.locator('#tuning').screenshot({ path: `${shots}/pillars.png` });
-      await page.click('#t-reset');
-      assert.ok((await pairs()).every(([mine, std]) => mine === std), 'reset brings back the standard scores');
+      // Tapping "standard" under one slider puts just that one back.
+      await page.click('#t-p-drama ~ .s-std');
+      await page.waitForFunction(() => /standard/.test(document.querySelector('#t-p-drama').closest('.slider').querySelector('.s-val').textContent));
+      assert.ok((await pairs()).every(([mine, std]) => mine === std), 'the standard mark brings back the standard scores');
+      assert.ok(await page.$eval('#t-standard', (e) => e.disabled), 'all standard again: the Standard button is greyed out');
     }
     const setSlider = (key, v) => page.$eval(`#t-s-${key}`, (e, x) => { e.value = String(x); e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); }, v);
     await setSlider('goals', 0);
@@ -521,18 +527,18 @@ try {
     assert.ok(await page.$$eval(`.card[data-id="${first}"] .why li.group`, (els) => els.some((e) => /The occasion/.test(e.textContent))), 'lines grouped by pillar');
     await page.screenshot({ path: `${shots}/custom-cards.png` });
     // Best first follows your scores.
-    await page.click('#filters summary');
+    await openSettings(page);
     await page.selectOption('#f-sort', 'score');
     const nums = await page.$$eval('.card .num', (els) => els.map((e) => Number(e.textContent)).filter(Number.isFinite));
     assert.deepEqual(nums, [...nums].sort((a, b) => b - a), 'Best first sorts by your scores');
     await page.selectOption('#f-sort', 'date');
-    await page.click('#filters summary');
     // Reset to standard, and the setting survives a reload.
-    await page.click('#t-reset');
+    await page.click('#t-standard');
     assert.ok((await pairs()).every(([mine, std]) => mine === std), 'reset brings back the standard scores');
     await page.reload();
     await page.waitForSelector('.card.custom');
     // Calibration mode: a stronger warning, then every result, and the facts and calculation.
+    await openSettings(page);
     await page.click('#tuning summary');
     await page.click('#t-calib');
     await page.waitForSelector('#spoiler-dlg[open]');
@@ -624,6 +630,7 @@ try {
     assert.ok(Number(mine.match(/[\d.]+/)[0]) > Number(pace.match(/[\d.]+/)[0]), 'more for goals and the boost');
     // Calibration mode shows the live score from ESPN.
     assert.equal(await page.$$eval('.calib-result:not([hidden])', (els) => els.length), 0, 'a live score before calibration mode');
+    await openSettings(page);
     await page.click('#tuning summary');
     await page.click('#t-calib');
     await page.click('#spoiler-dlg button[value="ok"]');

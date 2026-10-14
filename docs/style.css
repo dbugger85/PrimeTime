@@ -90,7 +90,11 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 }
 .sports button[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow); color: var(--accent); }
 
-.services h2 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.filters .services { padding: 0 0 6px; }
+.filters .services .chips { padding: 6px 14px 8px; }
+.filters .services .hint { font-weight: 400; color: var(--muted); font-size: 13px; }
+.filters > .t-head { padding-top: 8px; }
+.filters .tuning { border-top: 1px solid var(--line); margin-top: 4px; }
 .hint { color: var(--muted); font-weight: 400; margin-left: 6px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
@@ -164,7 +168,7 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .s-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .filters .s-label { display: block; font-size: 15px; font-weight: 600; color: var(--ink); }
 .s-val { font-size: 13px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.s-track { position: relative; padding-bottom: 16px; }
+.s-track { position: relative; padding-bottom: 22px; }
 .s-track { touch-action: pan-y; } /* vertical swipes scroll the page; app.js moves the knob on sideways drags */
 /* Our own track and a bigger knob (26 px, THUMB in app.js), the same in every browser. */
 .s-track input {
@@ -184,15 +188,17 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .s-track input:disabled { opacity: 0.45; }
 .s-std {
   position: absolute; bottom: 0; transform: translateX(-50%); font-size: 10.5px; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; pointer-events: none;
+  text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap;
+  border: 0; background: none; padding: 4px 6px 0; margin: 0; font-family: inherit; cursor: pointer; min-height: 20px;
 }
+.s-std:not(:disabled):hover, .s-std:focus-visible { color: var(--accent); }
+.s-std:disabled { cursor: default; }
 .s-std::before { content: ''; position: absolute; left: 50%; top: -6px; width: 2px; height: 5px; margin-left: -1px; background: var(--muted); border-radius: 1px; }
 .filters .slider .small { margin: 0; padding: 0; }
 .s-weights { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--ink) !important; }
 .t-head { font-size: 15px; font-weight: 600; margin: 0; padding: 4px 14px 2px; }
 .tuning .boosts { padding-top: 6px; }
-.tuning .presets { padding: 4px 14px 10px; }
-.tuning .presets .chip:disabled { opacity: 0.5; cursor: default; }
+#t-standard { margin: 0 14px 12px; }
 .tuning .slider.pillar .s-label { font-weight: 700; }
 .s-name { display: inline-flex; align-items: center; gap: 2px; min-width: 0; }
 .s-info { border: 0; background: none; color: var(--muted); font-size: 16px; line-height: 1; padding: 6px 8px; margin: -6px 0; min-width: 32px; min-height: 32px; cursor: pointer; }
@@ -200,7 +206,9 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .t-advanced { margin: 4px 14px 12px; border-top: 1px solid var(--line); }
 .t-advanced > summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
 .t-advanced > .small { padding: 0 0 8px; margin: 0; }
-.t-advanced .t-group h4 { margin: 10px 0 4px; font-size: 14px; }
+/* Each pillar's sliders in their own box, with a small coloured heading, so the groups stand apart. */
+.t-advanced .t-group { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px 2px; margin: 0 0 12px; background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.t-advanced .t-group h4 { margin: 0 0 6px; padding-bottom: 6px; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
 .t-advanced .sliders { padding: 4px 0 10px; }
 .why li.group { margin-top: 8px; font-weight: 700; }
 .why li.group.average, .why li.group.final { border-top: 1px solid var(--line); padding-top: 6px; }

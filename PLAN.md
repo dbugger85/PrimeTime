@@ -146,3 +146,8 @@ The owner wanted "Why this score?" to be intuitive: each pillar as a score from 
 - The fit gave Drama 47%; the owner found that too much and chose **25% each** (no need to match historic scores).
 - Pillars keep a common average of about 6.2 (option C), not 5.0: with 5.0 the scores would have dropped to an average of 4.7 with 8+ only 2%.
 - A comeback line under Tension (France 4–6 England after 0–4).
+
+## Later decisions (2026-10-14, late): football 21 and a settings clean-up
+- The owner felt Drama and Tension overlapped and LASK 3–6 Liverpool (6.8) was too low. Found double counting: one-sided cuts in Drama on top of a low Tension, the favourite/underdog goal adjustments on top of the swing line, "evenly matched" on top of suspense, the dull 0–0 cut on top of low Chances. All removed; weights stay 25% each.
+- Settings: one "Filters and settings" panel (My services, Filters and display, Custom scoring). A Standard button resets all custom scoring; the mix presets were removed (the owner). Goals stay under Drama (Chances is the quality of the opportunities, scored or not).
+- Each slider's "standard" mark resets that slider; the Advanced groups are framed boxes; the Top end slider moves in tenths (standard 7.7).

@@ -116,28 +116,8 @@ export function scoreFootball(f, W, { boost = 0, boostLabel = 'This competition'
   const gap = odds ? Math.abs(odds.home - odds.away) : 0;
   const ts = W.teamStrength;
 
-  // Walk the goals in order: what each one's worth depends on the score when it went in.
-  let lead = { home: 0, away: 0 }, decided = 0, decidedGoals = 0, favCut = 0, dogBonus = 0, counted = 0;
-  for (const g of goals) {
-    const worth = counted++ < 4 ? W.goal : W.extraGoal; // what the line above gave it
-    const ahead = lead[g.side] - lead[g.side === 'home' ? 'away' : 'home'];
-    // Already 3 up: the match is over, and more goals add little. Making it 3–0 matters a bit more.
-    // An underdog 2 or 3 up against a clear favorite isn't a finished match, it's a shock.
-    const shock = fav && g.side !== fav && gap >= 0.15;
-    const cut = shock ? 0 : ahead >= 3 ? W.alreadyDecided : ahead === 2 ? W.nearlyDecided : 0;
-    decided += worth * cut;
-    if (cut) decidedGoals++;
-    const rest = worth * (1 - cut);
-    if (fav && g.side === fav) favCut += rest * W.favoriteDiscount * gap * ts;
-    else if (fav) dogBonus += rest * W.underdogBonus * gap * ts;
-    lead[g.side]++;
-  }
-  t.add(-decided, `${plural(decidedGoals, 'goal')} with one team already 2+ goals up`, ['alreadyDecided', 'nearlyDecided']);
-  if (odds) {
-    const pct = (x) => `${Math.round(100 * x)}%`;
-    t.add(-favCut, `The favorite (${pct(odds[fav])} to win) scoring as expected`, ['favoriteDiscount', 'teamStrength']);
-    t.add(dogBonus, `The underdog (${pct(odds[fav === 'home' ? 'away' : 'home'])} to win) scoring`, ['underdogBonus', 'teamStrength']);
-  }
+  // (Football 21: no cuts for goals with a team already 2+ up, and no discount for the favorite's goals:
+  // Tension already scores a match decided early low, and the swing line already counts surprising goals.)
 
   // Balance and swings: walk through the match tracking the goal difference.
   let diff = 0, prevMin = 0, closeMinutes = 0, equalisers = 0, leadChanges = 0, leader = 0;
@@ -153,18 +133,15 @@ export function scoreFootball(f, W, { boost = 0, boostLabel = 'This competition'
   }
   if (Math.abs(diff) <= 1) closeMinutes += end - prevMin;
   t.add(W.closeMatch * (closeMinutes / end), `Within one goal for ${Math.round((100 * closeMinutes) / end)}% of the match`, ['closeMatch']);
-  const underdogWon = odds && gap >= 0.15 && diff !== 0 && (diff > 0 ? 'home' : 'away') !== fav;
-  // The same for any margin of 3+: a 6–0 is no duller than a 3–0, and its extra goals are still worth seeing.
-  if (Math.abs(diff) >= 3 && !underdogWon) t.add(-W.blowout, `One-sided: won by ${Math.abs(diff)} goals`, ['blowout']);
 
-  // Upsets and even matches. `diff` is now the final goal difference, home minus away.
+  // Upsets. `diff` is now the final goal difference, home minus away. (Evenly matched teams count through
+  // suspense, worked out from the same odds.)
   if (odds) {
     const winner = diff > 0 ? 'home' : diff < 0 ? 'away' : null;
     if (gap >= 0.15 && winner && winner !== fav) t.add(ts * W.upsetWin * Math.min(2 * gap, 1), 'Upset: the underdog won', ['upsetWin', 'teamStrength']);
     else if (gap >= 0.15 && !winner && !f.shootout) t.add(ts * W.upsetDraw * Math.min(2 * gap, 1), 'The underdog held on for a draw', ['upsetDraw', 'teamStrength']);
     else if (gap >= 0.15 && f.shootoutWinner && f.shootoutWinner !== fav) t.add(ts * W.upsetShootout * Math.min(2 * gap, 1), 'Upset: the underdog won on penalties', ['upsetShootout', 'teamStrength']);
     else if (gap >= 0.15 && f.shootout) t.add(ts * W.upsetDraw * Math.min(2 * gap, 1), 'The underdog took the favorite to penalties', ['upsetDraw', 'teamStrength']);
-    if (gap < 0.2) t.add(ts * W.evenMatch * (1 - gap / 0.2), 'Evenly matched on paper', ['evenMatch', 'teamStrength']);
   }
   t.add(W.equaliser * equalisers, plural(equalisers, 'equaliser'), ['equaliser']);
   // A comeback: a team 2 or more goals down got back to within one goal (once per match).
@@ -215,9 +192,6 @@ export function scoreFootball(f, W, { boost = 0, boostLabel = 'This competition'
   if (big != null) t.add(W.bigChances * clamp((big - 3) / 6, 0, 1), plural(big, 'big chance'), ['bigChances']);
   if (xgot != null) t.add(W.shotQuality * clamp((xgot - 2) / 2.5, 0, 1), `Shots on target worth ${xgot.toFixed(1)} xGOT`, ['shotQuality']);
   if (touches != null) t.add(W.boxTouches * clamp((touches - 40) / 50, 0, 1), `${touches} touches in the opposition box`, ['boxTouches']);
-  if (n === 0 && (xg ? xgTotal < 1.5 : f.shotsOnTarget <= 4)) {
-    t.add(-W.dullGoalless, xg ? `Goalless with chances worth only ${xgTotal.toFixed(1)} xG` : `Goalless with only ${plural(f.shotsOnTarget, 'shot')} on target`, ['dullGoalless']);
-  }
   t.add(W.redCard * Math.min(f.reds.length, 2), plural(f.reds.length, 'red card'), ['redCard']);
   t.add(W.penalty * Math.min(f.pens.length, 2), plural(f.pens.length, 'penalty', 'penalties'), ['penalty']);
 
@@ -390,41 +364,29 @@ export const PILLARS = {
 };
 export const PILLAR_MAX = 100;
 export const PILLAR_STEP = 1;
-// Ready-made mixes: each pillar's standard weight times this.
-export const PRESETS = {
-  standard: { label: 'Standard', pillars: null },
-  goals: { label: 'Goals and drama', pillars: { chances: 0.7, tempo: 0.7, tension: 1, drama: 1.5 } },
-  chances: { label: 'Chances and tempo', pillars: { chances: 1.7, tempo: 1.7, tension: 1, drama: 0.6 } },
-  nailBiters: { label: 'Nail-biters', pillars: { chances: 1, tempo: 1, tension: 1.6, drama: 0.7 } },
-};
-// The pillar weights a preset gives, in whole percent of the standard weights `W`.
-export const presetPillars = (W, key) => (PRESETS[key]?.pillars
-  ? Object.fromEntries(PILLAR_KEYS.map((p) => [p, Math.round(100 * W[pillarWeightKey(p)] * PRESETS[key].pillars[p])])) : null);
-
 // The detailed sliders. Each multiplies a group of FOOTBALL weights (0 = off, 1 = the standard, 2 =
 // double), except `curveFrom`, which sets the top end directly. The live keys (shotOnTarget,
 // shotOffTarget) are FOOTBALL_LIVE weights for "Excitement so far". Every FOOTBALL weight belongs to
 // exactly one group, or to TWEAK_FIXED (a test checks this): `teamStrength` is the master dial for
 // the odds weights, and `leagueLevel` is used by the bot before the facts are saved.
 export const TWEAK_GROUPS = {
-  chances: { pillar: 'chances', label: 'Chances and xG', hint: 'Expected goals, big chances, shots on target, play in the boxes; points off for a dull 0–0', keys: ['chances', 'bigChances', 'shotQuality', 'boxTouches', 'shotsOnTarget7', 'shotsOnTarget10', 'manyShots', 'dullGoalless', 'shotOnTarget', 'shotOffTarget'] },
+  chances: { pillar: 'chances', label: 'Chances and xG', hint: 'Expected goals, big chances, shots on target, play in the boxes', keys: ['chances', 'bigChances', 'shotQuality', 'boxTouches', 'shotsOnTarget7', 'shotsOnTarget10', 'manyShots', 'shotOnTarget', 'shotOffTarget'] },
   nearMisses: { pillar: 'chances', label: 'Near misses', hint: 'The woodwork, goals ruled out by VAR, penalties', keys: ['woodwork', 'varDisallowed', 'penalty'] },
   endToEnd: { pillar: 'tempo', label: 'End to end', hint: 'Both teams attacking about as much as each other', keys: ['endToEnd'] },
   directness: { pillar: 'tempo', label: 'Directness and corners', hint: 'Shots and corners for every 100 passes, lots of corners', keys: ['directness', 'manyCorners'] },
   tight: { pillar: 'tension', label: 'Tight match and swings', hint: 'Close all the way, equalisers, the lead changing hands, comebacks', keys: ['closeMatch', 'equaliser', 'leadChange', 'comeback'] },
-  suspense: { pillar: 'tension', label: 'Suspense', hint: 'How open the result looked minute by minute, from the odds and the score; evenly matched teams; a result against the run of play', keys: ['suspense', 'swing', 'evenMatch', 'againstTheRun'] },
+  suspense: { pillar: 'tension', label: 'Suspense', hint: 'How open the result looked minute by minute, from the odds and the score; a result against the run of play', keys: ['suspense', 'swing', 'againstTheRun'] },
   goals: { pillar: 'drama', label: 'Goals', hint: 'Each goal scored, and great goals from distance', keys: ['goal', 'extraGoal', 'banger'] },
   late: { pillar: 'drama', label: 'Late drama', hint: 'Late goals and big chances while it was open, extra time, penalty shootouts', keys: ['lateGoal', 'veryLateGoal', 'lateDecider', 'lateGoalsMax', 'lateChance', 'extraTime', 'shootout'] },
   cards: { pillar: 'drama', label: 'Cards', hint: 'Red cards (more when the team ahead gets one) and lots of bookings', keys: ['redCard', 'redCardAhead', 'manyYellows', 'lotsOfYellows'] },
-  upsets: { pillar: 'drama', label: 'Upsets', hint: 'Underdogs winning or holding on, and their goals counting more', keys: ['upsetWin', 'upsetDraw', 'upsetShootout', 'underdogBonus', 'favoriteDiscount'] },
-  oneSided: { pillar: 'drama', label: 'Punish one-sided matches', hint: 'Points taken off for routs', keys: ['alreadyDecided', 'nearlyDecided', 'blowout'] },
+  upsets: { pillar: 'drama', label: 'Upsets', hint: 'Underdogs winning or holding on', keys: ['upsetWin', 'upsetDraw', 'upsetShootout'] },
   bigMatch: { pillar: null, label: 'Big match', hint: 'Two strong teams count more, two weak ones less', keys: ['bigMatch', 'smallMatch'] },
   stakes: { pillar: null, label: 'What was at stake', hint: 'Title races, relegation battles and other races', keys: ['titleRace', 'relegationBattle', 'otherRace'] },
 };
 // The pillar weights have their own sliders; the scales are fixed (they keep a typical match level across pillars).
 export const TWEAK_FIXED = ['teamStrength', 'leagueLevel', 'curveFrom', 'pillarChances', 'pillarTempo', 'pillarTension', 'pillarDrama',
   'chancesScale', 'tempoScale', 'tensionScale', 'dramaScale'];
-const SHARES = ['alreadyDecided', 'nearlyDecided', 'smallMatch']; // parts of 1: never more than all of it
+const SHARES = ['smallMatch']; // parts of 1: never more than all of it
 // The detailed sliders are in points, on one scale for all of them: about how much that part typically
 // adds to (or takes off) a match's score when it happens, from 0 to SCALE_MAX. The bot measures where
 // each part stands with the standard weights (`sliderScale()`, published in events.json), so the
@@ -432,7 +394,7 @@ const SHARES = ['alreadyDecided', 'nearlyDecided', 'smallMatch']; // parts of 1:
 export const SCALE_MAX = 7;
 export const SCALE_STEP = 0.1;
 export const MULT_MAX = 50; // a rare part (what was at stake, 0.35 points) can still be made worth the whole scale
-export const CURVE_STEP = 0.5;
+export const CURVE_STEP = 0.1;
 export const BOOST_STEP = 0.5;
 export const BOOST_MAX = 2;
 export const DEFAULT_TWEAKS = {

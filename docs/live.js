@@ -231,13 +231,11 @@ export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0, odds = null
   const per90 = 90 / played;
   const n = (x) => (Number.isFinite(x) ? x : 0); // weights missing from an older events.json count as 0
 
-  // Drama: goals (less when a team was already 2+ up), red cards, minus a 3+ goal lead.
-  // Tension: within one goal, equalisers, lead changes, suspense and swing, evenly matched.
+  // Drama: goals, red cards. Tension: within one goal, equalisers, lead changes, suspense and swing
+  // (a match decided early only counts against Tension, not Drama too).
   let drama = 0, diff = 0, prevMin = 0, closeMinutes = 0, equalisers = 0, leadChanges = 0, leader = 0;
   goals.forEach((g, i) => {
-    const ahead = g.side === 'home' ? diff : -diff;
-    const worth = i < 4 ? w.goal : w.extraGoal;
-    drama += worth * (1 - (ahead >= 3 ? w.alreadyDecided : ahead === 2 ? w.nearlyDecided : 0));
+    drama += i < 4 ? w.goal : w.extraGoal;
     const min = Math.min(g.min, played);
     if (Math.abs(diff) <= 1) closeMinutes += min - prevMin;
     prevMin = min;
@@ -252,13 +250,12 @@ export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0, odds = null
   const leadAt = (m) => goals.filter((g) => g.min < m).reduce((d, g) => d + (g.side === 'home' ? 1 : -1), 0);
   const opening = (f.redsBy ?? []).filter((r) => { const d = leadAt(r.min) * (r.side === 'home' ? 1 : r.side === 'away' ? -1 : 0); return r.side && (d > 0 || (d === 0 && r.min >= 60)); }).length;
   drama += w.redCard * Math.min(f.reds, 2) + n(w.redCardAhead) * Math.min(opening, 2);
-  drama = drama * per90 - (Math.abs(diff) >= 3 ? w.blowout : 0); // 3+ goals up: less worth tuning in for
+  drama *= per90;
 
   const s = suspenseOf(goals.map((g) => ({ t: g.min, side: g.side })), odds, 90, Math.min(played, 90));
-  const gap = odds ? Math.abs(odds.home - odds.away) : 1;
   // A comeback from 2+ down to within one goal (as on replays, once).
   const tension = (comebackOf(goals) ? n(w.comeback) : 0) + w.closeMatch * (closeMinutes / played) + (w.equaliser * equalisers + w.leadChange * Math.min(leadChanges, 3)) * per90
-    + n(suspensePoints(w, s)) + n(swingPoints(w, { swing: s.swing * per90 })) + (gap < 0.2 ? n(w.evenMatch) * n(w.teamStrength) * (1 - gap / 0.2) : 0);
+    + n(suspensePoints(w, s)) + n(swingPoints(w, { swing: s.swing * per90 }));
 
   // Chances: shots so far (the page has no xG live), penalties, VAR, the woodwork.
   const chances = (w.shotOnTarget * f.shotsOn + w.shotOffTarget * f.shotsOff + w.penalty * Math.min(f.pens, 2)
@@ -292,9 +289,9 @@ export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0, odds = null
 
 // The weights scoreLivePace uses, picked from the football weights (published in events.json,
 // so weights.mjs stays the only place they're set).
-export const LIVE_WEIGHT_KEYS = ['goal', 'extraGoal', 'alreadyDecided', 'nearlyDecided', 'closeMatch', 'blowout', 'equaliser', 'leadChange',
+export const LIVE_WEIGHT_KEYS = ['goal', 'extraGoal', 'closeMatch', 'equaliser', 'leadChange',
   'redCard', 'penalty', 'varDisallowed', 'woodwork', 'titleRace', 'relegationBattle', 'otherRace', 'curveFrom', 'suspense', 'swing', 'redCardAhead',
-  'endToEnd', 'manyCorners', 'evenMatch', 'teamStrength', 'pillarChances', 'pillarTempo', 'pillarTension', 'pillarDrama',
+  'endToEnd', 'manyCorners', 'pillarChances', 'pillarTempo', 'pillarTension', 'pillarDrama',
   'chancesScale', 'tempoScale', 'tensionScale', 'dramaScale'];
 export const liveWeightsFrom = (football, live) =>
   ({ ...Object.fromEntries(LIVE_WEIGHT_KEYS.map((k) => [k, football[k]])), ...live });

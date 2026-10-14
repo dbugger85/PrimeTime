@@ -28,19 +28,11 @@ export const FOOTBALL = {
   lateGoalsMax: 2.5, //       at most this much for late goals in total
   lateChance: 0.3, //         each big chance missed from 80' while the result was within one goal (up to 2; needs FotMob)
 
-  // One-sided matches
-  alreadyDecided: 0.25, //    taken off: share of a goal's points when the team was already 3+ up (0.5 = half)
-  nearlyDecided: 0.1, //      taken off: the same, when the team was 2 up
-  blowout: 0.75, //           taken off: won by 3 or more goals, whatever the margin (not when the underdog won: that's a shock, not a mismatch)
-
   // Team strength, from the pre-match betting odds
-  teamStrength: 1.0, //       master dial for everything below: 0 = ignore team strength, 1 = normal, 2 = double
-  favoriteDiscount: 0.25, //  taken off: share of the favorite's goals, times how big the mismatch was
-  underdogBonus: 0.3, //      extra share for the underdog's goals, times how big the mismatch was
+  teamStrength: 1.0, //       master dial for the upsets below and the odds behind suspense: 0 = ignore team strength, 1 = normal, 2 = double
   upsetWin: 3.0, //           the underdog won (the full amount when the favorite was 50+ points likelier to win)
   upsetDraw: 1.5, //          the underdog got a draw, or took the favorite to penalties (same scale)
   upsetShootout: 2.0, //      the underdog won on penalties (same scale)
-  evenMatch: 0.5, //          the teams were evenly matched on paper
 
   // Suspense, from the win chances minute by minute (the odds before kick-off, the score and the time left)
   suspense: 0.8, //           the result looked open for most of the match (nothing when it was decided early)
@@ -57,7 +49,6 @@ export const FOOTBALL = {
   shotsOnTarget7: 0.5, //     without xG only: 7–9 shots on target
   shotsOnTarget10: 1.0, //    without xG only: 10 or more shots on target
   manyShots: 0.5, //          without xG only: 30 or more shots in total
-  dullGoalless: 0.5, //       taken off: 0–0 with chances worth under 1.5 expected goals (without xG: 4 or fewer shots on target)
   redCard: 0.6, //            each red card (up to 2)
   redCardAhead: 0.3, //       extra for each red card to the team ahead, or to either team when level from 60' (up to 2)
   banger: 0.3, //             each great goal: from outside the box, or an unlikely chance struck so well it went in (up to 2; needs FotMob)
@@ -84,8 +75,8 @@ export const FOOTBALL = {
   pillarDrama: 0.25, //       how much Drama counts
   chancesScale: 1.4, //       Chances points that give a pillar score of about 6.3 out of 10 (twice as many: about 8.6; 10 is never quite reached)
   tempoScale: 0.57, //        the same for Tempo
-  tensionScale: 2.2, //       the same for Tension
-  dramaScale: 3.6, //         the same for Drama
+  tensionScale: 2.1, //       the same for Tension
+  dramaScale: 3.8, //         the same for Drama
 
   // Big match, from the teams' Elo ratings (not the odds): clubs are compared with the rest of
   // their own league, national teams with the whole world
