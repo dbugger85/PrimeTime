@@ -133,7 +133,7 @@ function renderLeagues() {
     box.lastChild.append(...g.comps.map((c) => chip(c.name, null, prefs.leagues.includes(c.key), toggle(c.key))));
     return box;
   }));
-  $('#leagues-hint').textContent = mine.length ? `${mine.length} of ${all.length}` : 'showing all: tap the ones you follow';
+  $('#leagues-hint').textContent = mine.length ? `${mine.length} of ${all.length}` : 'all';
   $('#leagues-all').hidden = !mine.length;
 }
 
@@ -1266,6 +1266,8 @@ function bind() {
     savePrefs();
     render();
   };
+  $('#leagues-box').open = store.load('pt-leagues-open', false); // closed until you open it, then remembered
+  $('#leagues-box').ontoggle = () => store.save('pt-leagues-open', $('#leagues-box').open);
   $('#leagues-all').onclick = () => { prefs.leagues = []; savePrefs(); render(); };
   $('#fav-only').onclick = () => { prefs.favsOnly = !prefs.favsOnly; savePrefs(); render(); };
   $('#favs-toggle').onclick = () => {

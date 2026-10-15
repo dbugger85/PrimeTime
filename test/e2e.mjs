@@ -176,6 +176,8 @@ try {
 
     // "My competitions": following one competition hides the others' football (no favorites yet).
     await openSettings(page);
+    assert.ok(!(await page.$eval('#leagues-box', (d) => d.open)), 'My competitions starts closed');
+    await page.click('#leagues-box summary');
     const league = await page.$eval('#leagues .chip', (e) => e.firstChild.textContent);
     await page.click('#leagues .chip');
     assert.match(await page.$eval('#leagues-hint', (e) => e.textContent), /^1 of \d+$/);
@@ -184,6 +186,10 @@ try {
     await (await page.$('.leagues')).screenshot({ path: `${shots}/my-competitions.png` });
     await page.click('#leagues-all');
     assert.ok(await page.$eval('#leagues-all', (e) => e.hidden));
+    assert.equal(await page.$eval('#leagues-hint', (e) => e.textContent), 'all');
+    await page.click('#leagues-box summary');
+    await (await page.$('.leagues')).screenshot({ path: `${shots}/my-competitions-closed.png` });
+    await page.click('#leagues-box summary');
     await page.click('#filters summary');
 
     // Services filter: with only HBO Max chosen (tennis), the F1 tab is empty. Between Grand Slams the
