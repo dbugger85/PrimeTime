@@ -1,4 +1,4 @@
-import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug } from './logic.js';
+import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug, leagueGroups } from './logic.js';
 import { ESPN, clockOf, liveClockText, espnDays, liveFacts, scoreLivePace, LIVE_FROM, elapsedText, PILLAR_KEYS, pillarShares, pillarWeightKey } from './live.js';
 import { scoreFootball, applyTweaks, cleanTweaks, isStandard, DEFAULT_TWEAKS, TWEAK_GROUPS, STAKES, SCALE_MAX, SCALE_STEP, CURVE_STEP, BOOST_STEP, BOOST_MAX, PILLARS, PILLAR_MAX, PILLAR_STEP } from './scoring.js';
 
@@ -12,7 +12,7 @@ const SERVICES = {
 };
 
 const DEFAULTS = {
-  view: 'replays', sport: 'all', services: [], comp: 'all', days: 30, minScore: 0, sort: 'date',
+  view: 'replays', sport: 'all', services: [], leagues: [], comp: 'all', days: 30, minScore: 0, sort: 'date',
   round: '', draw: '', f1Session: '', hideTennis: true, hideFootball: false, hints: true, preHints: true, showElo: false, showChances: false, hideWatched: false, glass: true,
   favsOnly: false, favs: { teams: [], players: [], f1: false, winter: [] }, gender: '',
   tweaks: DEFAULT_TWEAKS, // "Custom scoring (football)": the sliders and competition boosts (docs/scoring.js)
@@ -116,6 +116,27 @@ const chip = (label, n, pressed, onclick) => {
   return b;
 };
 
+// "My competitions": tap the football competitions you follow; none picked shows them all.
+function renderLeagues() {
+  const groups = leagueGroups([...events, ...upcoming]);
+  const all = groups.flatMap((g) => g.comps.map((c) => c.key));
+  const mine = prefs.leagues.filter((k) => all.includes(k));
+  const toggle = (key) => () => {
+    prefs.leagues = prefs.leagues.includes(key) ? prefs.leagues.filter((k) => k !== key) : [...prefs.leagues, key];
+    savePrefs();
+    render();
+  };
+  $('#leagues').replaceChildren(...groups.map((g) => {
+    const box = Object.assign(document.createElement('div'), { className: 'league-group' });
+    box.append(Object.assign(document.createElement('p'), { className: 'league-head', textContent: g.name }),
+      Object.assign(document.createElement('div'), { className: 'chips' }));
+    box.lastChild.append(...g.comps.map((c) => chip(c.name, null, prefs.leagues.includes(c.key), toggle(c.key))));
+    return box;
+  }));
+  $('#leagues-hint').textContent = mine.length ? `${mine.length} of ${all.length}` : 'showing all: tap the ones you follow';
+  $('#leagues-all').hidden = !mine.length;
+}
+
 function renderControls() {
   const view = prefs.view;
   for (const b of document.querySelectorAll('#views button')) b.setAttribute('aria-pressed', String(b.dataset.view === view));
@@ -160,6 +181,7 @@ function renderControls() {
     ? `none of yours show ${prefs.sport === 'all' ? 'these' : SPORTS[prefs.sport]}`
     : 'tap the ones you have';
 
+  renderLeagues();
   renderFavs();
 
   // Minimum rating, with how many events each choice leaves.
@@ -1244,6 +1266,7 @@ function bind() {
     savePrefs();
     render();
   };
+  $('#leagues-all').onclick = () => { prefs.leagues = []; savePrefs(); render(); };
   $('#fav-only').onclick = () => { prefs.favsOnly = !prefs.favsOnly; savePrefs(); render(); };
   $('#favs-toggle').onclick = () => {
     favsOpen = !favsOpen;

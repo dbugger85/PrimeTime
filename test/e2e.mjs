@@ -174,6 +174,18 @@ try {
     await page.click('#f-reset');
     assert.ok(await page.$eval('#filter-count', (e) => e.hidden));
 
+    // "My competitions": following one competition hides the others' football (no favorites yet).
+    await openSettings(page);
+    const league = await page.$eval('#leagues .chip', (e) => e.firstChild.textContent);
+    await page.click('#leagues .chip');
+    assert.match(await page.$eval('#leagues-hint', (e) => e.textContent), /^1 of \d+$/);
+    const followed = await page.$$eval('.card .sub', (els) => [...new Set(els.map((e) => e.textContent.split(' · ')[0]))]);
+    assert.deepEqual(followed, [league]);
+    await (await page.$('.leagues')).screenshot({ path: `${shots}/my-competitions.png` });
+    await page.click('#leagues-all');
+    assert.ok(await page.$eval('#leagues-all', (e) => e.hidden));
+    await page.click('#filters summary');
+
     // Services filter: with only HBO Max chosen (tennis), the F1 tab is empty. Between Grand Slams the
     // default period can hold no tennis at all, and then there's no chip to choose.
     await page.click('#sports [data-sport="tennis"]');

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chancesLine, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel, prematchLine } from '../docs/logic.js';
+import { chancesLine, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel, prematchLine, followsLeague, leagueGroups } from '../docs/logic.js';
 
 const now = Date.parse('2026-09-26T12:00:00Z');
 const ev = (o) => ({ services: [], segments: [], advice: { code: 'full' }, compName: 'X', ...o });
@@ -269,4 +269,17 @@ test('"Why this score?" groups football lines by pillar: scores 0–10, weights,
   const old = reasonGroups([[2.4, '2 goals', 'drama'], [0.5, 'Hit the woodwork', 'chances'], [0.9, 'Big match: two strong teams (×1.15)', 'occasion']], labels);
   assert.deepEqual(old.map((g) => [g.label, g.total]), [['Chances', '+0.5'], ['Drama', '+2.4'], ['The occasion', '+0.9']]);
   assert.equal(reasonGroups([[1, 'x']], labels), null, 'older reasons keep the flat list');
+});
+
+test('"My competitions": only followed football, favorites always, other sports untouched', () => {
+  const pl = { sport: 'football', comp: 'eng.1', compName: 'Premier League', teams: ['A', 'B'] };
+  const nor = { sport: 'football', comp: 'nor.1', compName: 'Eliteserien', teams: ['C', 'D'] };
+  const prefs = { leagues: ['eng.1'], favs: { teams: [] } };
+  assert.ok(followsLeague(pl, prefs) && !followsLeague(nor, prefs));
+  assert.ok(followsLeague(nor, { ...prefs, favs: { teams: ['D'] } }), 'a favorite team always shows');
+  assert.ok(followsLeague(nor, { leagues: [] }), 'none picked: all');
+  assert.ok(followsLeague({ sport: 'f1' }, prefs));
+  assert.equal(ids(filterEvents(events.map((e) => ({ ...e, comp: e.compName === 'Eliteserien' ? 'nor.1' : 'eng.1' })), { ...base, leagues: ['nor.1'] }, new Set(), now)), 'bcd');
+  const groups = leagueGroups([nor, pl, { sport: 'football', comp: 'zzz.1', compName: 'New' }, { sport: 'f1', comp: 'x' }]);
+  assert.deepEqual(groups.map((g) => [g.name, g.comps.map((c) => c.key)]), [['Leagues', ['eng.1', 'nor.1']], ['Other', ['zzz.1']]]);
 });

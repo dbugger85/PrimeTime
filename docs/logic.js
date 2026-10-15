@@ -58,6 +58,7 @@ function matchesCommon(e, prefs) {
   if (prefs.sport !== 'all' && e.sport !== prefs.sport) return false;
   if (prefs.services?.length && !e.services.some((s) => prefs.services.includes(s))) return false;
   if (prefs.comp && prefs.comp !== 'all' && e.compName !== prefs.comp) return false;
+  if (!followsLeague(e, prefs)) return false;
   if (e.sport === 'f1' && prefs.sport === 'f1' && prefs.f1Session) { // only shows on the F1 tab
     if (f1Kind(e) !== prefs.f1Session) return false;
   }
@@ -68,6 +69,30 @@ function matchesCommon(e, prefs) {
     if (prefs.draw === 'women' && !/^women/i.test(e.draw)) return false;
   }
   return true;
+}
+
+// "My competitions" (prefs.leagues, ESPN keys like 'eng.1'): football from the other competitions
+// is hidden. None picked means all. A favorite team's matches always show.
+export function followsLeague(e, prefs) {
+  if (e.sport !== 'football' || !prefs.leagues?.length || prefs.leagues.includes(e.comp)) return true;
+  return isFavorite(e, prefs.favs, 'replays');
+}
+
+// The football competitions in the order "My competitions" lists them. Keys the page
+// doesn't know yet go at the end of the group "Other", so a new competition still shows.
+const LEAGUE_GROUPS = [
+  ['Leagues', ['eng.1', 'esp.1', 'ger.1', 'ita.1', 'fra.1', 'nor.1', 'eng.2']],
+  ['European cups', ['uefa.champions', 'uefa.europa', 'uefa.europa.conf']],
+  ['National teams', ['uefa.nations', 'fifa.worldq.uefa', 'uefa.euroq', 'fifa.world', 'uefa.euro']],
+];
+// events -> [{ name: 'Leagues', comps: [{ key, name }] }], only competitions in the data.
+export function leagueGroups(events) {
+  const names = new Map(events.filter((e) => e.sport === 'football' && e.comp).map((e) => [e.comp, e.compName]));
+  const known = new Set(LEAGUE_GROUPS.flatMap(([, keys]) => keys));
+  const other = [...names.keys()].filter((k) => !known.has(k)).sort();
+  return [...LEAGUE_GROUPS, ['Other', other]]
+    .map(([name, keys]) => ({ name, comps: keys.filter((k) => names.has(k)).map((key) => ({ key, name: names.get(key) })) }))
+    .filter((g) => g.comps.length);
 }
 
 // favs: { teams: [], players: [], f1: false, winter: ['biathlon:women', …] }.
@@ -156,7 +181,7 @@ export function dayLabel(iso, now = new Date()) {
   return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Oslo', weekday: 'short', day: 'numeric', month: 'short' }).format(d);
 }
 
-// prefs: { sport, services[], comp, days, minScore, sort, round, draw, hideWatched, favsOnly, favs }
+// prefs: { sport, services[], leagues[], comp, days, minScore, sort, round, draw, hideWatched, favsOnly, favs }
 export function filterEvents(events, prefs, watched = new Set(), now = Date.now()) {
   const list = events.filter((e) => {
     if (!matchesCommon(e, prefs)) return false;
@@ -360,6 +385,7 @@ export function decodeSettings(code, defaults) {
     }
     const strings = (a) => (Array.isArray(a) ? a.filter((x) => typeof x === 'string') : []);
     if (p.services) p.services = strings(p.services);
+    if (p.leagues) p.leagues = strings(p.leagues);
     if (p.favs) p.favs = { teams: strings(p.favs.teams), players: strings(p.favs.players), f1: p.favs.f1 === true, winter: strings(p.favs.winter) };
     return { prefs: p, watched: strings(data.w) };
   } catch {
