@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-15T13:35:38.755Z",
+ "lastFull": "2026-10-15T16:07:43.000Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1561,24 +1561,6 @@
    "start": "2026-09-13T17:15Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/fredrikstad-sarpsborg-08-xb8efd21"
-   }
-  },
-  "fb-401843442": {
-   "start": "2026-09-13T15:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/hamkam-molde-fcjr8wxa"
-   }
-  },
-  "fb-401843441": {
-   "start": "2026-09-13T15:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kfum-oslo-aalesund-r0wct5ya"
-   }
-  },
-  "fb-401843438": {
-   "start": "2026-09-13T15:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/start-brann-1p2vwhs5"
    }
   },
   "fb-401879268": {
