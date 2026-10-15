@@ -1,0 +1,32 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Jablonec (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401915848@primetime
+DTSTAMP:20261015T190000Z
+DTSTART:20261015T190000Z
+DTEND:20261015T210000Z
+SUMMARY:SC Freiburg – Jablonec
+LOCATION:Viaplay
+DESCRIPTION:Conference League\nWatch on Viaplay\nhttps://dbugger85.github.i
+ o/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915842@primetime
+DTSTAMP:20261022T164500Z
+DTSTART:20261022T164500Z
+DTEND:20261022T184500Z
+SUMMARY:Jablonec – Brighton & Hove Albion
+LOCATION:Viaplay
+DESCRIPTION:Conference League\nWatch on Viaplay\nhttps://dbugger85.github.i
+ o/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

@@ -1,0 +1,87 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Stade Rennais (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401915593@primetime
+DTSTAMP:20260916T190000Z
+DTSTART:20260916T190000Z
+DTEND:20260916T210000Z
+SUMMARY:SK Sturm Graz – Stade Rennais
+LOCATION:Viaplay
+DESCRIPTION:Europa League\nWatch on Viaplay\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876454@primetime
+DTSTAMP:20260919T184500Z
+DTSTART:20260919T184500Z
+DTEND:20260919T204500Z
+SUMMARY:Lyon – Stade Rennais
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876441@primetime
+DTSTAMP:20261011T151500Z
+DTSTART:20261011T151500Z
+DTEND:20261011T171500Z
+SUMMARY:Stade Rennais – AJ Auxerre
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915572@primetime
+DTSTAMP:20261015T190000Z
+DTSTART:20261015T190000Z
+DTEND:20261015T210000Z
+SUMMARY:Stade Rennais – OFI Crete
+LOCATION:Viaplay
+DESCRIPTION:Europa League\nWatch on Viaplay\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876433@primetime
+DTSTAMP:20261018T151500Z
+DTSTART:20261018T151500Z
+DTEND:20261018T171500Z
+SUMMARY:Paris FC – Stade Rennais
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915547@primetime
+DTSTAMP:20261022T164500Z
+DTSTART:20261022T164500Z
+DTEND:20261022T184500Z
+SUMMARY:Juventus – Stade Rennais
+LOCATION:Viaplay
+DESCRIPTION:Europa League\nWatch on Viaplay\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876424@primetime
+DTSTAMP:20261025T161500Z
+DTSTART:20261025T161500Z
+DTEND:20261025T181500Z
+SUMMARY:Stade Rennais – Strasbourg
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

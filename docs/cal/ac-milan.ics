@@ -1,0 +1,98 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:AC Milan (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401915586@primetime
+DTSTAMP:20260916T190000Z
+DTSTART:20260916T190000Z
+DTEND:20260916T210000Z
+SUMMARY:AC Milan – Benfica
+LOCATION:Viaplay
+DESCRIPTION:Europa League\nWatch on Viaplay\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401874944@primetime
+DTSTAMP:20260920T184500Z
+DTSTART:20260920T184500Z
+DTEND:20260920T204500Z
+SUMMARY:AC Milan – Lecce
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401874789@primetime
+DTSTAMP:20261011T160000Z
+DTSTART:20261011T160000Z
+DTEND:20261011T180000Z
+SUMMARY:Sassuolo – AC Milan
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915568@primetime
+DTSTAMP:20261015T164500Z
+DTSTART:20261015T164500Z
+DTEND:20261015T184500Z
+SUMMARY:RB Salzburg – AC Milan
+LOCATION:Viaplay
+DESCRIPTION:Europa League\nWatch on Viaplay\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401874978@primetime
+DTSTAMP:20261018T160000Z
+DTSTART:20261018T160000Z
+DTEND:20261018T180000Z
+SUMMARY:AC Milan – Atalanta
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915552@primetime
+DTSTAMP:20261022T190000Z
+DTSTART:20261022T190000Z
+DTEND:20261022T210000Z
+SUMMARY:AFC Bournemouth – AC Milan
+LOCATION:Viaplay
+DESCRIPTION:Europa League\nWatch on Viaplay\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401874779@primetime
+DTSTAMP:20261025T194500Z
+DTSTART:20261025T194500Z
+DTEND:20261025T214500Z
+SUMMARY:Udinese – AC Milan
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401874993@primetime
+DTSTAMP:20261028T173000Z
+DTSTART:20261028T173000Z
+DTEND:20261028T193000Z
+SUMMARY:AC Milan – Bologna
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

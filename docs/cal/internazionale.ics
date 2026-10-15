@@ -8,6 +8,28 @@ X-WR-TIMEZONE:Europe/Oslo
 REFRESH-INTERVAL;VALUE=DURATION:PT1H
 X-PUBLISHED-TTL:PT1H
 BEGIN:VEVENT
+UID:fb-401874753@primetime
+DTSTAMP:20260919T160000Z
+DTSTART:20260919T160000Z
+DTEND:20260919T180000Z
+SUMMARY:AS Roma – Internazionale
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401875021@primetime
+DTSTAMP:20261010T160000Z
+DTSTART:20261010T160000Z
+DTEND:20261010T180000Z
+SUMMARY:Internazionale – Parma
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
 UID:fb-401915413@primetime
 DTSTAMP:20261013T190000Z
 DTSTART:20261013T190000Z
@@ -19,6 +41,17 @@ DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 BEGIN:VEVENT
+UID:fb-401874953@primetime
+DTSTAMP:20261017T160000Z
+DTSTART:20261017T160000Z
+DTEND:20261017T180000Z
+SUMMARY:Bologna – Internazionale
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
 UID:fb-401915390@primetime
 DTSTAMP:20261021T190000Z
 DTSTART:20261021T190000Z
@@ -27,6 +60,28 @@ SUMMARY:Internazionale – Shakhtar Donetsk
 LOCATION:TV 2 Play
 DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
  io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401875036@primetime
+DTSTAMP:20261025T113000Z
+DTSTART:20261025T113000Z
+DTEND:20261025T133000Z
+SUMMARY:Internazionale – Fiorentina
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401874773@primetime
+DTSTAMP:20261028T173000Z
+DTSTART:20261028T173000Z
+DTEND:20261028T193000Z
+SUMMARY:Venezia – Internazionale
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 END:VCALENDAR

@@ -8,6 +8,17 @@ X-WR-TIMEZONE:Europe/Oslo
 REFRESH-INTERVAL;VALUE=DURATION:PT1H
 X-PUBLISHED-TTL:PT1H
 BEGIN:VEVENT
+UID:fb-401915570@primetime
+DTSTAMP:20260917T190000Z
+DTSTART:20260917T190000Z
+DTEND:20260917T210000Z
+SUMMARY:Lillestrom – Torreense
+LOCATION:Viaplay
+DESCRIPTION:Europa League\nWatch on Viaplay\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
 UID:fb-401843444@primetime
 DTSTAMP:20260920T150000Z
 DTSTART:20260920T150000Z
@@ -30,6 +41,17 @@ DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 BEGIN:VEVENT
+UID:fb-401915567@primetime
+DTSTAMP:20261015T164500Z
+DTSTART:20261015T164500Z
+DTEND:20261015T184500Z
+SUMMARY:Sparta Prague – Lillestrom
+LOCATION:Viaplay
+DESCRIPTION:Europa League\nWatch on Viaplay\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
 UID:fb-401843462@primetime
 DTSTAMP:20261018T150000Z
 DTSTART:20261018T150000Z
@@ -38,6 +60,17 @@ SUMMARY:Sandefjord – Lillestrom
 LOCATION:TV 2 Play
 DESCRIPTION:Eliteserien · Relegation battle\nWatch on TV 2 Play\nhttps://d
  bugger85.github.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915540@primetime
+DTSTAMP:20261022T190000Z
+DTSTART:20261022T190000Z
+DTEND:20261022T210000Z
+SUMMARY:Lillestrom – Real Sociedad
+LOCATION:Viaplay
+DESCRIPTION:Europa League\nWatch on Viaplay\nhttps://dbugger85.github.io/Pr
+ imeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 BEGIN:VEVENT

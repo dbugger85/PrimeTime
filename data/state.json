@@ -255,6 +255,222 @@
    "20261011",
    "20261012",
    "20261013"
+  ],
+  "esp.1": [
+   "20260915",
+   "20260916",
+   "20260917",
+   "20260918",
+   "20260919",
+   "20260920",
+   "20260921",
+   "20260922",
+   "20260923",
+   "20260924",
+   "20260925",
+   "20260926",
+   "20260927",
+   "20260928",
+   "20260929",
+   "20260930",
+   "20261001",
+   "20261002",
+   "20261003",
+   "20261004",
+   "20261005",
+   "20261006",
+   "20261007",
+   "20261008",
+   "20261009",
+   "20261011",
+   "20261012",
+   "20261013"
+  ],
+  "ger.1": [
+   "20260915",
+   "20260916",
+   "20260917",
+   "20260918",
+   "20260919",
+   "20260920",
+   "20260921",
+   "20260922",
+   "20260923",
+   "20260924",
+   "20260925",
+   "20260926",
+   "20260927",
+   "20260928",
+   "20260929",
+   "20260930",
+   "20261001",
+   "20261002",
+   "20261003",
+   "20261004",
+   "20261005",
+   "20261006",
+   "20261007",
+   "20261008",
+   "20261009",
+   "20261010",
+   "20261011",
+   "20261012",
+   "20261013"
+  ],
+  "ita.1": [
+   "20260915",
+   "20260916",
+   "20260917",
+   "20260918",
+   "20260919",
+   "20260920",
+   "20260921",
+   "20260922",
+   "20260923",
+   "20260924",
+   "20260925",
+   "20260926",
+   "20260927",
+   "20260928",
+   "20260929",
+   "20260930",
+   "20261001",
+   "20261002",
+   "20261003",
+   "20261004",
+   "20261005",
+   "20261006",
+   "20261007",
+   "20261008",
+   "20261009",
+   "20261010",
+   "20261011",
+   "20261012",
+   "20261013"
+  ],
+  "fra.1": [
+   "20260915",
+   "20260916",
+   "20260917",
+   "20260918",
+   "20260919",
+   "20260920",
+   "20260921",
+   "20260922",
+   "20260923",
+   "20260924",
+   "20260925",
+   "20260926",
+   "20260927",
+   "20260928",
+   "20260929",
+   "20260930",
+   "20261001",
+   "20261002",
+   "20261003",
+   "20261004",
+   "20261005",
+   "20261006",
+   "20261007",
+   "20261008",
+   "20261009",
+   "20261010",
+   "20261011",
+   "20261012",
+   "20261013"
+  ],
+  "eng.2": [
+   "20260915",
+   "20260916",
+   "20260917",
+   "20260918",
+   "20260919",
+   "20260920",
+   "20260921",
+   "20260922",
+   "20260923",
+   "20260924",
+   "20260925",
+   "20260926",
+   "20260927",
+   "20260928",
+   "20260929",
+   "20260930",
+   "20261001",
+   "20261002",
+   "20261003",
+   "20261004",
+   "20261005",
+   "20261006",
+   "20261007",
+   "20261008",
+   "20261009",
+   "20261010",
+   "20261011",
+   "20261012",
+   "20261013"
+  ],
+  "uefa.europa": [
+   "20260915",
+   "20260916",
+   "20260917",
+   "20260918",
+   "20260919",
+   "20260920",
+   "20260921",
+   "20260922",
+   "20260923",
+   "20260924",
+   "20260925",
+   "20260926",
+   "20260927",
+   "20260928",
+   "20260929",
+   "20260930",
+   "20261001",
+   "20261002",
+   "20261003",
+   "20261004",
+   "20261005",
+   "20261006",
+   "20261007",
+   "20261008",
+   "20261009",
+   "20261010",
+   "20261011",
+   "20261012",
+   "20261013"
+  ],
+  "uefa.europa.conf": [
+   "20260915",
+   "20260916",
+   "20260917",
+   "20260918",
+   "20260919",
+   "20260920",
+   "20260921",
+   "20260922",
+   "20260923",
+   "20260924",
+   "20260925",
+   "20260926",
+   "20260927",
+   "20260928",
+   "20260929",
+   "20260930",
+   "20261001",
+   "20261002",
+   "20261003",
+   "20261004",
+   "20261005",
+   "20261006",
+   "20261007",
+   "20261008",
+   "20261009",
+   "20261010",
+   "20261011",
+   "20261012",
+   "20261013"
   ]
  },
  "slamsDone": [
@@ -267,7 +483,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-15T16:07:43.000Z",
+ "lastFull": "2026-10-15T16:18:08.737Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -869,6 +1085,554 @@
   },
   "club-brugge": {
    "team": "Club Brugge",
+   "seen": "2026-10-15"
+  },
+  "lincoln-city": {
+   "team": "Lincoln City",
+   "seen": "2026-10-15"
+  },
+  "west-ham-united": {
+   "team": "West Ham United",
+   "seen": "2026-10-15"
+  },
+  "norwich-city": {
+   "team": "Norwich City",
+   "seen": "2026-10-15"
+  },
+  "southampton": {
+   "team": "Southampton",
+   "seen": "2026-10-15"
+  },
+  "portsmouth": {
+   "team": "Portsmouth",
+   "seen": "2026-10-15"
+  },
+  "sheffield-united": {
+   "team": "Sheffield United",
+   "seen": "2026-10-15"
+  },
+  "queens-park-rangers": {
+   "team": "Queens Park Rangers",
+   "seen": "2026-10-15"
+  },
+  "derby-county": {
+   "team": "Derby County",
+   "seen": "2026-10-15"
+  },
+  "birmingham-city": {
+   "team": "Birmingham City",
+   "seen": "2026-10-15"
+  },
+  "preston-north-end": {
+   "team": "Preston North End",
+   "seen": "2026-10-15"
+  },
+  "stoke-city": {
+   "team": "Stoke City",
+   "seen": "2026-10-15"
+  },
+  "middlesbrough": {
+   "team": "Middlesbrough",
+   "seen": "2026-10-15"
+  },
+  "bristol-city": {
+   "team": "Bristol City",
+   "seen": "2026-10-15"
+  },
+  "blackburn-rovers": {
+   "team": "Blackburn Rovers",
+   "seen": "2026-10-15"
+  },
+  "burnley": {
+   "team": "Burnley",
+   "seen": "2026-10-15"
+  },
+  "charlton-athletic": {
+   "team": "Charlton Athletic",
+   "seen": "2026-10-15"
+  },
+  "cardiff-city": {
+   "team": "Cardiff City",
+   "seen": "2026-10-15"
+  },
+  "watford": {
+   "team": "Watford",
+   "seen": "2026-10-15"
+  },
+  "millwall": {
+   "team": "Millwall",
+   "seen": "2026-10-15"
+  },
+  "swansea-city": {
+   "team": "Swansea City",
+   "seen": "2026-10-15"
+  },
+  "wolverhampton-wanderers": {
+   "team": "Wolverhampton Wanderers",
+   "seen": "2026-10-15"
+  },
+  "bolton-wanderers": {
+   "team": "Bolton Wanderers",
+   "seen": "2026-10-15"
+  },
+  "wrexham": {
+   "team": "Wrexham",
+   "seen": "2026-10-15"
+  },
+  "west-bromwich-albion": {
+   "team": "West Bromwich Albion",
+   "seen": "2026-10-15"
+  },
+  "levante": {
+   "team": "Levante",
+   "seen": "2026-10-15"
+  },
+  "sevilla": {
+   "team": "Sevilla",
+   "seen": "2026-10-15"
+  },
+  "torino": {
+   "team": "Torino",
+   "seen": "2026-10-15"
+  },
+  "udinese": {
+   "team": "Udinese",
+   "seen": "2026-10-15"
+  },
+  "atalanta": {
+   "team": "Atalanta",
+   "seen": "2026-10-15"
+  },
+  "venezia": {
+   "team": "Venezia",
+   "seen": "2026-10-15"
+  },
+  "racing-santander": {
+   "team": "Racing Santander",
+   "seen": "2026-10-15"
+  },
+  "valencia": {
+   "team": "Valencia",
+   "seen": "2026-10-15"
+  },
+  "cagliari": {
+   "team": "Cagliari",
+   "seen": "2026-10-15"
+  },
+  "juventus": {
+   "team": "Juventus",
+   "seen": "2026-10-15"
+  },
+  "troyes": {
+   "team": "Troyes",
+   "seen": "2026-10-15"
+  },
+  "marseille": {
+   "team": "Marseille",
+   "seen": "2026-10-15"
+  },
+  "osasuna": {
+   "team": "Osasuna",
+   "seen": "2026-10-15"
+  },
+  "sassuolo": {
+   "team": "Sassuolo",
+   "seen": "2026-10-15"
+  },
+  "ac-milan": {
+   "team": "AC Milan",
+   "seen": "2026-10-15"
+  },
+  "sc-freiburg": {
+   "team": "SC Freiburg",
+   "seen": "2026-10-15"
+  },
+  "schalke-04": {
+   "team": "Schalke 04",
+   "seen": "2026-10-15"
+  },
+  "stade-rennais": {
+   "team": "Stade Rennais",
+   "seen": "2026-10-15"
+  },
+  "aj-auxerre": {
+   "team": "AJ Auxerre",
+   "seen": "2026-10-15"
+  },
+  "real-sociedad": {
+   "team": "Real Sociedad",
+   "seen": "2026-10-15"
+  },
+  "deportivo": {
+   "team": "Deportivo",
+   "seen": "2026-10-15"
+  },
+  "fc-cologne": {
+   "team": "FC Cologne",
+   "seen": "2026-10-15"
+  },
+  "borussia-monchengladbach": {
+   "team": "Borussia Mönchengladbach",
+   "seen": "2026-10-15"
+  },
+  "lazio": {
+   "team": "Lazio",
+   "seen": "2026-10-15"
+  },
+  "monza": {
+   "team": "Monza",
+   "seen": "2026-10-15"
+  },
+  "lecce": {
+   "team": "Lecce",
+   "seen": "2026-10-15"
+  },
+  "bologna": {
+   "team": "Bologna",
+   "seen": "2026-10-15"
+  },
+  "nice": {
+   "team": "Nice",
+   "seen": "2026-10-15"
+  },
+  "strasbourg": {
+   "team": "Strasbourg",
+   "seen": "2026-10-15"
+  },
+  "elche": {
+   "team": "Elche",
+   "seen": "2026-10-15"
+  },
+  "celta-vigo": {
+   "team": "Celta Vigo",
+   "seen": "2026-10-15"
+  },
+  "frosinone": {
+   "team": "Frosinone",
+   "seen": "2026-10-15"
+  },
+  "as-monaco": {
+   "team": "AS Monaco",
+   "seen": "2026-10-15"
+  },
+  "toulouse": {
+   "team": "Toulouse",
+   "seen": "2026-10-15"
+  },
+  "brest": {
+   "team": "Brest",
+   "seen": "2026-10-15"
+  },
+  "angers": {
+   "team": "Angers",
+   "seen": "2026-10-15"
+  },
+  "lorient": {
+   "team": "Lorient",
+   "seen": "2026-10-15"
+  },
+  "paris-fc": {
+   "team": "Paris FC",
+   "seen": "2026-10-15"
+  },
+  "le-mans": {
+   "team": "Le Mans",
+   "seen": "2026-10-15"
+  },
+  "getafe": {
+   "team": "Getafe",
+   "seen": "2026-10-15"
+  },
+  "eintracht-frankfurt": {
+   "team": "Eintracht Frankfurt",
+   "seen": "2026-10-15"
+  },
+  "parma": {
+   "team": "Parma",
+   "seen": "2026-10-15"
+  },
+  "le-havre-ac": {
+   "team": "Le Havre AC",
+   "seen": "2026-10-15"
+  },
+  "alaves": {
+   "team": "Alavés",
+   "seen": "2026-10-15"
+  },
+  "1-fc-union-berlin": {
+   "team": "1. FC Union Berlin",
+   "seen": "2026-10-15"
+  },
+  "sv-elversberg": {
+   "team": "SV Elversberg",
+   "seen": "2026-10-15"
+  },
+  "fc-augsburg": {
+   "team": "FC Augsburg",
+   "seen": "2026-10-15"
+  },
+  "mainz": {
+   "team": "Mainz",
+   "seen": "2026-10-15"
+  },
+  "bayer-leverkusen": {
+   "team": "Bayer Leverkusen",
+   "seen": "2026-10-15"
+  },
+  "sc-paderborn-07": {
+   "team": "SC Paderborn 07",
+   "seen": "2026-10-15"
+  },
+  "tsg-hoffenheim": {
+   "team": "TSG Hoffenheim",
+   "seen": "2026-10-15"
+  },
+  "hamburg-sv": {
+   "team": "Hamburg SV",
+   "seen": "2026-10-15"
+  },
+  "genoa": {
+   "team": "Genoa",
+   "seen": "2026-10-15"
+  },
+  "fiorentina": {
+   "team": "Fiorentina",
+   "seen": "2026-10-15"
+  },
+  "malaga": {
+   "team": "Málaga",
+   "seen": "2026-10-15"
+  },
+  "espanyol": {
+   "team": "Espanyol",
+   "seen": "2026-10-15"
+  },
+  "lyon": {
+   "team": "Lyon",
+   "seen": "2026-10-15"
+  },
+  "werder-bremen": {
+   "team": "Werder Bremen",
+   "seen": "2026-10-15"
+  },
+  "athletic-club": {
+   "team": "Athletic Club",
+   "seen": "2026-10-15"
+  },
+  "rayo-vallecano": {
+   "team": "Rayo Vallecano",
+   "seen": "2026-10-15"
+  },
+  "besiktas": {
+   "team": "Besiktas",
+   "seen": "2026-10-15"
+  },
+  "celtic": {
+   "team": "Celtic",
+   "seen": "2026-10-15"
+  },
+  "ferencvaros": {
+   "team": "Ferencvaros",
+   "seen": "2026-10-15"
+  },
+  "lech-poznan": {
+   "team": "Lech Poznan",
+   "seen": "2026-10-15"
+  },
+  "nec-nijmegen": {
+   "team": "NEC Nijmegen",
+   "seen": "2026-10-15"
+  },
+  "torreense": {
+   "team": "Torreense",
+   "seen": "2026-10-15"
+  },
+  "viktoria-plzen": {
+   "team": "Viktoria Plzen",
+   "seen": "2026-10-15"
+  },
+  "union-st-gilloise": {
+   "team": "Union St.-Gilloise",
+   "seen": "2026-10-15"
+  },
+  "levski-sofia": {
+   "team": "Levski Sofia",
+   "seen": "2026-10-15"
+  },
+  "rb-salzburg": {
+   "team": "RB Salzburg",
+   "seen": "2026-10-15"
+  },
+  "ofi-crete": {
+   "team": "OFI Crete",
+   "seen": "2026-10-15"
+  },
+  "benfica": {
+   "team": "Benfica",
+   "seen": "2026-10-15"
+  },
+  "anderlecht": {
+   "team": "Anderlecht",
+   "seen": "2026-10-15"
+  },
+  "nk-celje": {
+   "team": "NK Celje",
+   "seen": "2026-10-15"
+  },
+  "hapoel-be-er": {
+   "team": "Hapoel Be'er",
+   "seen": "2026-10-15"
+  },
+  "dinamo-zagreb": {
+   "team": "Dinamo Zagreb",
+   "seen": "2026-10-15"
+  },
+  "olympiacos": {
+   "team": "Olympiacos",
+   "seen": "2026-10-15"
+  },
+  "jagiellonia-bialystok": {
+   "team": "Jagiellonia Bialystok",
+   "seen": "2026-10-15"
+  },
+  "sk-sturm-graz": {
+   "team": "SK Sturm Graz",
+   "seen": "2026-10-15"
+  },
+  "az-alkmaar": {
+   "team": "AZ Alkmaar",
+   "seen": "2026-10-15"
+  },
+  "ararat-armenia": {
+   "team": "Ararat-Armenia",
+   "seen": "2026-10-15"
+  },
+  "sparta-prague": {
+   "team": "Sparta Prague",
+   "seen": "2026-10-15"
+  },
+  "omonia-nicosia": {
+   "team": "Omonia Nicosia",
+   "seen": "2026-10-15"
+  },
+  "cska-sofia": {
+   "team": "CSKA Sofia",
+   "seen": "2026-10-15"
+  },
+  "csu-craiova": {
+   "team": "CSU Craiova",
+   "seen": "2026-10-15"
+  },
+  "egnatia": {
+   "team": "Egnatia",
+   "seen": "2026-10-15"
+  },
+  "fc-midtjylland": {
+   "team": "FC Midtjylland",
+   "seen": "2026-10-15"
+  },
+  "fc-lugano": {
+   "team": "FC Lugano",
+   "seen": "2026-10-15"
+  },
+  "red-star-belgrade": {
+   "team": "Red Star Belgrade",
+   "seen": "2026-10-15"
+  },
+  "hajduk-split": {
+   "team": "Hajduk Split",
+   "seen": "2026-10-15"
+  },
+  "ajax-amsterdam": {
+   "team": "Ajax Amsterdam",
+   "seen": "2026-10-15"
+  },
+  "kaa-gent": {
+   "team": "KAA Gent",
+   "seen": "2026-10-15"
+  },
+  "agf": {
+   "team": "AGF",
+   "seen": "2026-10-15"
+  },
+  "kups-kuopio": {
+   "team": "KuPS Kuopio",
+   "seen": "2026-10-15"
+  },
+  "trabzonspor": {
+   "team": "Trabzonspor",
+   "seen": "2026-10-15"
+  },
+  "mjallby-aif": {
+   "team": "Mjällby AIF",
+   "seen": "2026-10-15"
+  },
+  "inter-d-escaldes": {
+   "team": "Inter D'Escaldes",
+   "seen": "2026-10-15"
+  },
+  "panathinaikos": {
+   "team": "Panathinaikos",
+   "seen": "2026-10-15"
+  },
+  "borac-banja-luka": {
+   "team": "Borac Banja Luka",
+   "seen": "2026-10-15"
+  },
+  "riga-fc": {
+   "team": "Riga FC",
+   "seen": "2026-10-15"
+  },
+  "kairat-almaty": {
+   "team": "Kairat Almaty",
+   "seen": "2026-10-15"
+  },
+  "pafos": {
+   "team": "Pafos",
+   "seen": "2026-10-15"
+  },
+  "kauno-zalgiris": {
+   "team": "Kauno Zalgiris",
+   "seen": "2026-10-15"
+  },
+  "f-c-kobenhavn": {
+   "team": "F.C. København",
+   "seen": "2026-10-15"
+  },
+  "braga": {
+   "team": "Braga",
+   "seen": "2026-10-15"
+  },
+  "fc-twente": {
+   "team": "FC Twente",
+   "seen": "2026-10-15"
+  },
+  "fc-thun": {
+   "team": "FC Thun",
+   "seen": "2026-10-15"
+  },
+  "heart-of-midlothian": {
+   "team": "Heart of Midlothian",
+   "seen": "2026-10-15"
+  },
+  "fc-nordsjaelland": {
+   "team": "FC Nordsjælland",
+   "seen": "2026-10-15"
+  },
+  "jablonec": {
+   "team": "Jablonec",
+   "seen": "2026-10-15"
+  },
+  "sint-truidense": {
+   "team": "Sint-Truidense",
+   "seen": "2026-10-15"
+  },
+  "iberia-1999": {
+   "team": "Iberia 1999",
+   "seen": "2026-10-15"
+  },
+  "lincoln-red-imps": {
+   "team": "Lincoln Red Imps",
    "seen": "2026-10-15"
   }
  },
@@ -1969,6 +2733,192 @@
     "Aalesund": null,
     "Kristiansund BK": null,
     "IK Start": null
+   },
+   "esp.1": {
+    "Barcelona": 2024,
+    "Atlético Madrid": 1903,
+    "Real Betis": 1818,
+    "Real Madrid": 1972,
+    "Sevilla": 1725,
+    "Real Sociedad": 1769,
+    "Alavés": 1723,
+    "Deportivo": 1690,
+    "Celta Vigo": 1750,
+    "Athletic Club": 1764,
+    "Villarreal": 1799,
+    "Espanyol": 1697,
+    "Rayo Vallecano": 1744,
+    "Getafe": 1700,
+    "Racing Santander": 1684,
+    "Osasuna": 1717,
+    "Levante": 1708,
+    "Elche": 1701,
+    "Valencia": 1741,
+    "Málaga": 1665
+   },
+   "ger.1": {
+    "SC Freiburg": 1790,
+    "Borussia Dortmund": 1900,
+    "Bayern Munich": 2046,
+    "Bayer Leverkusen": 1870,
+    "RB Leipzig": 1816,
+    "FC Augsburg": 1724,
+    "Werder Bremen": 1688,
+    "Mainz": 1742,
+    "SV Elversberg": 1675,
+    "FC Cologne": 1652,
+    "VfB Stuttgart": 1818,
+    "Hamburg SV": 1671,
+    "Schalke 04": 1649,
+    "Eintracht Frankfurt": 1740,
+    "SC Paderborn 07": 1665,
+    "1. FC Union Berlin": 1676,
+    "TSG Hoffenheim": 1728,
+    "Borussia Mönchengladbach": 1672
+   },
+   "ita.1": {
+    "Internazionale": 1946,
+    "Lazio": 1777,
+    "AS Roma": 1857,
+    "Cagliari": 1678,
+    "AC Milan": 1823,
+    "Juventus": 1841,
+    "Como": 1806,
+    "Napoli": 1833,
+    "Frosinone": 1690,
+    "Atalanta": 1807,
+    "Sassuolo": 1697,
+    "Torino": 1682,
+    "Lecce": 1615,
+    "Bologna": 1753,
+    "Udinese": 1696,
+    "Monza": 1643,
+    "Genoa": 1660,
+    "Parma": 1648,
+    "Fiorentina": 1721,
+    "Venezia": 1646
+   },
+   "fra.1": {
+    "AS Monaco": 1802,
+    "Lille": 1780,
+    "Stade Rennais": 1754,
+    "Lyon": 1800,
+    "Paris FC": 1705,
+    "Paris Saint-Germain": 1956,
+    "Brest": 1672,
+    "Lorient": 1688,
+    "Nice": 1667,
+    "Lens": 1812,
+    "Strasbourg": 1742,
+    "Angers": 1620,
+    "Marseille": 1762,
+    "Le Mans": 1596,
+    "Toulouse": 1688,
+    "AJ Auxerre": 1651,
+    "Troyes": 1603,
+    "Le Havre AC": 1606
+   },
+   "eng.2": {
+    "Swansea City": 1614,
+    "Middlesbrough": 1650,
+    "West Ham United": 1777,
+    "Birmingham City": 1622,
+    "Queens Park Rangers": 1572,
+    "West Bromwich Albion": 1591,
+    "Southampton": 1699,
+    "Stoke City": 1559,
+    "Blackburn Rovers": 1576,
+    "Wolverhampton Wanderers": 1726,
+    "Millwall": 1639,
+    "Bristol City": 1582,
+    "Charlton Athletic": 1546,
+    "Bolton Wanderers": 1537,
+    "Sheffield United": 1609,
+    "Portsmouth": 1554,
+    "Wrexham": 1617,
+    "Lincoln City": 1610,
+    "Cardiff City": 1569,
+    "Norwich City": 1611,
+    "Burnley": 1646,
+    "Watford": 1527,
+    "Derby County": 1569,
+    "Preston North End": 1525
+   },
+   "uefa.europa": {
+    "Juventus": 1841,
+    "Crystal Palace": 1824,
+    "Sparta Prague": 1652,
+    "Besiktas": 1699,
+    "Union St.-Gilloise": 1812,
+    "Ferencvaros": 1665,
+    "Benfica": 1854,
+    "Bayer Leverkusen": 1870,
+    "OFI Crete": null,
+    "AFC Bournemouth": 1861,
+    "Lyon": 1800,
+    "Torreense": null,
+    "Olympiacos": 1720,
+    "RB Salzburg": 1658,
+    "Omonia Nicosia": 1643,
+    "Sunderland": 1737,
+    "Dinamo Zagreb": 1672,
+    "Hapoel Be'er": 1625,
+    "Stade Rennais": 1754,
+    "SK Sturm Graz": 1631,
+    "Jagiellonia Bialystok": 1605,
+    "Anderlecht": 1663,
+    "Lillestrom": 1515,
+    "Real Sociedad": 1769,
+    "AZ Alkmaar": 1691,
+    "Celta Vigo": 1750,
+    "Levski Sofia": 1578,
+    "Celtic": 1673,
+    "AC Milan": 1823,
+    "NK Celje": 1515,
+    "TSG Hoffenheim": 1728,
+    "Marseille": 1762,
+    "Ararat-Armenia": null,
+    "Viktoria Plzen": 1629,
+    "Lech Poznan": 1674,
+    "NEC Nijmegen": 1585
+   },
+   "uefa.europa.conf": {
+    "AGF": 1600,
+    "Ajax Amsterdam": 1687,
+    "Atalanta": 1807,
+    "Borac Banja Luka": null,
+    "SK Brann": 1588,
+    "Brighton & Hove Albion": 1891,
+    "CSKA Sofia": 1503,
+    "Egnatia": null,
+    "F.C. København": 1694,
+    "SC Freiburg": 1790,
+    "KAA Gent": 1632,
+    "Getafe": 1700,
+    "Hajduk Split": 1580,
+    "Heart of Midlothian": 1547,
+    "Iberia 1999": null,
+    "Inter D'Escaldes": null,
+    "Jablonec": 1544,
+    "Kairat Almaty": null,
+    "Kauno Zalgiris": null,
+    "KuPS Kuopio": null,
+    "Lincoln Red Imps": null,
+    "FC Lugano": 1642,
+    "FC Midtjylland": 1716,
+    "Mjällby AIF": 1525,
+    "AS Monaco": 1802,
+    "FC Nordsjælland": 1643,
+    "Pafos": 1588,
+    "Panathinaikos": 1652,
+    "Red Star Belgrade": 1664,
+    "Riga FC": null,
+    "Sint-Truidense": 1612,
+    "Braga": 1730,
+    "FC Thun": 1573,
+    "Trabzonspor": 1664,
+    "FC Twente": 1666,
+    "CSU Craiova": 1582
    }
   },
   "ppg": {
@@ -2049,6 +2999,192 @@
     "Aalesund": 0.9545454545454546,
     "Kristiansund BK": 0.8636363636363636,
     "IK Start": 0.7272727272727273
+   },
+   "esp.1": {
+    "Barcelona": 3,
+    "Atlético Madrid": 2.375,
+    "Real Betis": 2.375,
+    "Real Madrid": 2.25,
+    "Sevilla": 1.75,
+    "Real Sociedad": 1.625,
+    "Alavés": 1.375,
+    "Deportivo": 1.25,
+    "Celta Vigo": 1,
+    "Athletic Club": 1.3333333333333333,
+    "Villarreal": 1,
+    "Espanyol": 1,
+    "Rayo Vallecano": 1.1428571428571428,
+    "Getafe": 1,
+    "Racing Santander": 1,
+    "Osasuna": 1,
+    "Levante": 0.8571428571428571,
+    "Elche": 0.75,
+    "Valencia": 0.625,
+    "Málaga": 0.5
+   },
+   "ger.1": {
+    "SC Freiburg": 2.6,
+    "Borussia Dortmund": 2.6,
+    "Bayern Munich": 2.2,
+    "Bayer Leverkusen": 2,
+    "RB Leipzig": 1.8,
+    "FC Augsburg": 1.6,
+    "Werder Bremen": 1.6,
+    "Mainz": 1.4,
+    "SV Elversberg": 1.4,
+    "FC Cologne": 1.4,
+    "VfB Stuttgart": 1.2,
+    "Hamburg SV": 1.2,
+    "Schalke 04": 1,
+    "Eintracht Frankfurt": 1,
+    "SC Paderborn 07": 0.8,
+    "1. FC Union Berlin": 0.8,
+    "TSG Hoffenheim": 0.6,
+    "Borussia Mönchengladbach": 0
+   },
+   "ita.1": {
+    "Internazionale": 2.6666666666666665,
+    "Lazio": 2.6666666666666665,
+    "AS Roma": 2.3333333333333335,
+    "Cagliari": 2.1666666666666665,
+    "AC Milan": 2,
+    "Juventus": 1.8333333333333333,
+    "Como": 1.8333333333333333,
+    "Napoli": 1.6666666666666667,
+    "Frosinone": 1.6666666666666667,
+    "Atalanta": 1.5,
+    "Sassuolo": 1.3333333333333333,
+    "Torino": 1.1666666666666667,
+    "Lecce": 1,
+    "Bologna": 0.8333333333333334,
+    "Udinese": 0.6666666666666666,
+    "Monza": 0.6666666666666666,
+    "Genoa": 0.6666666666666666,
+    "Parma": 0.6666666666666666,
+    "Fiorentina": 0.6666666666666666,
+    "Venezia": 0
+   },
+   "fra.1": {
+    "AS Monaco": 2.3333333333333335,
+    "Lille": 2.1666666666666665,
+    "Stade Rennais": 2.1666666666666665,
+    "Lyon": 1.8333333333333333,
+    "Paris FC": 1.8333333333333333,
+    "Paris Saint-Germain": 1.8333333333333333,
+    "Brest": 1.3333333333333333,
+    "Lorient": 1.3333333333333333,
+    "Nice": 1.3333333333333333,
+    "Lens": 1.1666666666666667,
+    "Strasbourg": 1.1666666666666667,
+    "Angers": 1.1666666666666667,
+    "Marseille": 1,
+    "Le Mans": 1,
+    "Toulouse": 1,
+    "AJ Auxerre": 1,
+    "Troyes": 0.6666666666666666,
+    "Le Havre AC": 0.3333333333333333
+   },
+   "eng.2": {
+    "Swansea City": 2.3,
+    "Middlesbrough": 2.1,
+    "West Ham United": 1.9,
+    "Birmingham City": 1.7,
+    "Queens Park Rangers": 1.7,
+    "West Bromwich Albion": 1.7,
+    "Southampton": 1.6,
+    "Stoke City": 1.6,
+    "Blackburn Rovers": 1.5,
+    "Wolverhampton Wanderers": 1.5555555555555556,
+    "Millwall": 1.4,
+    "Bristol City": 1.4,
+    "Charlton Athletic": 1.4,
+    "Bolton Wanderers": 1.3,
+    "Sheffield United": 1.2,
+    "Portsmouth": 1.2222222222222223,
+    "Wrexham": 1.1,
+    "Lincoln City": 1.1,
+    "Cardiff City": 1,
+    "Norwich City": 0.9,
+    "Burnley": 0.8,
+    "Watford": 0.8,
+    "Derby County": 0.6,
+    "Preston North End": 0.4
+   },
+   "uefa.europa": {
+    "Juventus": 3,
+    "Crystal Palace": 3,
+    "Sparta Prague": 3,
+    "Besiktas": 3,
+    "Union St.-Gilloise": 3,
+    "Ferencvaros": 3,
+    "Benfica": 3,
+    "Bayer Leverkusen": 3,
+    "OFI Crete": 3,
+    "AFC Bournemouth": 3,
+    "Lyon": 3,
+    "Torreense": 3,
+    "Olympiacos": 3,
+    "RB Salzburg": 3,
+    "Omonia Nicosia": 3,
+    "Sunderland": 3,
+    "Dinamo Zagreb": 1,
+    "Hapoel Be'er": 1,
+    "Stade Rennais": 1,
+    "SK Sturm Graz": 1,
+    "Jagiellonia Bialystok": 0,
+    "Anderlecht": 0,
+    "Lillestrom": 0,
+    "Real Sociedad": 0,
+    "AZ Alkmaar": 0,
+    "Celta Vigo": 0,
+    "Levski Sofia": 0,
+    "Celtic": 0,
+    "AC Milan": 0,
+    "NK Celje": 0,
+    "TSG Hoffenheim": 0,
+    "Marseille": 0,
+    "Ararat-Armenia": 0,
+    "Viktoria Plzen": 0,
+    "Lech Poznan": 0,
+    "NEC Nijmegen": 0
+   },
+   "uefa.europa.conf": {
+    "AGF": 0,
+    "Ajax Amsterdam": 0,
+    "Atalanta": 0,
+    "Borac Banja Luka": 0,
+    "SK Brann": 0,
+    "Brighton & Hove Albion": 0,
+    "CSKA Sofia": 0,
+    "Egnatia": 0,
+    "F.C. København": 0,
+    "SC Freiburg": 0,
+    "KAA Gent": 0,
+    "Getafe": 0,
+    "Hajduk Split": 0,
+    "Heart of Midlothian": 0,
+    "Iberia 1999": 0,
+    "Inter D'Escaldes": 0,
+    "Jablonec": 0,
+    "Kairat Almaty": 0,
+    "Kauno Zalgiris": 0,
+    "KuPS Kuopio": 0,
+    "Lincoln Red Imps": 0,
+    "FC Lugano": 0,
+    "FC Midtjylland": 0,
+    "Mjällby AIF": 0,
+    "AS Monaco": 0,
+    "FC Nordsjælland": 0,
+    "Pafos": 0,
+    "Panathinaikos": 0,
+    "Red Star Belgrade": 0,
+    "Riga FC": 0,
+    "Sint-Truidense": 0,
+    "Braga": 0,
+    "FC Thun": 0,
+    "Trabzonspor": 0,
+    "FC Twente": 0,
+    "CSU Craiova": 0
    }
   },
   "clubSeed": "2026-09-27",

@@ -8,6 +8,28 @@ X-WR-TIMEZONE:Europe/Oslo
 REFRESH-INTERVAL;VALUE=DURATION:PT1H
 X-PUBLISHED-TTL:PT1H
 BEGIN:VEVENT
+UID:fb-401874753@primetime
+DTSTAMP:20260919T160000Z
+DTSTART:20260919T160000Z
+DTEND:20260919T180000Z
+SUMMARY:AS Roma – Internazionale
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401874940@primetime
+DTSTAMP:20261011T103000Z
+DTSTART:20261011T103000Z
+DTEND:20261011T123000Z
+SUMMARY:Como – AS Roma
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
 UID:fb-401915414@primetime
 DTSTAMP:20261014T190000Z
 DTSTART:20261014T190000Z
@@ -19,6 +41,17 @@ DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 BEGIN:VEVENT
+UID:fb-401874935@primetime
+DTSTAMP:20261017T184500Z
+DTSTART:20261017T184500Z
+DTEND:20261017T204500Z
+SUMMARY:AS Roma – Genoa
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
 UID:fb-401915402@primetime
 DTSTAMP:20261020T190000Z
 DTSTART:20261020T190000Z
@@ -27,6 +60,28 @@ SUMMARY:AS Roma – Slovan Bratislava
 LOCATION:TV 2 Play
 DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
  io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401874948@primetime
+DTSTAMP:20261024T160000Z
+DTSTART:20261024T160000Z
+DTEND:20261024T180000Z
+SUMMARY:Napoli – AS Roma
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401874780@primetime
+DTSTAMP:20261027T194500Z
+DTSTART:20261027T194500Z
+DTEND:20261027T214500Z
+SUMMARY:AS Roma – Cagliari
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 END:VCALENDAR

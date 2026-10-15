@@ -1,0 +1,65 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Blackburn Rovers (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401880249@primetime
+DTSTAMP:20260919T140000Z
+DTSTART:20260919T140000Z
+DTEND:20260919T160000Z
+SUMMARY:Portsmouth – Blackburn Rovers
+LOCATION:Viaplay
+DESCRIPTION:Championship\nWatch on Viaplay\nhttps://dbugger85.github.io/Pri
+ meTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401880244@primetime
+DTSTAMP:20261010T140000Z
+DTSTART:20261010T140000Z
+DTEND:20261010T160000Z
+SUMMARY:Blackburn Rovers – Cardiff City
+LOCATION:Viaplay
+DESCRIPTION:Championship\nWatch on Viaplay\nhttps://dbugger85.github.io/Pri
+ meTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401880231@primetime
+DTSTAMP:20261013T184500Z
+DTSTART:20261013T184500Z
+DTEND:20261013T204500Z
+SUMMARY:Bristol City – Blackburn Rovers
+LOCATION:Viaplay
+DESCRIPTION:Championship\nWatch on Viaplay\nhttps://dbugger85.github.io/Pri
+ meTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401880210@primetime
+DTSTAMP:20261017T140000Z
+DTSTART:20261017T140000Z
+DTEND:20261017T160000Z
+SUMMARY:West Bromwich Albion – Blackburn Rovers
+LOCATION:Viaplay
+DESCRIPTION:Championship\nWatch on Viaplay\nhttps://dbugger85.github.io/Pri
+ meTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401880208@primetime
+DTSTAMP:20261024T140000Z
+DTSTART:20261024T140000Z
+DTEND:20261024T160000Z
+SUMMARY:Blackburn Rovers – Wrexham
+LOCATION:Viaplay
+DESCRIPTION:Championship\nWatch on Viaplay\nhttps://dbugger85.github.io/Pri
+ meTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

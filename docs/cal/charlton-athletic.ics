@@ -1,0 +1,65 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Charlton Athletic (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401880253@primetime
+DTSTAMP:20260919T113000Z
+DTSTART:20260919T113000Z
+DTEND:20260919T133000Z
+SUMMARY:Cardiff City – Charlton Athletic
+LOCATION:Viaplay
+DESCRIPTION:Championship\nWatch on Viaplay\nhttps://dbugger85.github.io/Pri
+ meTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401880242@primetime
+DTSTAMP:20261010T113000Z
+DTSTART:20261010T113000Z
+DTEND:20261010T133000Z
+SUMMARY:Charlton Athletic – Bristol City
+LOCATION:Viaplay
+DESCRIPTION:Championship\nWatch on Viaplay\nhttps://dbugger85.github.io/Pri
+ meTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401880230@primetime
+DTSTAMP:20261013T184500Z
+DTSTART:20261013T184500Z
+DTEND:20261013T204500Z
+SUMMARY:Burnley – Charlton Athletic
+LOCATION:Viaplay
+DESCRIPTION:Championship\nWatch on Viaplay\nhttps://dbugger85.github.io/Pri
+ meTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401880211@primetime
+DTSTAMP:20261017T113000Z
+DTSTART:20261017T113000Z
+DTEND:20261017T133000Z
+SUMMARY:Watford – Charlton Athletic
+LOCATION:Viaplay
+DESCRIPTION:Championship\nWatch on Viaplay\nhttps://dbugger85.github.io/Pri
+ meTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401880205@primetime
+DTSTAMP:20261024T113000Z
+DTSTART:20261024T113000Z
+DTEND:20261024T133000Z
+SUMMARY:Charlton Athletic – Norwich City
+LOCATION:Viaplay
+DESCRIPTION:Championship\nWatch on Viaplay\nhttps://dbugger85.github.io/Pri
+ meTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

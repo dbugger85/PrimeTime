@@ -1,0 +1,54 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Strasbourg (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401876451@primetime
+DTSTAMP:20260919T151500Z
+DTSTART:20260919T151500Z
+DTEND:20260919T171500Z
+SUMMARY:Paris FC – Strasbourg
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876443@primetime
+DTSTAMP:20261011T130000Z
+DTSTART:20261011T130000Z
+DTEND:20261011T150000Z
+SUMMARY:Nice – Strasbourg
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876432@primetime
+DTSTAMP:20261017T151500Z
+DTSTART:20261017T151500Z
+DTEND:20261017T171500Z
+SUMMARY:Strasbourg – Paris Saint-Germain
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876424@primetime
+DTSTAMP:20261025T161500Z
+DTSTART:20261025T161500Z
+DTEND:20261025T181500Z
+SUMMARY:Stade Rennais – Strasbourg
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

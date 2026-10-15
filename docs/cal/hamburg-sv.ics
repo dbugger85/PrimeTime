@@ -1,0 +1,54 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Hamburg SV (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401884785@primetime
+DTSTAMP:20260919T133000Z
+DTSTART:20260919T133000Z
+DTEND:20260919T153000Z
+SUMMARY:Hamburg SV – FC Cologne
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401884779@primetime
+DTSTAMP:20261010T133000Z
+DTSTART:20261010T133000Z
+DTEND:20261010T153000Z
+SUMMARY:TSG Hoffenheim – Hamburg SV
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401884767@primetime
+DTSTAMP:20261017T133000Z
+DTSTART:20261017T133000Z
+DTEND:20261017T153000Z
+SUMMARY:Hamburg SV – VfB Stuttgart
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401884755@primetime
+DTSTAMP:20261024T133000Z
+DTSTART:20261024T133000Z
+DTEND:20261024T153000Z
+SUMMARY:SC Paderborn 07 – Hamburg SV
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

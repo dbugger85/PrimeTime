@@ -1,0 +1,76 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:AS Monaco (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401876453@primetime
+DTSTAMP:20260918T184500Z
+DTSTART:20260918T184500Z
+DTEND:20260918T204500Z
+SUMMARY:AS Monaco – Lens
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876444@primetime
+DTSTAMP:20261010T184500Z
+DTSTART:20261010T184500Z
+DTEND:20261010T204500Z
+SUMMARY:AS Monaco – Toulouse
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915855@primetime
+DTSTAMP:20261015T164500Z
+DTSTART:20261015T164500Z
+DTEND:20261015T184500Z
+SUMMARY:CSKA Sofia – AS Monaco
+LOCATION:Viaplay
+DESCRIPTION:Conference League\nWatch on Viaplay\nhttps://dbugger85.github.i
+ o/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876435@primetime
+DTSTAMP:20261018T151500Z
+DTSTART:20261018T151500Z
+DTEND:20261018T171500Z
+SUMMARY:Lorient – AS Monaco
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915836@primetime
+DTSTAMP:20261022T190000Z
+DTSTART:20261022T190000Z
+DTEND:20261022T210000Z
+SUMMARY:AS Monaco – SC Freiburg
+LOCATION:Viaplay
+DESCRIPTION:Conference League\nWatch on Viaplay\nhttps://dbugger85.github.i
+ o/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876425@primetime
+DTSTAMP:20261025T140000Z
+DTSTART:20261025T140000Z
+DTEND:20261025T160000Z
+SUMMARY:AS Monaco – Lille
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

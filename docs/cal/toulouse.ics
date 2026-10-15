@@ -1,0 +1,54 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Toulouse (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401876450@primetime
+DTSTAMP:20260919T184500Z
+DTSTART:20260919T184500Z
+DTEND:20260919T204500Z
+SUMMARY:Toulouse – Le Havre AC
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876444@primetime
+DTSTAMP:20261010T184500Z
+DTSTART:20261010T184500Z
+DTEND:20261010T204500Z
+SUMMARY:AS Monaco – Toulouse
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876437@primetime
+DTSTAMP:20261016T184500Z
+DTSTART:20261016T184500Z
+DTEND:20261016T204500Z
+SUMMARY:Le Mans – Toulouse
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876423@primetime
+DTSTAMP:20261024T151500Z
+DTSTART:20261024T151500Z
+DTEND:20261024T171500Z
+SUMMARY:Toulouse – Troyes
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

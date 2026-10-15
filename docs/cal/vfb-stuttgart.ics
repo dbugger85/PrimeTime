@@ -8,6 +8,28 @@ X-WR-TIMEZONE:Europe/Oslo
 REFRESH-INTERVAL;VALUE=DURATION:PT1H
 X-PUBLISHED-TTL:PT1H
 BEGIN:VEVENT
+UID:fb-401884789@primetime
+DTSTAMP:20260919T163000Z
+DTSTART:20260919T163000Z
+DTEND:20260919T183000Z
+SUMMARY:VfB Stuttgart – Borussia Dortmund
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401884773@primetime
+DTSTAMP:20261010T133000Z
+DTSTART:20261010T133000Z
+DTEND:20261010T153000Z
+SUMMARY:SC Paderborn 07 – VfB Stuttgart
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
 UID:fb-401915405@primetime
 DTSTAMP:20261014T190000Z
 DTSTART:20261014T190000Z
@@ -19,6 +41,17 @@ DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 BEGIN:VEVENT
+UID:fb-401884767@primetime
+DTSTAMP:20261017T133000Z
+DTSTART:20261017T133000Z
+DTEND:20261017T153000Z
+SUMMARY:Hamburg SV – VfB Stuttgart
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
 UID:fb-401915392@primetime
 DTSTAMP:20261020T190000Z
 DTSTART:20261020T190000Z
@@ -27,6 +60,17 @@ SUMMARY:VfB Stuttgart – Atlético Madrid
 LOCATION:TV 2 Play
 DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
  io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401884761@primetime
+DTSTAMP:20261023T183000Z
+DTSTART:20261023T183000Z
+DTEND:20261023T203000Z
+SUMMARY:VfB Stuttgart – Borussia Mönchengladbach
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 END:VCALENDAR

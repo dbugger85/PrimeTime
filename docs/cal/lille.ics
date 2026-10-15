@@ -8,6 +8,28 @@ X-WR-TIMEZONE:Europe/Oslo
 REFRESH-INTERVAL;VALUE=DURATION:PT1H
 X-PUBLISHED-TTL:PT1H
 BEGIN:VEVENT
+UID:fb-401876452@primetime
+DTSTAMP:20260920T151500Z
+DTSTART:20260920T151500Z
+DTEND:20260920T171500Z
+SUMMARY:Nice – Lille
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876446@primetime
+DTSTAMP:20261010T151500Z
+DTSTART:20261010T151500Z
+DTEND:20261010T171500Z
+SUMMARY:Lille – Le Havre AC
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
 UID:fb-401915417@primetime
 DTSTAMP:20261013T190000Z
 DTSTART:20261013T190000Z
@@ -19,6 +41,17 @@ DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 BEGIN:VEVENT
+UID:fb-401876436@primetime
+DTSTAMP:20261017T184500Z
+DTSTART:20261017T184500Z
+DTEND:20261017T204500Z
+SUMMARY:Lille – Brest
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
 UID:fb-401915396@primetime
 DTSTAMP:20261021T164500Z
 DTSTART:20261021T164500Z
@@ -27,6 +60,17 @@ SUMMARY:Lille – Galatasaray
 LOCATION:TV 2 Play
 DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
  io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876425@primetime
+DTSTAMP:20261025T140000Z
+DTSTART:20261025T140000Z
+DTEND:20261025T160000Z
+SUMMARY:AS Monaco – Lille
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 END:VCALENDAR

@@ -8,6 +8,28 @@ X-WR-TIMEZONE:Europe/Oslo
 REFRESH-INTERVAL;VALUE=DURATION:PT1H
 X-PUBLISHED-TTL:PT1H
 BEGIN:VEVENT
+UID:fb-401876449@primetime
+DTSTAMP:20260920T184500Z
+DTSTART:20260920T184500Z
+DTEND:20260920T204500Z
+SUMMARY:Marseille – Paris Saint-Germain
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876442@primetime
+DTSTAMP:20261010T184500Z
+DTSTART:20261010T184500Z
+DTEND:20261010T204500Z
+SUMMARY:Paris Saint-Germain – Le Mans
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
 UID:fb-401915407@primetime
 DTSTAMP:20261014T190000Z
 DTSTART:20261014T190000Z
@@ -19,6 +41,17 @@ DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 BEGIN:VEVENT
+UID:fb-401876432@primetime
+DTSTAMP:20261017T151500Z
+DTSTART:20261017T151500Z
+DTEND:20261017T171500Z
+SUMMARY:Strasbourg – Paris Saint-Germain
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
 UID:fb-401915399@primetime
 DTSTAMP:20261020T190000Z
 DTSTART:20261020T190000Z
@@ -27,6 +60,17 @@ SUMMARY:Paris Saint-Germain – Barcelona
 LOCATION:TV 2 Play
 DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
  io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876422@primetime
+DTSTAMP:20261025T194500Z
+DTSTART:20261025T194500Z
+DTEND:20261025T214500Z
+SUMMARY:Paris Saint-Germain – Lyon
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 END:VCALENDAR

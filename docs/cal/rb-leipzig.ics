@@ -8,6 +8,28 @@ X-WR-TIMEZONE:Europe/Oslo
 REFRESH-INTERVAL;VALUE=DURATION:PT1H
 X-PUBLISHED-TTL:PT1H
 BEGIN:VEVENT
+UID:fb-401884788@primetime
+DTSTAMP:20260920T133000Z
+DTSTART:20260920T133000Z
+DTEND:20260920T153000Z
+SUMMARY:Bayer Leverkusen – RB Leipzig
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401884780@primetime
+DTSTAMP:20261010T163000Z
+DTSTART:20261010T163000Z
+DTEND:20261010T183000Z
+SUMMARY:RB Leipzig – Eintracht Frankfurt
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
 UID:fb-401915434@primetime
 DTSTAMP:20261013T190000Z
 DTSTART:20261013T190000Z
@@ -19,6 +41,17 @@ DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 BEGIN:VEVENT
+UID:fb-401884772@primetime
+DTSTAMP:20261017T163000Z
+DTSTART:20261017T163000Z
+DTEND:20261017T183000Z
+SUMMARY:Bayern Munich – RB Leipzig
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
 UID:fb-401915313@primetime
 DTSTAMP:20261021T190000Z
 DTSTART:20261021T190000Z
@@ -27,6 +60,17 @@ SUMMARY:Real Madrid – RB Leipzig
 LOCATION:TV 2 Play
 DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
  io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401884762@primetime
+DTSTAMP:20261024T133000Z
+DTSTART:20261024T133000Z
+DTEND:20261024T153000Z
+SUMMARY:RB Leipzig – SV Elversberg
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 END:VCALENDAR
