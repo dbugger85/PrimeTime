@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-15T10:45:37.320Z",
+ "lastFull": "2026-10-15T13:35:38.755Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1579,12 +1579,6 @@
    "start": "2026-09-13T15:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/start-brann-1p2vwhs5"
-   }
-  },
-  "fb-401843437": {
-   "start": "2026-09-13T12:30Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/viking-kristiansund-crk0cw7h"
    }
   },
   "fb-401879268": {
