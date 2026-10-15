@@ -17,7 +17,7 @@ A static site on GitHub Pages, fed by a scheduled GitHub Action that fetches fre
 3. Skip tips may hint "quiet until X". **OK**, with a toggle to hide them.
 4. Where rights are unclear (La Liga), **show both services**.
 5. Tennis scored from set scores only is **good enough**.
-6. **Competitions:** the Premier League, Champions League, Nations League, European (EURO and World Cup) qualifiers, EURO, World Cup, Eliteserien, the tennis Grand Slams and F1.
+6. **Competitions:** the Premier League, Champions League, Nations League, European (EURO and World Cup) qualifiers, EURO, World Cup, Eliteserien, the tennis Grand Slams and F1. (La Liga, Bundesliga, Serie A, Ligue 1, the Championship, the Europa League and the Conference League were added on 2026-10-15.)
 7. **Country:** Norway.
 
 ## Build phases
@@ -151,3 +151,11 @@ The owner wanted "Why this score?" to be intuitive: each pillar as a score from 
 - The owner felt Drama and Tension overlapped and LASK 3–6 Liverpool (6.8) was too low. Found double counting: one-sided cuts in Drama on top of a low Tension, the favourite/underdog goal adjustments on top of the swing line, "evenly matched" on top of suspense, the dull 0–0 cut on top of low Chances. All removed; weights stay 25% each.
 - Settings: one "Filters and settings" panel (My services, Filters and display, Custom scoring). A Standard button resets all custom scoring; the mix presets were removed (the owner). Goals stay under Drama (Chances is the quality of the opportunities, scored or not).
 - Each slider's "standard" mark resets that slider; the Advanced groups are framed boxes; the Top end slider moves in tenths (standard 7.7).
+
+## Later decisions (2026-10-15): more leagues and "My competitions"
+- **Seven competitions added** (the owner): La Liga, Bundesliga, Serie A, Ligue 1, the Championship, the Europa League and the Conference League. The owner wrote "League One"; read as Ligue 1 (the French top flight), not English League One. The new ones fill in the last 30 days over the next few full builds.
+- **Rights in Norway** (researched 2026-10-15): La Liga on TV 2 Play; Bundesliga, Ligue 1, the Championship, the Europa League and the Conference League on Viaplay; Serie A on **VG+ Sport (unconfirmed**, only a TV-listings site says so; a new service in the list). Viaplay and TV 2 shared some of these matches in 2025/26; no renewal was found, so only the rights holder is shown.
+- **What's at stake:** La Liga and Serie A like the Premier League; Bundesliga and Ligue 1 with 16th in a relegation play-off; the Championship gets a new "Promotion race" label (top 2 go up, 3–6 play off); the Europa and Conference League tables like the Champions League.
+- No direct "▶ play this match" links for the new competitions yet (they go to the service's front page).
+- **"My competitions"** (the owner: with so many leagues, choosing them should be easier than the chip row under the sport picker): a section in Filters and settings with every football competition as a chip, grouped Leagues / European cups / National teams. None picked means all. Football from the others is hidden on every tab, but a favorite team's matches always show. It folds up (closed by default, remembered), showing "all" or "3 of 15" while closed. The chip row under the sport picker stays, and only offers the followed competitions.
+

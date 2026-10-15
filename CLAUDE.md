@@ -137,6 +137,7 @@ The owner found that browsing the streaming apps gives results away, so cards li
 - **TV 2 Play** (football): the "Kommende kamper" and "Kamper i opptak" lists of `ai.play.tv2.no/v4/content/path/sport/fotball`, matched by competition (`TV2_COMPS`), teams (Norwegian names via `NORWEGIAN`, then `sameTeam()`) and the date in labels like "I går 20:30" (`tv2Day()`). Matches about 10+ days away aren't listed yet, so they get their link in a later build. Replays get `?play=true`, which starts the full match; every TV 2 link has `partner=primetime`, which TV 2's app-link rules need for iPhones to open the app (to be checked on the owner's phone).
 - **Viaplay** (Premier League): `content.viaplay.no/pcdash-no/sport/fotball/premier-league` lists upcoming matches only. Viaplay keeps a match for about 2 days (`until`), after which the link quietly goes back to the front page. F1 on Viaplay isn't done (its list was empty when checked).
 - **NRK TV** (biathlon, alpine, cross-country): `psapi.nrk.no/tv/catalog/series/{skiskyting|alpint|langrenn}/seasons/{year}`, one episode per race, titled like "Jaktstart menn - 21.03.2026", "Slalåm 1. omgang, menn - …" or "10 km fri teknikk, menn - …". `nrkMatch()` matches the date, men/women and race type (or the distance for cross-country). Replays get `&autoplay=true`.
+- **Not done yet:** La Liga on TV 2 (add its TV 2 Play name to `TV2_COMPS`), and the Viaplay competitions other than the Premier League (each has its own `pcdash-no/sport/fotball/…` page). VG+ Sport has no direct links.
 - **HBO Max:** not possible (no public catalogue). **F1 TV:** later (replay pages only exist after the race, and new Norwegian customers can't subscribe).
 - **Spoilers:** links only go to the service's own host (`LINK_HOSTS`), never to a page whose address mentions clips or highlights (`NOT_THE_MATCH`), and `checkLinks` in the spoiler test checks the same. The match pages Fable checked show a title, crests and a preview text, but no score. TV 2's terms forbid automated data collection "for commercial purposes"; the owner accepted the same grey zone as ESPN and FotMob.
 
@@ -216,6 +217,7 @@ Biathlon, alpine and cross-country are all `sport: 'winter'`. `comp` is `biathlo
 - FIS races abroad: TV 2 and Viaplay from 2026/27, Viaplay before that.
 - FIS races in Norway: NRK.
 - World Championships 2027: alpine on NRK, Nordic on TV 2.
+- Football added on 2026-10-15: La Liga on TV 2 Play (to 2030); Bundesliga and Ligue 1 on Viaplay (to 2029); the Championship on Viaplay (to 2028); the Europa and Conference League on Viaplay (to 2031). Serie A on **VG+ Sport** (`vgplus`, https://www.vg.no/vgpluss), **unconfirmed** (a `note` says so): only a TV-listings site named it, so check it when the owner knows better. Viaplay and TV 2 shared some of these in 2025/26 (no renewal found), so only the rights holder is listed.
 - Austrian alpine races in 2026/27: unconfirmed, so both TV 2 and Viaplay are shown. It's kept by hand, because no free feed exists. The build prints a GitHub warning when an entry expires within 60 days. The service names and links are repeated in `SERVICES` in `docs/app.js`, so keep both in sync.
 
 ## Files
@@ -258,3 +260,7 @@ Stars aren't shown while names are hidden. The section folds up with the `#favs-
 ## Adding a sport
 
 Add `src/sources/<sport>.mjs` and `src/scoring/<sport>.mjs`, a `publish<Sport>` in `publish.mjs` with its extra fields, `ALLOWED` in `test/spoilers.test.mjs`, a builder in `scripts/build.mjs`, `KEEP_DAYS`, `SPORTS` / `titleOf` / `subtitleOf` in `docs/logic.js`, a tab in `index.html`, a rights entry, and the sport in `FORMULA_VERSIONS`/`SPORT_WEIGHTS` (`common.mjs`) with its weights in `weights.mjs`.
+
+## Adding a football competition
+
+Add it to `FOOTBALL` in `src/competitions.mjs` (the ESPN key, `clubs` or `nations`, the name), a rights entry in `src/rights/norway.json` (and the service in `SERVICES` in `docs/app.js` if it's new), its stakes rules in `rulesFor()` plus the key in `STAKES_COMPS` (`src/prematch.mjs`; also `LEAGUE_PHASE` for a UEFA league phase), and its key in `LEAGUE_GROUPS` in `docs/logic.js` ("My competitions"). Check the clubs' names against the Elo list (ESPN's `/standings` names vs `clubelo-*.json`) and add the misses to `CLUB_ALIASES`. Optional: a TV 2 or Viaplay direct-link name. Test with a short `BUDGET_MIN=4 npm run build -- football`, then discard the local data.
