@@ -386,7 +386,11 @@ dialog p { margin-bottom: 8px; color: var(--muted); }
 .foot { margin-top: 28px; font-size: 12.5px; color: var(--muted); display: grid; gap: 4px; }
 .gh { margin-top: 10px; }
 .gh a { color: inherit; }
-.share { margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.share { margin-top: 10px; display: flex; align-items: center; gap: 12px; }
+.share > button, .share > .pill { flex: none; white-space: nowrap; min-width: 168px; justify-content: center; }
+.share > .small { flex: 1; min-width: 0; line-height: 1.35; }
+.promise { list-style: none; margin: 0 0 6px; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-weight: 600; color: var(--ink); }
+.promise li::before { content: '✓'; color: var(--accent); margin-right: 5px; }
 .share button, .share .pill {
   display: inline-flex; align-items: center; color: var(--ink); text-decoration: none;
   min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--line);
