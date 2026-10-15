@@ -15,6 +15,7 @@ npm run build -- f1   # only one sport: football | tennis | f1
 npm start             # serve docs/ at http://localhost:8000
 npm run export        # research dataset → export/ (git-ignored) + docs/dataset/index.html; see "Research dataset"
 npm install && npm run e2e   # browser test in headless Chromium (/usr/bin/chromium); screenshots in test/screenshots/
+node scripts/readme-shots.mjs   # fresh README screenshots of the live site (.github/readme/*.jpg); look at them before committing
 ```
 
 Run `npm test` and `npm run e2e` after changes, and look at the screenshots after UI changes.
