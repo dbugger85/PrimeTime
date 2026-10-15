@@ -1,0 +1,20 @@
+# Runs the unit tests (scoring, page logic, the spoiler rules) on every pull request,
+# for example the ones Claude makes from suggestions. The data build only runs on main.
+name: Tests
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test

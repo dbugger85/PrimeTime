@@ -1,0 +1,35 @@
+# Claude turns a suggestion into a code change when the owner asks for it.
+# Only comments by the repo owner that mention @claude start it: suggestions come from anyone,
+# so their text is never acted on by itself. Claude works on a new branch and posts a link to
+# open the pull request; nothing reaches the site until the owner merges it.
+# Needs the Claude GitHub app on the repo and the CLAUDE_CODE_OAUTH_TOKEN secret (`claude setup-token`).
+name: Claude
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  claude:
+    if: contains(github.event.comment.body, '@claude') && github.event.comment.author_association == 'OWNER'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: '--allowedTools "Bash(npm test),Bash(npm test:*),Bash(node --test:*)"'

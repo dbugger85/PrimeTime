@@ -1,0 +1,21 @@
+name: Suggest an idea
+description: An idea or a wish for PrimeTime (a new feature, a competition, something that's wrong).
+title: "Suggestion: "
+labels: [suggestion]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping make PrimeTime better! Please **don't write any results** here (scores, who won): other people read this too.
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: What would you like to see, or what should work differently?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it would help (optional)
+      description: When would you use it? An example makes it easier to get right.

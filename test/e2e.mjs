@@ -174,6 +174,11 @@ try {
     await page.click('#f-reset');
     assert.ok(await page.$eval('#filter-count', (e) => e.hidden));
 
+    // Footer: the suggestion button and the GitHub link open GitHub in a new tab.
+    assert.match(await page.$eval('#suggest', (a) => a.href), /github\.com\/dbugger85\/PrimeTime\/issues\/new\?template=suggestion\.yml$/);
+    assert.equal(await page.$eval('.gh a', (a) => a.target), '_blank');
+    await (await page.$('.foot')).screenshot({ path: `${shots}/footer.png` });
+
     // "My competitions": following one competition hides the others' football (no favorites yet).
     await openSettings(page);
     assert.ok(!(await page.$eval('#leagues-box', (d) => d.open)), 'My competitions starts closed');

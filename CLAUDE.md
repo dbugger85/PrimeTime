@@ -261,6 +261,12 @@ Stars aren't shown while names are hidden. The section folds up with the `#favs-
 
 Add `src/sources/<sport>.mjs` and `src/scoring/<sport>.mjs`, a `publish<Sport>` in `publish.mjs` with its extra fields, `ALLOWED` in `test/spoilers.test.mjs`, a builder in `scripts/build.mjs`, `KEEP_DAYS`, `SPORTS` / `titleOf` / `subtitleOf` in `docs/logic.js`, a tab in `index.html`, a rights entry, and the sport in `FORMULA_VERSIONS`/`SPORT_WEIGHTS` (`common.mjs`) with its weights in `weights.mjs`.
 
+## Suggestions and Claude on GitHub (since 2026-10-15)
+
+The footer has **"💡 Suggest an idea"** (`#suggest`), which opens the issue form `.github/ISSUE_TEMPLATE/suggestion.yml` on GitHub (a GitHub account is needed; labelled `suggestion`; it asks people not to write results), and a "see the code on GitHub" link.
+- **From suggestion to pull request:** `.github/workflows/claude.yml` runs Anthropic's `claude-code-action@v1` when **the owner** comments `@claude …` on an issue or pull request (the `if` checks `author_association == 'OWNER'`; the action itself also requires write access). Suggestions come from anyone, so their text never starts anything by itself, and the owner should read it before asking. Claude works on a new branch and posts a link to open the pull request; nothing goes live until the owner merges it. It may run `npm test` (`--allowedTools`). It uses the owner's Claude subscription: the Claude GitHub app must be installed on the repo and the `CLAUDE_CODE_OAUTH_TOKEN` secret set (`claude setup-token`, or `/install-github-app` in Claude Code, which does both).
+- `.github/workflows/test.yml` runs `npm test` on every pull request (the data build only runs on `main`).
+
 ## Adding a football competition
 
 Add it to `FOOTBALL` in `src/competitions.mjs` (the ESPN key, `clubs` or `nations`, the name), a rights entry in `src/rights/norway.json` (and the service in `SERVICES` in `docs/app.js` if it's new), its stakes rules in `rulesFor()` plus the key in `STAKES_COMPS` (`src/prematch.mjs`; also `LEAGUE_PHASE` for a UEFA league phase), and its key in `LEAGUE_GROUPS` in `docs/logic.js` ("My competitions"). Check the clubs' names against the Elo list (ESPN's `/standings` names vs `clubelo-*.json`) and add the misses to `CLUB_ALIASES`. Optional: a TV 2 or Viaplay direct-link name. Test with a short `BUDGET_MIN=4 npm run build -- football`, then discard the local data.
