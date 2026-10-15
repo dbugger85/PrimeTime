@@ -1378,7 +1378,7 @@ async function shareSettings() {
   }
   try {
     await navigator.clipboard.writeText(url);
-    note.textContent = 'Link copied. Open it on your other device.';
+    note.textContent = 'Link copied. Open it on your other device';
   } catch {
     prompt('Copy this link and open it on your other device:', url);
   }
