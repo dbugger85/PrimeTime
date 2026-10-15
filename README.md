@@ -2,7 +2,7 @@
 
 **What's worth watching, without spoilers.**
 
-PrimeTime rates finished football matches, tennis Grand Slam matches and F1 races from 0 to 10 for how exciting they were, without ever showing a result. Each event gets:
+PrimeTime rates finished football matches, tennis Grand Slam matches, F1 races and winter sports (biathlon, alpine, cross-country) from 0 to 10 for how exciting they were, without ever showing a result. Each event gets:
 
 - a **watchability score** and a label (Skip it / Decent / Good / Must-watch),
 - a **skip tip**, like "Skip the first half", "Start from set 3" or "Watch the start, then skip to lap 30",
@@ -11,6 +11,8 @@ PrimeTime rates finished football matches, tennis Grand Slam matches and F1 race
 
 Tap the services you have to see only what you can watch. Tennis player names are hidden by default, because just seeing who reached a later round spoils earlier matches.
 
-👉 **https://dbugger85.github.io/PrimeTime/**
+**Football scores have four pillars:** Chances, Tempo, Tension and Drama. Each gets a score from 0 to 10, and the match score is their weighted average (25% each), adjusted for the occasion (a big match, what was at stake). "Why this score?" (behind a spoiler warning) shows each pillar and the lines behind it. Under Filters and settings → Custom scoring you can weigh the pillars yourself, on your own device.
 
-It updates itself every 3 hours using free data from ESPN and OpenF1. There's no server, no account and no API keys. See `CLAUDE.md` for how it works.
+👉 **https://primetime.re**
+
+It updates itself every few minutes using free data from ESPN, FotMob, OpenF1, IBU and FIS. There's no server, no account and no API keys. See `CLAUDE.md` for how it works, and `PLAN.md` for the decisions behind it.
