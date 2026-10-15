@@ -217,7 +217,7 @@ Biathlon, alpine and cross-country are all `sport: 'winter'`. `comp` is `biathlo
 - FIS races abroad: TV 2 and Viaplay from 2026/27, Viaplay before that.
 - FIS races in Norway: NRK.
 - World Championships 2027: alpine on NRK, Nordic on TV 2.
-- Football added on 2026-10-15: La Liga on TV 2 Play (to 2030); Bundesliga and Ligue 1 on Viaplay (to 2029); the Championship on Viaplay (to 2028); the Europa and Conference League on Viaplay (to 2031). Serie A on **VG+ Sport** (`vgplus`, https://www.vg.no/vgpluss), **unconfirmed** (a `note` says so): only a TV-listings site named it, so check it when the owner knows better. Viaplay and TV 2 shared some of these in 2025/26 (no renewal found), so only the rights holder is listed.
+- Football added on 2026-10-15: La Liga on TV 2 Play (to 2030); Bundesliga and Ligue 1 on Viaplay (to 2029); the Championship on Viaplay (to 2028); the Europa and Conference League on Viaplay (to 2031). Serie A on **VG+ Sport** (`vgplus`, https://www.vg.no/vgpluss), confirmed by the owner (2026-10-15). Viaplay and TV 2 shared some of these in 2025/26 (no renewal found), so only the rights holder is listed.
 - Austrian alpine races in 2026/27: unconfirmed, so both TV 2 and Viaplay are shown. It's kept by hand, because no free feed exists. The build prints a GitHub warning when an entry expires within 60 days. The service names and links are repeated in `SERVICES` in `docs/app.js`, so keep both in sync.
 
 ## Files
