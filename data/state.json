@@ -267,7 +267,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-15T07:55:28.304Z",
+ "lastFull": "2026-10-15T10:45:37.320Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1896,6 +1896,20 @@
     "url": "https://viaplay.no/sport/fotball/premier-league/aston-villa-man-city/s26101438393058540",
     "until": "2026-10-26T14:25:00.000Z"
    }
+  },
+  "fb-401878768": {
+   "start": "2026-10-24T14:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/arsenal-everton/s26101546646132788",
+    "until": "2026-10-26T16:55:00.000Z"
+   }
+  },
+  "fb-401879255": {
+   "start": "2026-10-24T14:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/coventry-fulham/s26101507674290171",
+    "until": "2026-10-26T16:30:00.000Z"
+   }
   }
  },
  "ratings": {
@@ -1926,44 +1940,44 @@
    },
    "uefa.champions": {
     "Paris Saint-Germain": 1956,
-    "Bayern Munich": 2046,
     "Barcelona": 2024,
-    "Manchester United": 1879,
-    "Como": 1806,
-    "Sporting CP": 1871,
-    "VfB Stuttgart": 1818,
-    "Manchester City": 2028,
     "Aston Villa": 1895,
-    "Lens": 1812,
-    "Real Betis": 1818,
-    "Borussia Dortmund": 1900,
+    "VfB Stuttgart": 1818,
     "Liverpool": 1937,
-    "Real Madrid": 1972,
+    "Sporting CP": 1871,
     "Arsenal": 2040,
-    "AEK Athens": 1704,
-    "AS Roma": 1857,
+    "Real Madrid": 1972,
+    "Real Betis": 1818,
+    "Bayern Munich": 2046,
     "Shakhtar Donetsk": 1689,
-    "Fenerbahce": 1780,
-    "PSV Eindhoven": 1784,
+    "Como": 1806,
+    "Manchester United": 1879,
     "Villarreal": 1799,
-    "Club Brugge": 1809,
-    "Lille": 1780,
-    "Slavia Prague": 1762,
     "Atlético Madrid": 1903,
-    "Internazionale": 1946,
-    "LASK Linz": 1637,
-    "Napoli": 1833,
-    "Galatasaray": 1795,
-    "Viking FK": 1693,
-    "FC Porto": 1839,
+    "Club Brugge": 1809,
+    "Manchester City": 2028,
+    "Borussia Dortmund": 1900,
+    "Lens": 1812,
+    "AEK Athens": 1704,
     "RB Leipzig": 1816,
-    "Feyenoord Rotterdam": 1718,
     "Sabah FK": 1563,
-    "Slovan Bratislava": null,
-    "Bodo/Glimt": 1779
+    "Feyenoord Rotterdam": 1718,
+    "Bodo/Glimt": 1779,
+    "AS Roma": 1857,
+    "PSV Eindhoven": 1784,
+    "VIKING FK": 1693,
+    "Fenerbahce": 1780,
+    "Internazionale": 1946,
+    "FC Porto": 1839,
+    "Slavia Prague": 1762,
+    "Napoli": 1833,
+    "LASK Linz": 1637,
+    "Lille": 1780,
+    "Galatasaray": 1795,
+    "Slovan Bratislava": null
    },
    "nor.1": {
-    "Viking FK": 1693,
+    "VIKING FK": 1693,
     "Bodo/Glimt": 1779,
     "Tromso": 1571,
     "Molde": 1557,
@@ -1973,9 +1987,9 @@
     "Fredrikstad": null,
     "Sarpsborg FK": null,
     "KFUM Oslo": null,
+    "Hamarkameratene": null,
     "Sandefjord": null,
     "Vålerenga": null,
-    "Hamarkameratene": null,
     "Aalesund": null,
     "Kristiansund BK": null,
     "IK Start": null
@@ -2031,7 +2045,7 @@
     "Bodo/Glimt": 1.5,
     "AS Roma": 0.5,
     "PSV Eindhoven": 0.5,
-    "Viking FK": 0.5,
+    "VIKING FK": 0.5,
     "Fenerbahce": 0.5,
     "Internazionale": 0,
     "FC Porto": 0,
@@ -2043,7 +2057,7 @@
     "Slovan Bratislava": 0
    },
    "nor.1": {
-    "Viking FK": 2.409090909090909,
+    "VIKING FK": 2.409090909090909,
     "Bodo/Glimt": 2.409090909090909,
     "Tromso": 1.7727272727272727,
     "Molde": 1.6818181818181819,
