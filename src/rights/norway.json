@@ -20,6 +20,10 @@
     "f1tv": {
       "name": "F1 TV",
       "url": "https://f1tv.formula1.com/"
+    },
+    "vgplus": {
+      "name": "VG+ Sport",
+      "url": "https://www.vg.no/vgpluss"
     }
   },
   "competitions": {
@@ -211,6 +215,59 @@
         }
       ],
       "source": "https://presse.viaplaygroup.no/post/viaplay-sikrer-rettighetene-til-a-vise-vintersport-til-2030-og-h ; https://presse.viaplaygroup.no/post/tv-2-og-viaplay-deler-rettighetene-til-vintersport-fra-osterrike ; https://www.nrk.no/sport/slik-blir-vinteren-_-nrk-viser-vm-i-alpint-1.18033773"
+    },
+    "esp.1": {
+      "services": [
+        "tv2play"
+      ],
+      "validTo": "2030-06-30",
+      "source": "https://www.sportcal.com/newsletters/laliga-bolsters-nordics-presence-with-disney-tv2-deals",
+      "note": "Viaplay and TV 2 shared some matches in 2025/26 (https://www.viaplaygroup.com/en/newsroom/press-releases/viaplay-and-tv-2-norway-collaborate-make-selected-football-rights-more); no renewal found for 2026/27, so only the rights holder is listed."
+    },
+    "ger.1": {
+      "services": [
+        "viaplay"
+      ],
+      "validTo": "2029-06-30",
+      "source": "https://media.sportbusiness.com/news/nent-extends-bundesliga-deal-in-continued-football-rights-push/",
+      "note": "Viaplay and TV 2 shared some matches in 2025/26 (https://www.viaplaygroup.com/en/newsroom/press-releases/viaplay-and-tv-2-norway-collaborate-make-selected-football-rights-more); no renewal found for 2026/27, so only the rights holder is listed."
+    },
+    "ita.1": {
+      "services": [
+        "vgplus"
+      ],
+      "validTo": "2027-06-30",
+      "source": "https://www.livesoccertv.com/channels/vg-plus-norway/",
+      "note": "Unconfirmed: only a TV-listings site says VG+ Sport; no official announcement found (checked 2026-10-15)."
+    },
+    "fra.1": {
+      "services": [
+        "viaplay"
+      ],
+      "validTo": "2029-06-30",
+      "source": "https://www.sportbusiness.com/news/viaplay-to-show-ligue-1-in-core-markets-to-2029/",
+      "note": "Viaplay and TV 2 shared some matches in 2025/26 (https://www.viaplaygroup.com/en/newsroom/press-releases/viaplay-and-tv-2-norway-collaborate-make-selected-football-rights-more); no renewal found for 2026/27, so only the rights holder is listed."
+    },
+    "eng.2": {
+      "services": [
+        "viaplay"
+      ],
+      "validTo": "2028-06-30",
+      "source": "https://www.insideworldfootball.com/2026/02/23/viaplay-adds-efl-championship-english-football-output/"
+    },
+    "uefa.europa": {
+      "services": [
+        "viaplay"
+      ],
+      "validTo": "2031-06-30",
+      "source": "https://www.viaplaygroup.com/en/newsroom/press-releases/viaplay-group-show-uefa-club-competitions-denmark-norway-and-finland-until"
+    },
+    "uefa.europa.conf": {
+      "services": [
+        "viaplay"
+      ],
+      "validTo": "2031-06-30",
+      "source": "https://www.viaplaygroup.com/en/newsroom/press-releases/viaplay-group-show-uefa-club-competitions-denmark-norway-and-finland-until"
     }
   }
 }

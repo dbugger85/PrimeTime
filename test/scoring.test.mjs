@@ -451,6 +451,15 @@ test('stakes: the bottom team is in a relegation battle, 2nd place in a top-4 ra
   assert.equal(stakesFor(top, 'T2', 'T9', 'eng.1'), null, '9th is too far down');
 });
 
+test('stakes: the Championship has a promotion race, the Conference League a 6-match table', () => {
+  const champ = [{ name: 'EFL', rows: [80, 60, 58, 57, 56, 55, 54, ...new Array(17).fill(40)].map((p, i) => ({ team: `T${i + 1}`, rank: i + 1, points: p, played: 30 })) }];
+  assert.equal(stakesFor(champ, 'T2', 'T3', 'eng.2'), 'promotion');
+  assert.equal(stakesFor(champ, 'T5', 'T7', 'eng.2'), 'playoff');
+  const ecl = (played) => [{ name: 'League Phase', rows: new Array(36).fill(0).map((_, i) => ({ team: `T${i + 1}`, rank: i + 1, points: 12 - Math.floor(i / 3), played })) }];
+  assert.equal(stakesFor(ecl(3), 'T8', 'T9', 'uefa.europa.conf'), 'top8', 'halfway through 6 matches');
+  assert.equal(stakesFor(ecl(3), 'T8', 'T9', 'uefa.europa'), null, 'the Europa League plays 8');
+});
+
 test('FotMob xG: shots, sides and minutes; team names matched loosely', async () => {
   const fm = await import('../src/sources/fotmob.mjs');
   const xg = fm.xgFromDetails(fixture('football/fotmob-valerenga-fredrikstad.json')); // 1.45 – 0.75 on FotMob

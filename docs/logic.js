@@ -259,7 +259,7 @@ export function subtitleOf(event) {
 // what's at stake, and on upcoming matches a forecast from the odds. One quiet line.
 export const STAKES_LABELS = {
   title: 'Title race', relegation: 'Relegation battle', top4: 'Top-4 race', top8: 'Top-8 race',
-  europe: 'European spots', playoff: 'Play-off spots', group: 'Top of the group', qualify: 'Qualifying race',
+  europe: 'European spots', playoff: 'Play-off spots', promotion: 'Promotion race', group: 'Top of the group', qualify: 'Qualifying race',
 };
 const FORECAST_TEXT = { even: 'looks even on paper', lively: 'could be lively', 'one-sided': 'looks one-sided' };
 const OUTLOOK_TEXT = { promising: 'promising', quiet: 'could be quiet' }; // replaces the forecast words when there is one

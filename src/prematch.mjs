@@ -36,13 +36,23 @@ export { STAKES } from '../docs/scoring.js'; // the labels, shared with the page
 // "finishing k-th or better is what counts" (for relegation: k is the last safe place).
 // Listed in order of priority; a match gets the first one that applies.
 // Tournaments (EURO, World Cup) get none: their groups are too short.
-export const STAKES_COMPS = new Set(['eng.1', 'nor.1', 'uefa.champions', 'uefa.nations', 'uefa.euroq', 'fifa.worldq.uefa']);
+export const STAKES_COMPS = new Set(['eng.1', 'nor.1', 'esp.1', 'ger.1', 'ita.1', 'fra.1', 'eng.2',
+  'uefa.champions', 'uefa.europa', 'uefa.europa.conf', 'uefa.nations', 'uefa.euroq', 'fifa.worldq.uefa']);
+// UEFA's league phases: one table of 36, each team plays 8 matches (6 in the Conference League).
+const LEAGUE_PHASE = { 'uefa.champions': 8, 'uefa.europa': 8, 'uefa.europa.conf': 6 };
 
 function rulesFor(compKey, groupName, size) {
   switch (compKey) {
     case 'eng.1': return [['title', 1], ['relegation', 17], ['top4', 4], ['europe', 6]];
     case 'nor.1': return [['title', 1], ['relegation', 13], ['europe', 4]]; // 14th plays a relegation play-off
-    case 'uefa.champions': return [['top8', 8], ['playoff', 24]]; // league phase: 1–8 last 16, 9–24 play-offs
+    case 'esp.1':
+    case 'ita.1': return [['title', 1], ['relegation', 17], ['top4', 4], ['europe', 6]];
+    case 'ger.1':
+    case 'fra.1': return [['title', 1], ['relegation', 15], ['top4', 4], ['europe', 6]]; // 16th plays a relegation play-off
+    case 'eng.2': return [['title', 1], ['relegation', 21], ['promotion', 2], ['playoff', 6]]; // top 2 go up, 3–6 play off
+    case 'uefa.champions':
+    case 'uefa.europa':
+    case 'uefa.europa.conf': return [['top8', 8], ['playoff', 24]]; // league phase: 1–8 last 16, 9–24 play-offs
     case 'uefa.nations': { // League A and B: the bottom two go down (or to a play-off); C: the bottom one
       const league = /Group ([A-D])/.exec(groupName)?.[1];
       const safe = league === 'A' || league === 'B' ? size - 2 : league === 'C' ? size - 1 : 0;
@@ -54,7 +64,7 @@ function rulesFor(compKey, groupName, size) {
   }
 }
 
-// Leagues (Premier League, Eliteserien, the Champions League table): a team is in a race when
+// Leagues (Premier League, Eliteserien, …, the UEFA league-phase tables): a team is in a race when
 // it's within 6 points (title, relegation) or 3 points (the rest) of the line, and never more
 // than it can still win. On the comfortable side of a line (just above the drop zone, just
 // outside the top 4) it also has to be within two places of it, so mid-table doesn't count;
@@ -66,12 +76,12 @@ const ONE_TEAM = new Set(['title', 'relegation']);
 const GROUPS = new Set(['uefa.nations', 'uefa.euroq', 'fifa.worldq.uefa']);
 
 // tables: [{ name, rows: [{ team, rank, points, played }] }] from espn-standings.mjs.
-// Returns a STAKES code or null. Leagues need a third of the season played (the CL half).
+// Returns a STAKES code or null. Leagues need a third of the season played (UEFA's league phases half).
 export function stakesFor(tables, home, away, compKey) {
   const table = tables?.find((t) => t.rows.some((r) => r.team === home) && t.rows.some((r) => r.team === away));
   if (!table) return null;
   const rows = [...table.rows].sort((a, b) => a.rank - b.rank);
-  const total = compKey === 'uefa.champions' ? 8 : 2 * (rows.length - 1); // games in the season (or group)
+  const total = LEAGUE_PHASE[compKey] ?? 2 * (rows.length - 1); // games in the season (or group)
   const [h, a] = [home, away].map((team) => rows.find((r) => r.team === team));
   const left = (r) => total - r.played;
   const rules = rulesFor(compKey, table.name, rows.length).filter(([, k]) => k < rows.length);
@@ -86,7 +96,7 @@ export function stakesFor(tables, home, away, compKey) {
   }
 
   const played = Math.max(...rows.map((r) => r.played));
-  if (played < total / (compKey === 'uefa.champions' ? 2 : 3)) return null;
+  if (played < total / (LEAGUE_PHASE[compKey] ? 2 : 3)) return null;
   const inRace = (r, code, k) => {
     if (left(r) <= 0) return false;
     const comfortable = code === 'relegation' ? r.rank <= k : r.rank > k; // the side that's mostly mid-table

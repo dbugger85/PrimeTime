@@ -8,6 +8,7 @@ const SERVICES = {
   hbomax: { name: 'HBO Max', url: 'https://www.hbomax.com/no/no' },
   nrk: { name: 'NRK TV', url: 'https://tv.nrk.no/' },
   f1tv: { name: 'F1 TV', url: 'https://f1tv.formula1.com/' },
+  vgplus: { name: 'VG+ Sport', url: 'https://www.vg.no/vgpluss' },
 };
 
 const DEFAULTS = {

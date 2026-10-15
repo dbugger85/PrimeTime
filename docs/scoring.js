@@ -84,6 +84,7 @@ export const STAKES = {
   top8: 'Top-8 race',
   europe: 'European spots',
   playoff: 'Play-off spots',
+  promotion: 'Promotion race',
   group: 'Top of the group',
   qualify: 'Qualifying race',
 };

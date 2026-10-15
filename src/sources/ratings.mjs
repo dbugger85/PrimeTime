@@ -37,6 +37,17 @@ const CLUB_ALIASES = {
   'Eintracht Frankfurt': 'Frankfurt', 'Borussia Mönchengladbach': 'Gladbach', 'Olympique de Marseille': 'Marseille',
   'Olympique Lyonnais': 'Lyon', 'AC Milan': 'Milan', 'Red Bull Salzburg': 'Salzburg', 'Sparta Prague': 'Sparta Praha',
   'Dinamo Zagreb': 'Dinamo Zagreb', 'Crvena Zvezda': 'Crvena Zvezda', 'FC Copenhagen': 'FC Kobenhavn',
+  'Werder Bremen': 'Werder', 'SV Elversberg': 'Elversberg', 'FC Cologne': 'Köln', 'Hamburg SV': 'Hamburg', 'TSG Hoffenheim': 'Hoffenheim',
+  'AS Monaco': 'Monaco', 'Stade Rennais': 'Rennes', 'AJ Auxerre': 'Auxerre',
+  'Deportivo': 'Depor', 'Celta Vigo': 'Celta', 'Racing Santander': 'Santander',
+  'Swansea City': 'Swansea', 'Birmingham City': 'Birmingham', 'Queens Park Rangers': 'QPR', 'West Bromwich Albion': 'West Brom',
+  'Stoke City': 'Stoke', 'Blackburn Rovers': 'Blackburn', 'Charlton Athletic': 'Charlton', 'Bolton Wanderers': 'Bolton',
+  'Cardiff City': 'Cardiff', 'Derby County': 'Derby', 'Preston North End': 'Preston',
+  'Union St.-Gilloise': 'St Gillis', 'Olympiacos': 'Olympiakos', 'Omonia Nicosia': 'Omonia', "Hapoel Be'er": 'Beer-Sheva',
+  "Hapoel Be'er Sheva": 'Beer-Sheva', 'Jagiellonia Bialystok': 'Jagiellonia', 'AZ Alkmaar': 'AZ', 'Levski Sofia': 'Levski',
+  'NK Celje': 'Celje', 'Lech Poznan': 'Lech', 'NEC Nijmegen': 'Nijmegen', 'AGF': 'Aarhus', 'Ajax Amsterdam': 'Ajax',
+  'F.C. København': 'FC Kobenhavn', 'KAA Gent': 'Gent', 'Hajduk Split': 'Hajduk', 'Heart of Midlothian': 'Hearts',
+  'Mjällby AIF': 'Mjällby', 'Pafos': 'Paphos', 'Red Star Belgrade': 'Crvena Zvezda', 'Sint-Truidense': 'St Truiden', 'CSU Craiova': 'Craiova',
 };
 const NATION_ALIASES = {
   'Bosnia-Herzegovina': 'Bosnia and Herzegovina', 'Republic of Ireland': 'Ireland', 'Türkiye': 'Turkey',
