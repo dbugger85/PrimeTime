@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-16T14:45:40.593Z",
+ "lastFull": "2026-10-16T17:36:12.338Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2326,12 +2326,6 @@
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/sarpsborg-08-kfum-oslo-t1njjp6b"
    }
   },
-  "fb-401843435": {
-   "start": "2026-09-14T17:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/bodoe-glimt-sandefjord-brby6v4t"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -2684,6 +2678,24 @@
    "start": "2026-10-18T17:15Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/tromsoe-kfum-oslo-7vwd1fg9"
+   }
+  },
+  "fb-401915404": {
+   "start": "2026-10-20T16:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/sabah-dortmund-ppk11cxm"
+   }
+  },
+  "fb-401915397": {
+   "start": "2026-10-20T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/liverpool-villarreal-4mgb07hq"
+   }
+  },
+  "fb-401915401": {
+   "start": "2026-10-20T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/manchester-city-aek-yswd1vpz"
    }
   }
  },
