@@ -34,6 +34,8 @@ Tap the services you have to see only what you can watch. Under Filters and sett
 
 **Football scores have four pillars:** Chances, Tempo, Tension and Drama. Each gets a score from 0 to 10, and the match score is their weighted average (25% each), adjusted for the occasion (a big match, what was at stake). "Why this score?" (behind a spoiler warning) shows each pillar and the lines behind it. Under Filters and settings → Custom scoring you can weigh the pillars yourself, on your own device.
 
+📖 **[How the scores work](HOW-IT-WORKS.md)**: what goes into each sport's score, the skip tips, and the rules that keep it spoiler-free.
+
 You can install it on your phone's home screen like an app. Your settings stay on your device, and "Share my settings" moves them to another one with a link.
 
 ## Free, and staying that way
@@ -44,4 +46,4 @@ No ads, no tracking, no cookies, no account. There's no server: the page is a pl
 
 Got an idea? Use **Suggest an idea** at the bottom of the page, or [open a suggestion](https://github.com/dbugger85/PrimeTime/issues/new?template=suggestion.yml) here. Please don't write any results.
 
-See `CLAUDE.md` for how it works, and `PLAN.md` for the decisions behind it.
+See [How the scores work](HOW-IT-WORKS.md) for the scoring, `CLAUDE.md` for the technical details, and `PLAN.md` for the decisions behind it.
