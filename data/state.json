@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-16T17:36:12.338Z",
+ "lastFull": "2026-10-16T20:30:50.912Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2697,6 +2697,24 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/manchester-city-aek-yswd1vpz"
    }
+  },
+  "fb-401915400": {
+   "start": "2026-10-20T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/napoli-bodoe-glimt-ejs3sfj8"
+   }
+  },
+  "fb-401915398": {
+   "start": "2026-10-20T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/porto-psv-vc2g6r4v"
+   }
+  },
+  "fb-401915402": {
+   "start": "2026-10-20T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/roma-slovan-bratislava-zds8662g"
+   }
   }
  },
  "ratings": {
@@ -3077,13 +3095,13 @@
     "RB Leipzig": 1.8,
     "FC Augsburg": 1.6,
     "Werder Bremen": 1.6,
+    "Eintracht Frankfurt": 1.3333333333333333,
     "Mainz": 1.4,
     "SV Elversberg": 1.4,
-    "FC Cologne": 1.4,
+    "FC Cologne": 1.1666666666666667,
     "VfB Stuttgart": 1.2,
     "Hamburg SV": 1.2,
     "Schalke 04": 1,
-    "Eintracht Frankfurt": 1,
     "SC Paderborn 07": 0.8,
     "1. FC Union Berlin": 0.8,
     "TSG Hoffenheim": 0.6,
