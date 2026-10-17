@@ -73,4 +73,15 @@ DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
  Time/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401884754@primetime
+DTSTAMP:20261031T173000Z
+DTSTART:20261031T173000Z
+DTEND:20261031T193000Z
+SUMMARY:Bayern Munich – Borussia Dortmund
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
