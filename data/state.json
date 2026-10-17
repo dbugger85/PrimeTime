@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-17T08:01:01.037Z",
+ "lastFull": "2026-10-17T10:55:29.225Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2718,6 +2718,12 @@
    "start": "2026-10-20T19:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/roma-slovan-bratislava-zds8662g"
+   }
+  },
+  "fb-401915392": {
+   "start": "2026-10-20T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/stuttgart-atletico-90sdtc5w"
    }
   }
  },
