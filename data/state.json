@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-17T10:55:29.225Z",
+ "lastFull": "2026-10-17T13:45:35.732Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2725,6 +2725,60 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/stuttgart-atletico-90sdtc5w"
    }
+  },
+  "fb-401915395": {
+   "start": "2026-10-21T16:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/como-manchester-united-qvcj8qe0"
+   }
+  },
+  "fb-401915396": {
+   "start": "2026-10-21T16:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/lille-galatasaray-v1qynkd0"
+   }
+  },
+  "fb-401915394": {
+   "start": "2026-10-21T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/aston-villa-viking-s3b4awdz"
+   }
+  },
+  "fb-401915312": {
+   "start": "2026-10-21T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/bayern-arsenal-yv62ffc5"
+   }
+  },
+  "fb-401915390": {
+   "start": "2026-10-21T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/inter-shakhtar-eej8qedd"
+   }
+  },
+  "fb-401915388": {
+   "start": "2026-10-21T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/club-brugge-lens-vbpsewaa"
+   }
+  },
+  "fb-401915389": {
+   "start": "2026-10-21T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/real-betis-feyenoord-6nvy7ena"
+   }
+  },
+  "fb-401915313": {
+   "start": "2026-10-21T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/real-madrid-leipzig-hgwp8fdn"
+   }
+  },
+  "fb-401915391": {
+   "start": "2026-10-21T19:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/sporting-cp-lask-p6wj292e"
+   }
   }
  },
  "ratings": {
@@ -3001,9 +3055,9 @@
     "Manchester City": 3,
     "Arsenal": 2.5,
     "Brighton & Hove Albion": 2.1666666666666665,
+    "Chelsea": 1.8571428571428572,
     "Brentford": 1.6666666666666667,
-    "Everton": 1.6666666666666667,
-    "Chelsea": 1.6666666666666667,
+    "Everton": 1.4285714285714286,
     "Leeds United": 1.5,
     "Hull City": 1.5,
     "Liverpool": 1.5,
@@ -3161,7 +3215,7 @@
    },
    "eng.2": {
     "Swansea City": 2.3,
-    "Middlesbrough": 2.1,
+    "Middlesbrough": 2,
     "West Ham United": 1.9,
     "Birmingham City": 1.7,
     "Queens Park Rangers": 1.7,
@@ -3170,18 +3224,18 @@
     "Southampton": 1.6,
     "Stoke City": 1.6,
     "Blackburn Rovers": 1.5,
-    "Millwall": 1.4,
+    "Millwall": 1.3636363636363635,
     "Bristol City": 1.4,
-    "Charlton Athletic": 1.4,
+    "Charlton Athletic": 1.2727272727272727,
     "Bolton Wanderers": 1.3,
     "Sheffield United": 1.2,
+    "Lincoln City": 1.0909090909090908,
+    "Cardiff City": 1,
     "Portsmouth": 1.2222222222222223,
     "Wrexham": 1.1,
-    "Lincoln City": 1.1,
-    "Cardiff City": 1,
+    "Watford": 1,
     "Norwich City": 0.9,
     "Burnley": 0.7272727272727273,
-    "Watford": 0.8,
     "Derby County": 0.6,
     "Preston North End": 0.4
    },
