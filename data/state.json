@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-19T14:40:41.197Z",
+ "lastFull": "2026-10-19T17:30:56.236Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2818,6 +2818,20 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/man-united-bournemouth/s26101510582732551",
     "until": "2026-10-27T16:30:00.000Z"
+   }
+  },
+  "fb-401878766": {
+   "start": "2026-10-25T14:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/hull-brentford/s26101502092060525",
+    "until": "2026-10-27T16:30:00.000Z"
+   }
+  },
+  "fb-401878764": {
+   "start": "2026-10-25T16:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/sunderland-leeds/s26101561668172358",
+    "until": "2026-10-27T19:30:00.000Z"
    }
   }
  },
