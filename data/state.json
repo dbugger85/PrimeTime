@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-19T20:25:30.002Z",
+ "lastFull": "2026-10-19T23:15:41.698Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -3121,11 +3121,11 @@
     "Manchester United": 1,
     "Crystal Palace": 1,
     "AFC Bournemouth": 0.8571428571428571,
-    "Coventry City": 1,
+    "Tottenham Hotspur": 0.8571428571428571,
+    "Coventry City": 0.8571428571428571,
     "Fulham": 0.7142857142857143,
     "Nottingham Forest": 0.7142857142857143,
-    "Sunderland": 0.5714285714285714,
-    "Tottenham Hotspur": 0.5
+    "Sunderland": 0.5714285714285714
    },
    "uefa.champions": {
     "Paris Saint-Germain": 3,
@@ -3196,9 +3196,9 @@
     "Osasuna": 1.2222222222222223,
     "Athletic Club": 1.2857142857142858,
     "Villarreal": 1,
-    "Espanyol": 0.8888888888888888,
-    "Rayo Vallecano": 1.1428571428571428,
+    "Rayo Vallecano": 1.125,
     "Getafe": 1,
+    "Espanyol": 0.8888888888888888,
     "Racing Santander": 0.8888888888888888,
     "Levante": 0.875,
     "Elche": 0.7777777777777778,
@@ -3235,16 +3235,16 @@
     "Cagliari": 1.8571428571428572,
     "Juventus": 1.5714285714285714,
     "Napoli": 1.4285714285714286,
+    "Torino": 1.4285714285714286,
     "Atalanta": 1.2857142857142858,
     "Lecce": 1.2857142857142858,
     "Sassuolo": 1.1428571428571428,
-    "Torino": 1.1666666666666667,
     "Monza": 1,
     "Bologna": 0.7142857142857143,
-    "Parma": 0.6666666666666666,
     "Udinese": 0.5714285714285714,
     "Genoa": 0.5714285714285714,
     "Fiorentina": 0.5714285714285714,
+    "Parma": 0.5714285714285714,
     "Venezia": 0.42857142857142855
    },
    "fra.1": {
