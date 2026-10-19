@@ -51,4 +51,15 @@ DESCRIPTION:La Liga\nWatch on TV 2 Play\nhttps://dbugger85.github.io/PrimeT
  ime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401882824@primetime
+DTSTAMP:20261102T200000Z
+DTSTART:20261102T200000Z
+DTEND:20261102T220000Z
+SUMMARY:Deportivo – Osasuna
+LOCATION:TV 2 Play
+DESCRIPTION:La Liga\nWatch on TV 2 Play\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
