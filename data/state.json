@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-19T11:45:41.421Z",
+ "lastFull": "2026-10-19T14:40:41.197Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2797,6 +2797,27 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/chelsea-tottenham/s26101553940346442",
     "until": "2026-10-26T19:30:00.000Z"
+   }
+  },
+  "fb-401879254": {
+   "start": "2026-10-25T14:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/crystal-palace-newcastle/s26101508888836566",
+    "until": "2026-10-27T16:30:00.000Z"
+   }
+  },
+  "fb-401878765": {
+   "start": "2026-10-25T14:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/liverpool-brighton/s26101550139794088",
+    "until": "2026-10-27T16:55:00.000Z"
+   }
+  },
+  "fb-401879252": {
+   "start": "2026-10-25T14:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/man-united-bournemouth/s26101510582732551",
+    "until": "2026-10-27T16:30:00.000Z"
    }
   }
  },
