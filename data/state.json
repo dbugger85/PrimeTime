@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-20T16:30:56.744Z",
+ "lastFull": "2026-10-20T19:25:30.981Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2336,12 +2336,6 @@
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kristiansund-rosenborg-kgdm0ye3"
    }
   },
-  "fb-401873932": {
-   "start": "2026-09-18T17:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/sarpsborg-08-kfum-oslo-t1njjp6b"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -2833,6 +2827,12 @@
     "url": "https://viaplay.no/sport/fotball/premier-league/sunderland-leeds/s26101561668172358",
     "until": "2026-10-27T19:30:00.000Z"
    }
+  },
+  "fb-401843372": {
+   "start": "2026-10-24T14:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/bodoe-glimt-vaalerenga-mtwhn2ds"
+   }
   }
  },
  "ratings": {
@@ -3137,6 +3137,7 @@
     "Arsenal": 3,
     "Real Madrid": 3,
     "Real Betis": 3,
+    "Borussia Dortmund": 2,
     "Bayern Munich": 2,
     "Shakhtar Donetsk": 2,
     "Como": 1.5,
@@ -3145,20 +3146,19 @@
     "Atlético Madrid": 1.5,
     "Club Brugge": 1.5,
     "Manchester City": 1.5,
-    "Borussia Dortmund": 1.5,
     "Lens": 1.5,
     "AEK Athens": 1.5,
     "RB Leipzig": 1.5,
-    "Sabah FK": 1.5,
     "Feyenoord Rotterdam": 1.5,
+    "Sabah FK": 1,
     "Bodo/Glimt": 1.5,
+    "Fenerbahce": 0.6666666666666666,
     "AS Roma": 0.5,
     "PSV Eindhoven": 0.5,
     "Viking FK": 0.5,
-    "Fenerbahce": 0.5,
+    "Slavia Prague": 0.3333333333333333,
     "Internazionale": 0,
     "FC Porto": 0,
-    "Slavia Prague": 0,
     "Napoli": 0,
     "LASK Linz": 0,
     "Lille": 0,
