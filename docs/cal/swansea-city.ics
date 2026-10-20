@@ -62,4 +62,15 @@ DESCRIPTION:Championship\nWatch on Viaplay\nhttps://dbugger85.github.io/Pri
  meTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401880181@primetime
+DTSTAMP:20261103T194500Z
+DTSTART:20261103T194500Z
+DTEND:20261103T214500Z
+SUMMARY:Portsmouth – Swansea City
+LOCATION:Viaplay
+DESCRIPTION:Championship\nWatch on Viaplay\nhttps://dbugger85.github.io/Pri
+ meTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR

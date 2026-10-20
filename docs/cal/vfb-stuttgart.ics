@@ -73,4 +73,15 @@ DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
  Time/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915311@primetime
+DTSTAMP:20261103T174500Z
+DTSTART:20261103T174500Z
+DTEND:20261103T194500Z
+SUMMARY:Galatasaray – VfB Stuttgart
+LOCATION:TV 2 Play
+DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
+ io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR

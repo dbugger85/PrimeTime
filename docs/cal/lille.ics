@@ -84,4 +84,15 @@ DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
  e/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915384@primetime
+DTSTAMP:20261103T200000Z
+DTSTART:20261103T200000Z
+DTEND:20261103T220000Z
+SUMMARY:Bodo/Glimt – Lille
+LOCATION:TV 2 Play
+DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
+ io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
