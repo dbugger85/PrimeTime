@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-21T12:40:41.077Z",
+ "lastFull": "2026-10-21T15:30:55.169Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2330,12 +2330,6 @@
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/molde-aalesund-srhe7t0v"
    }
   },
-  "fb-401873922": {
-   "start": "2026-09-19T14:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kristiansund-rosenborg-kgdm0ye3"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -2832,6 +2826,13 @@
    "start": "2026-10-24T14:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/bodoe-glimt-vaalerenga-mtwhn2ds"
+   }
+  },
+  "fb-401879248": {
+   "start": "2026-10-31T12:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/chelsea-man-united/s26102161525995125",
+    "until": "2026-11-02T15:25:00.000Z"
    }
   }
  },
