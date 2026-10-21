@@ -73,4 +73,15 @@ DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
  e/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915305@primetime
+DTSTAMP:20261104T200000Z
+DTSTART:20261104T200000Z
+DTEND:20261104T220000Z
+SUMMARY:Lens – Como
+LOCATION:TV 2 Play
+DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
+ io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
