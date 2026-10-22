@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-22T14:30:59.377Z",
+ "lastFull": "2026-10-22T17:25:29.771Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2294,30 +2294,6 @@
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/andorra-malta-yx1py669"
    }
   },
-  "fb-401843443": {
-   "start": "2026-09-20T17:15Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/brann-bodoe-glimt-28aaz93v"
-   }
-  },
-  "fb-401843447": {
-   "start": "2026-09-20T15:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/sandefjord-start-cvdd1khj"
-   }
-  },
-  "fb-401843445": {
-   "start": "2026-09-20T15:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/tromsoe-hamkam-qt1m9vgt"
-   }
-  },
-  "fb-401843444": {
-   "start": "2026-09-20T15:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/viking-lillestroem-r57derk2"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -2863,6 +2839,24 @@
     "url": "https://viaplay.no/sport/fotball/premier-league/man-city-brighton/s26102203786830402",
     "until": "2026-11-02T17:55:00.000Z"
    }
+  },
+  "fb-401843373": {
+   "start": "2026-10-25T13:30Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/viking-tromsoe-ktrrw2e4"
+   }
+  },
+  "fb-401843370": {
+   "start": "2026-10-25T16:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kristiansund-kfum-oslo-dd6xrsad"
+   }
+  },
+  "fb-401843367": {
+   "start": "2026-10-25T16:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/sarpsborg-08-aalesund-n60v2trz"
+   }
   }
  },
  "ratings": {
@@ -3362,6 +3356,7 @@
     "Lech Poznan": 0
    },
    "uefa.europa.conf": {
+    "Panathinaikos": 3,
     "Brighton & Hove Albion": 3,
     "F.C. København": 3,
     "Trabzonspor": 3,
@@ -3373,17 +3368,16 @@
     "AS Monaco": 3,
     "SK Brann": 3,
     "Hajduk Split": 3,
-    "Panathinaikos": 3,
     "KAA Gent": 3,
     "FC Twente": 3,
     "Getafe": 1,
-    "Kairat Almaty": 1,
     "FC Midtjylland": 1,
     "FC Nordsjælland": 1,
     "Egnatia": 1,
     "Heart of Midlothian": 1,
     "Riga FC": 1,
     "CSU Craiova": 1,
+    "Kairat Almaty": 0.5,
     "Jablonec": 0,
     "Red Star Belgrade": 0,
     "Ajax Amsterdam": 0,
