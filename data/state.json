@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-22T05:55:31.238Z",
+ "lastFull": "2026-10-22T08:45:39.333Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2833,6 +2833,13 @@
    "start": "2026-10-24T16:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/hamkam-rosenborg-6v3rek1d"
+   }
+  },
+  "fb-401879251": {
+   "start": "2026-10-31T15:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/bournemouth-leeds/s26102265956060184",
+    "until": "2026-11-02T17:30:00.000Z"
    }
   }
  },
