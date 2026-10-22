@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-22T11:40:38.959Z",
+ "lastFull": "2026-10-22T14:30:59.377Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2316,12 +2316,6 @@
    "start": "2026-09-20T15:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/viking-lillestroem-r57derk2"
-   }
-  },
-  "fb-401843450": {
-   "start": "2026-09-20T12:30Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/vaalerenga-fredrikstad-q2kcmn5z"
    }
   },
   "fb-401879268": {
