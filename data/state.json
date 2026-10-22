@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-22T17:25:29.771Z",
+ "lastFull": "2026-10-22T20:15:41.611Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2857,6 +2857,24 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/sarpsborg-08-aalesund-n60v2trz"
    }
+  },
+  "fb-401843366": {
+   "start": "2026-10-25T16:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/start-sandefjord-h27g2pw7"
+   }
+  },
+  "fb-401843368": {
+   "start": "2026-10-25T18:15Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/molde-fredrikstad-wy85wgbp"
+   }
+  },
+  "fb-401843369": {
+   "start": "2026-10-25T16:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/lillestroem-brann-xh865zvs"
+   }
   }
  },
  "ratings": {
@@ -3318,79 +3336,79 @@
     "Preston North End": 0.36363636363636365
    },
    "uefa.europa": {
-    "Juventus": 3,
     "Bayer Leverkusen": 3,
+    "Ferencvaros": 3,
+    "Union St.-Gilloise": 2.3333333333333335,
+    "Juventus": 2.3333333333333335,
+    "Sunderland": 2.3333333333333335,
     "Benfica": 3,
     "Besiktas": 3,
+    "AZ Alkmaar": 2,
     "AFC Bournemouth": 3,
     "Omonia Nicosia": 3,
-    "Ferencvaros": 3,
     "Lyon": 3,
-    "Sunderland": 3,
     "Olympiacos": 3,
+    "Stade Rennais": 1.6666666666666667,
     "Sparta Prague": 2,
-    "Union St.-Gilloise": 2,
-    "Stade Rennais": 2,
-    "Dinamo Zagreb": 2,
+    "Dinamo Zagreb": 1.3333333333333333,
+    "SK Sturm Graz": 1.3333333333333333,
+    "NEC Nijmegen": 1.3333333333333333,
     "Crystal Palace": 1.5,
     "AC Milan": 1.5,
     "Jagiellonia Bialystok": 1.5,
-    "OFI Crete": 1.5,
-    "Torreense": 1.5,
-    "AZ Alkmaar": 1.5,
+    "OFI Crete": 1,
+    "Torreense": 1,
     "RB Salzburg": 1.5,
     "Lillestrom": 0.5,
     "Real Sociedad": 0.5,
-    "Hapoel Be'er": 0.5,
     "Levski Sofia": 0.5,
-    "SK Sturm Graz": 0.5,
-    "NEC Nijmegen": 0.5,
+    "Hapoel Be'er": 0.3333333333333333,
+    "Lech Poznan": 0.3333333333333333,
     "Anderlecht": 0,
     "Celta Vigo": 0,
     "TSG Hoffenheim": 0,
-    "Marseille": 0,
     "Viktoria Plzen": 0,
-    "Ararat-Armenia": 0,
     "Celtic": 0,
+    "Marseille": 0,
     "NK Celje": 0,
-    "Lech Poznan": 0
+    "Ararat-Armenia": 0
    },
    "uefa.europa.conf": {
     "Panathinaikos": 3,
-    "Brighton & Hove Albion": 3,
-    "F.C. København": 3,
+    "FC Lugano": 3,
+    "SK Brann": 3,
     "Trabzonspor": 3,
+    "Brighton & Hove Albion": 2,
+    "F.C. København": 2,
+    "CSU Craiova": 2,
+    "Mjällby AIF": 2,
     "Atalanta": 3,
-    "Mjällby AIF": 3,
     "Sint-Truidense": 3,
     "SC Freiburg": 3,
-    "FC Lugano": 3,
     "AS Monaco": 3,
-    "SK Brann": 3,
     "Hajduk Split": 3,
     "KAA Gent": 3,
     "FC Twente": 3,
-    "Getafe": 1,
-    "FC Midtjylland": 1,
     "FC Nordsjælland": 1,
-    "Egnatia": 1,
-    "Heart of Midlothian": 1,
     "Riga FC": 1,
-    "CSU Craiova": 1,
+    "FC Midtjylland": 1,
+    "Egnatia": 1,
+    "Red Star Belgrade": 0.5,
+    "CSKA Sofia": 0.5,
+    "Jablonec": 0.5,
+    "Pafos": 0.5,
+    "Heart of Midlothian": 0.5,
+    "Iberia 1999": 0.5,
+    "Getafe": 0.5,
     "Kairat Almaty": 0.5,
-    "Jablonec": 0,
-    "Red Star Belgrade": 0,
     "Ajax Amsterdam": 0,
     "Borac Banja Luka": 0,
     "Lincoln Red Imps": 0,
-    "CSKA Sofia": 0,
     "AGF": 0,
     "FC Thun": 0,
     "KuPS Kuopio": 0,
-    "Pafos": 0,
-    "Iberia 1999": 0,
-    "Inter D'Escaldes": 0,
     "Braga": 0,
+    "Inter D'Escaldes": 0,
     "Kauno Zalgiris": 0
    }
   },
