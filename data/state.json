@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-22T08:45:39.333Z",
+ "lastFull": "2026-10-22T11:40:38.959Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2840,6 +2840,34 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/bournemouth-leeds/s26102265956060184",
     "until": "2026-11-02T17:30:00.000Z"
+   }
+  },
+  "fb-401879249": {
+   "start": "2026-10-31T15:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/brentford-nottingham-forest/s26102294133172117",
+    "until": "2026-11-02T17:30:00.000Z"
+   }
+  },
+  "fb-401879247": {
+   "start": "2026-10-31T15:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/coventry-sunderland/s26102211334092257",
+    "until": "2026-11-02T17:30:00.000Z"
+   }
+  },
+  "fb-401878763": {
+   "start": "2026-10-31T15:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/hull-ipswich/s26102273820607473",
+    "until": "2026-11-02T17:30:00.000Z"
+   }
+  },
+  "fb-401879245": {
+   "start": "2026-10-31T15:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/man-city-brighton/s26102203786830402",
+    "until": "2026-11-02T17:55:00.000Z"
    }
   }
  },
