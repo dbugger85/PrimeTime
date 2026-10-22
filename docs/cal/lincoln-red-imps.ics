@@ -29,4 +29,15 @@ DESCRIPTION:Conference League\nWatch on Viaplay\nhttps://dbugger85.github.i
  o/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915742@primetime
+DTSTAMP:20261105T174500Z
+DTSTART:20261105T174500Z
+DTEND:20261105T194500Z
+SUMMARY:Lincoln Red Imps – Hajduk Split
+LOCATION:Viaplay
+DESCRIPTION:Conference League\nWatch on Viaplay\nhttps://dbugger85.github.i
+ o/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR

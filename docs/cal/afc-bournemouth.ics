@@ -73,4 +73,15 @@ DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
  rimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915528@primetime
+DTSTAMP:20261105T174500Z
+DTSTART:20261105T174500Z
+DTEND:20261105T194500Z
+SUMMARY:Sparta Prague – AFC Bournemouth
+LOCATION:Viaplay
+DESCRIPTION:Europa League\nWatch on Viaplay\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR

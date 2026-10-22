@@ -84,4 +84,15 @@ DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
  ime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915529@primetime
+DTSTAMP:20261105T200000Z
+DTSTART:20261105T200000Z
+DTEND:20261105T220000Z
+SUMMARY:AZ Alkmaar – Juventus
+LOCATION:Viaplay
+DESCRIPTION:Europa League\nWatch on Viaplay\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
