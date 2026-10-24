@@ -51,4 +51,15 @@ DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
  Time/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401884743@primetime
+DTSTAMP:20261107T173000Z
+DTSTART:20261107T173000Z
+DTEND:20261107T193000Z
+SUMMARY:VfB Stuttgart – Werder Bremen
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
