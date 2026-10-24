@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-24T18:15:45.816Z",
+ "lastFull": "2026-10-24T21:10:39.550Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2885,6 +2885,12 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/bodoe-glimt-viking-y9m5q66g"
    }
+  },
+  "fb-401843473": {
+   "start": "2026-10-31T15:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/fredrikstad-rosenborg-dz25rcvn"
+   }
   }
  },
  "ratings": {
@@ -3161,7 +3167,7 @@
     "Manchester City": 2.625,
     "Arsenal": 2.625,
     "Brighton & Hove Albion": 2.2857142857142856,
-    "Chelsea": 1.8571428571428572,
+    "Chelsea": 1.625,
     "Liverpool": 1.7142857142857142,
     "Aston Villa": 1.375,
     "Brentford": 1.4285714285714286,
@@ -3169,13 +3175,13 @@
     "Everton": 1.25,
     "Ipswich Town": 1.25,
     "Hull City": 1.2857142857142858,
+    "Tottenham Hotspur": 1.125,
     "Fulham": 1,
     "Newcastle United": 1.1428571428571428,
     "Manchester United": 1,
     "Crystal Palace": 1,
     "AFC Bournemouth": 0.8571428571428571,
     "Nottingham Forest": 0.75,
-    "Tottenham Hotspur": 0.8571428571428571,
     "Coventry City": 0.75,
     "Sunderland": 0.5714285714285714
    },
@@ -3237,29 +3243,29 @@
    },
    "esp.1": {
     "Barcelona": 3,
-    "Atlético Madrid": 2.4444444444444446,
+    "Atlético Madrid": 2.5,
     "Real Madrid": 2.3333333333333335,
     "Real Betis": 2.111111111111111,
     "Real Sociedad": 1.7777777777777777,
     "Sevilla": 1.5555555555555556,
     "Alavés": 1.2,
+    "Villarreal": 1.2,
     "Celta Vigo": 1.2222222222222223,
-    "Deportivo": 1.2222222222222223,
+    "Deportivo": 1.1,
     "Osasuna": 1.2222222222222223,
     "Racing Santander": 1.1,
     "Levante": 1.1111111111111112,
     "Elche": 1,
-    "Villarreal": 1,
     "Athletic Club": 1.125,
     "Getafe": 1,
     "Rayo Vallecano": 1,
     "Espanyol": 0.8,
-    "Valencia": 0.6666666666666666,
+    "Valencia": 0.6,
     "Málaga": 0.5
    },
    "ger.1": {
+    "Borussia Dortmund": 2.4285714285714284,
     "Bayern Munich": 2.3333333333333335,
-    "Borussia Dortmund": 2.3333333333333335,
     "SC Freiburg": 2.1666666666666665,
     "Bayer Leverkusen": 2.1666666666666665,
     "RB Leipzig": 1.7142857142857142,
@@ -3270,7 +3276,7 @@
     "Hamburg SV": 1.2857142857142858,
     "FC Cologne": 1.1428571428571428,
     "SC Paderborn 07": 1.1428571428571428,
-    "Eintracht Frankfurt": 1.3333333333333333,
+    "Eintracht Frankfurt": 1.1428571428571428,
     "TSG Hoffenheim": 1,
     "VfB Stuttgart": 0.8571428571428571,
     "Schalke 04": 0.8571428571428571,
@@ -3278,8 +3284,8 @@
     "Borussia Mönchengladbach": 0.42857142857142855
    },
    "ita.1": {
+    "Lazio": 2.75,
     "Internazionale": 2.7142857142857144,
-    "Lazio": 2.7142857142857144,
     "AS Roma": 2.25,
     "Como": 2.125,
     "AC Milan": 2.142857142857143,
@@ -3296,19 +3302,19 @@
     "Udinese": 0.5714285714285714,
     "Genoa": 0.5714285714285714,
     "Fiorentina": 0.5714285714285714,
-    "Parma": 0.5714285714285714,
+    "Parma": 0.5,
     "Venezia": 0.42857142857142855
    },
    "fra.1": {
     "Lyon": 2,
     "Paris Saint-Germain": 2,
-    "Paris FC": 2,
     "Lille": 2,
+    "Paris FC": 1.75,
     "AS Monaco": 2,
+    "Lens": 1.625,
     "Stade Rennais": 1.8571428571428572,
     "Lorient": 1.5714285714285714,
     "Nice": 1.375,
-    "Lens": 1.4285714285714286,
     "Marseille": 1.2857142857142858,
     "Brest": 1.125,
     "Toulouse": 1.2857142857142858,
