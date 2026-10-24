@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-24T09:40:43.615Z",
+ "lastFull": "2026-10-24T12:30:58.998Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2878,6 +2878,12 @@
    "start": "2026-10-25T16:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/lillestroem-brann-xh865zvs"
+   }
+  },
+  "fb-401843468": {
+   "start": "2026-10-30T18:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/bodoe-glimt-viking-y9m5q66g"
    }
   }
  },
