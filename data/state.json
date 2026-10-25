@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-25T11:30:54.407Z",
+ "lastFull": "2026-10-25T14:25:29.370Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2911,6 +2911,12 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/fredrikstad-rosenborg-dz25rcvn"
    }
+  },
+  "fb-401843467": {
+   "start": "2026-10-31T17:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/aalesund-sandefjord-fe2q0cre"
+   }
   }
  },
  "ratings": {
@@ -3304,8 +3310,8 @@
     "Borussia Mönchengladbach": 0.42857142857142855
    },
    "ita.1": {
+    "Internazionale": 2.75,
     "Lazio": 2.75,
-    "Internazionale": 2.7142857142857144,
     "AS Roma": 2.25,
     "Como": 2.125,
     "AC Milan": 2.142857142857143,
@@ -3321,7 +3327,7 @@
     "Monza": 0.875,
     "Udinese": 0.5714285714285714,
     "Genoa": 0.5714285714285714,
-    "Fiorentina": 0.5714285714285714,
+    "Fiorentina": 0.5,
     "Parma": 0.5,
     "Venezia": 0.42857142857142855
    },
