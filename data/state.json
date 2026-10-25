@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-25T17:15:37.540Z",
+ "lastFull": "2026-10-25T20:10:39.151Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -659,6 +659,14 @@
   "fb-401843482": {
    "code": "title",
    "start": "2026-11-08T16:00Z"
+  },
+  "fb-401843470": {
+   "code": "relegation",
+   "start": "2026-11-01T16:00Z"
+  },
+  "fb-401843478": {
+   "code": "relegation",
+   "start": "2026-11-07T17:00Z"
   }
  },
  "calTeams": {
@@ -2929,6 +2937,18 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kfum-oslo-hamkam-zjgcqccd"
    }
+  },
+  "fb-401843471": {
+   "start": "2026-11-01T16:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/sarpsborg-08-kristiansund-ahwkk50h"
+   }
+  },
+  "fb-401843470": {
+   "start": "2026-11-01T16:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/start-lillestroem-jwcc9eq8"
+   }
   }
  },
  "ratings": {
@@ -3208,9 +3228,9 @@
     "Liverpool": 1.875,
     "Chelsea": 1.625,
     "Brentford": 1.375,
+    "Leeds United": 1.375,
     "Newcastle United": 1.375,
     "Aston Villa": 1.375,
-    "Leeds United": 1.4285714285714286,
     "Hull City": 1.25,
     "Everton": 1.25,
     "Ipswich Town": 1.25,
@@ -3221,7 +3241,7 @@
     "Crystal Palace": 0.875,
     "Nottingham Forest": 0.75,
     "Coventry City": 0.75,
-    "Sunderland": 0.5714285714285714
+    "Sunderland": 0.625
    },
    "uefa.champions": {
     "Paris Saint-Germain": 3,
@@ -3267,24 +3287,24 @@
     "Molde": 1.7391304347826086,
     "Rosenborg": 1.6666666666666667,
     "Tromso": 1.6666666666666667,
-    "Lillestrom": 1.565217391304348,
-    "SK Brann": 1.2608695652173914,
+    "Lillestrom": 1.625,
+    "Sarpsborg FK": 1.2916666666666667,
+    "KFUM Oslo": 1.25,
+    "SK Brann": 1.2083333333333333,
     "Vålerenga": 1.2083333333333333,
     "Fredrikstad": 1.2608695652173914,
-    "KFUM Oslo": 1.2608695652173914,
-    "Sarpsborg FK": 1.2173913043478262,
     "Hamarkameratene": 1.0833333333333333,
-    "Sandefjord": 1.0434782608695652,
-    "Aalesund": 1.0434782608695652,
-    "Kristiansund BK": 0.8260869565217391,
-    "IK Start": 0.6956521739130435
+    "Sandefjord": 1,
+    "Aalesund": 1,
+    "Kristiansund BK": 0.8333333333333334,
+    "IK Start": 0.7916666666666666
    },
    "esp.1": {
     "Barcelona": 3,
     "Atlético Madrid": 2.5,
     "Real Madrid": 2.3333333333333335,
     "Real Betis": 2,
-    "Real Sociedad": 1.7777777777777777,
+    "Real Sociedad": 1.9,
     "Sevilla": 1.5555555555555556,
     "Alavés": 1.2,
     "Athletic Club": 1.3333333333333333,
@@ -3293,7 +3313,7 @@
     "Deportivo": 1.1,
     "Osasuna": 1.2222222222222223,
     "Racing Santander": 1.1,
-    "Levante": 1.1111111111111112,
+    "Levante": 1,
     "Elche": 1,
     "Rayo Vallecano": 1,
     "Getafe": 0.9,
@@ -3302,9 +3322,9 @@
     "Málaga": 0.5
    },
    "ger.1": {
+    "Bayern Munich": 2.4285714285714284,
     "Borussia Dortmund": 2.4285714285714284,
-    "Bayern Munich": 2.3333333333333335,
-    "SC Freiburg": 2.1666666666666665,
+    "SC Freiburg": 1.8571428571428572,
     "Bayer Leverkusen": 1.8571428571428572,
     "RB Leipzig": 1.7142857142857142,
     "Werder Bremen": 1.7142857142857142,
@@ -3328,12 +3348,12 @@
     "Como": 2.125,
     "AC Milan": 2.142857142857143,
     "Frosinone": 1.75,
+    "Juventus": 1.75,
     "Torino": 1.625,
     "Cagliari": 1.625,
-    "Juventus": 1.5714285714285714,
     "Napoli": 1.375,
     "Atalanta": 1.25,
-    "Lecce": 1.2857142857142858,
+    "Lecce": 1.125,
     "Bologna": 1,
     "Sassuolo": 1,
     "Monza": 0.875,
@@ -3344,24 +3364,24 @@
     "Venezia": 0.375
    },
    "fra.1": {
+    "Stade Rennais": 2,
     "Lille": 1.875,
     "AS Monaco": 1.875,
     "Lyon": 2,
     "Paris Saint-Germain": 2,
     "Paris FC": 1.75,
     "Lens": 1.625,
-    "Stade Rennais": 1.8571428571428572,
-    "Lorient": 1.5714285714285714,
+    "Marseille": 1.5,
+    "Lorient": 1.5,
     "Nice": 1.375,
-    "Marseille": 1.2857142857142858,
+    "Toulouse": 1.25,
+    "AJ Auxerre": 1.25,
     "Brest": 1.125,
-    "Toulouse": 1.2857142857142858,
-    "AJ Auxerre": 1.2857142857142858,
-    "Strasbourg": 1,
     "Angers": 1,
-    "Le Mans": 0.8571428571428571,
-    "Troyes": 0.5714285714285714,
-    "Le Havre AC": 0.2857142857142857
+    "Le Mans": 0.875,
+    "Strasbourg": 0.875,
+    "Troyes": 0.625,
+    "Le Havre AC": 0.25
    },
    "eng.2": {
     "Middlesbrough": 2.0833333333333335,
