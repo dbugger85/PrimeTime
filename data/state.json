@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-25T20:10:39.151Z",
+ "lastFull": "2026-10-25T23:01:06.917Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2949,6 +2949,13 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/start-lillestroem-jwcc9eq8"
    }
+  },
+  "fb-401878761": {
+   "start": "2026-10-31T17:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/tottenham-crystal-palace/s26102267772229994",
+    "until": "2026-11-02T20:25:00.000Z"
+   }
   }
  },
  "ratings": {
@@ -3284,7 +3291,7 @@
    "nor.1": {
     "Viking FK": 2.4583333333333335,
     "Bodo/Glimt": 2.3333333333333335,
-    "Molde": 1.7391304347826086,
+    "Molde": 1.7916666666666667,
     "Rosenborg": 1.6666666666666667,
     "Tromso": 1.6666666666666667,
     "Lillestrom": 1.625,
@@ -3292,7 +3299,7 @@
     "KFUM Oslo": 1.25,
     "SK Brann": 1.2083333333333333,
     "Vålerenga": 1.2083333333333333,
-    "Fredrikstad": 1.2608695652173914,
+    "Fredrikstad": 1.2083333333333333,
     "Hamarkameratene": 1.0833333333333333,
     "Sandefjord": 1,
     "Aalesund": 1,
@@ -3300,9 +3307,9 @@
     "IK Start": 0.7916666666666666
    },
    "esp.1": {
-    "Barcelona": 3,
+    "Barcelona": 2.7,
     "Atlético Madrid": 2.5,
-    "Real Madrid": 2.3333333333333335,
+    "Real Madrid": 2.4,
     "Real Betis": 2,
     "Real Sociedad": 1.9,
     "Sevilla": 1.5555555555555556,
@@ -3345,8 +3352,8 @@
     "Internazionale": 2.75,
     "Lazio": 2.75,
     "AS Roma": 2.25,
+    "AC Milan": 2.25,
     "Como": 2.125,
-    "AC Milan": 2.142857142857143,
     "Frosinone": 1.75,
     "Juventus": 1.75,
     "Torino": 1.625,
@@ -3358,7 +3365,7 @@
     "Sassuolo": 1,
     "Monza": 0.875,
     "Genoa": 0.875,
-    "Udinese": 0.5714285714285714,
+    "Udinese": 0.5,
     "Fiorentina": 0.5,
     "Parma": 0.5,
     "Venezia": 0.375
