@@ -51,4 +51,15 @@ DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
  Time/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401884741@primetime
+DTSTAMP:20261108T163000Z
+DTSTART:20261108T163000Z
+DTEND:20261108T183000Z
+SUMMARY:SC Freiburg – 1. FC Union Berlin
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR

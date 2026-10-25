@@ -62,4 +62,15 @@ DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
  ime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401874810@primetime
+DTSTAMP:20261108T113000Z
+DTSTART:20261108T113000Z
+DTEND:20261108T133000Z
+SUMMARY:Napoli – Lazio
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR

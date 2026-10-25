@@ -51,4 +51,15 @@ DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
  Time/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401884742@primetime
+DTSTAMP:20261108T183000Z
+DTSTART:20261108T183000Z
+DTEND:20261108T203000Z
+SUMMARY:TSG Hoffenheim – Schalke 04
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
