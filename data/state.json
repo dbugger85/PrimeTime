@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-26T19:10:40.713Z",
+ "lastFull": "2026-10-26T22:01:09.058Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -3285,13 +3285,13 @@
     "Real Madrid": 2.4,
     "Real Betis": 2,
     "Real Sociedad": 1.9,
-    "Sevilla": 1.5555555555555556,
+    "Sevilla": 1.7,
     "Alavés": 1.2,
     "Athletic Club": 1.3333333333333333,
     "Celta Vigo": 1.2,
     "Villarreal": 1.2,
     "Deportivo": 1.1,
-    "Osasuna": 1.2222222222222223,
+    "Osasuna": 1.1,
     "Racing Santander": 1.1,
     "Levante": 1,
     "Elche": 1,
@@ -3344,11 +3344,11 @@
     "Venezia": 0.375
    },
    "fra.1": {
+    "Paris Saint-Germain": 2.125,
     "Stade Rennais": 2,
     "Lille": 1.875,
     "AS Monaco": 1.875,
-    "Lyon": 2,
-    "Paris Saint-Germain": 2,
+    "Lyon": 1.75,
     "Paris FC": 1.75,
     "Lens": 1.625,
     "Marseille": 1.5,
