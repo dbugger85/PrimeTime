@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-26T13:25:33.605Z",
+ "lastFull": "2026-10-26T16:15:39.657Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2320,12 +2320,6 @@
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/norge-danmark-dd89cf1d"
    }
   },
-  "fb-401861047": {
-   "start": "2026-09-24T16:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/andorra-malta-yx1py669"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -2962,6 +2956,13 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/aston-villa-fulham/s26102274760787265",
     "until": "2026-11-02T23:00:00.000Z"
+   }
+  },
+  "fb-401879246": {
+   "start": "2026-11-01T16:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/liverpool-arsenal/s26102252523767770",
+    "until": "2026-11-03T20:00:00.000Z"
    }
   }
  },
