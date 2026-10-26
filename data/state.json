@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-26T10:30:55.867Z",
+ "lastFull": "2026-10-26T13:25:33.605Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2955,6 +2955,13 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/tottenham-crystal-palace/s26102267772229994",
     "until": "2026-11-02T20:25:00.000Z"
+   }
+  },
+  "fb-401879250": {
+   "start": "2026-10-31T20:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/aston-villa-fulham/s26102274760787265",
+    "until": "2026-11-02T23:00:00.000Z"
    }
   }
  },
