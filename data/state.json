@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-26T16:15:39.657Z",
+ "lastFull": "2026-10-26T19:10:40.713Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2278,48 +2278,6 @@
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/georgia-nord-irland-y5tcwef3"
    }
   },
-  "fb-401861045": {
-   "start": "2026-09-24T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/kosovo-irland-s00gh9ny"
-   }
-  },
-  "fb-401861043": {
-   "start": "2026-09-24T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/liechtenstein-litauen-96pa2kw2"
-   }
-  },
-  "fb-401861041": {
-   "start": "2026-09-24T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/nederland-tyskland-rb9cjy8d"
-   }
-  },
-  "fb-401861044": {
-   "start": "2026-09-24T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/portugal-wales-mny4sr1y"
-   }
-  },
-  "fb-401861042": {
-   "start": "2026-09-24T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/serbia-hellas-8e267zsj"
-   }
-  },
-  "fb-401861048": {
-   "start": "2026-09-24T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/oesterrike-israel-kxqgmy02"
-   }
-  },
-  "fb-401861046": {
-   "start": "2026-09-24T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/norge-danmark-dd89cf1d"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -2963,6 +2921,13 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/liverpool-arsenal/s26102252523767770",
     "until": "2026-11-03T20:00:00.000Z"
+   }
+  },
+  "fb-401878762": {
+   "start": "2026-11-02T20:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/newcastle-everton/s26102337568029321",
+    "until": "2026-11-04T23:00:00.000Z"
    }
   }
  },
