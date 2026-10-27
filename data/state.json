@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-27T15:15:42.653Z",
+ "lastFull": "2026-10-27T18:10:40.751Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2265,18 +2265,6 @@
    "start": "2026-09-25T18:45Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/ungarn-ukraina-syne8tbj"
-   }
-  },
-  "fb-401861050": {
-   "start": "2026-09-25T16:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/armenia-latvia-wh5rbpa1"
-   }
-  },
-  "fb-401861049": {
-   "start": "2026-09-25T16:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/georgia-nord-irland-y5tcwef3"
    }
   },
   "fb-401879268": {
