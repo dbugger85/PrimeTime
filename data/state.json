@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-27T21:01:06.235Z",
+ "lastFull": "2026-10-27T23:55:31.230Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -3283,13 +3283,13 @@
    "ita.1": {
     "Lazio": 2.7777777777777777,
     "Internazionale": 2.75,
-    "AS Roma": 2.25,
+    "AS Roma": 2.3333333333333335,
+    "Como": 2.2222222222222223,
     "AC Milan": 2.25,
-    "Como": 2.125,
     "Frosinone": 1.75,
     "Juventus": 1.75,
-    "Torino": 1.625,
-    "Cagliari": 1.625,
+    "Torino": 1.4444444444444444,
+    "Cagliari": 1.4444444444444444,
     "Napoli": 1.375,
     "Atalanta": 1.25,
     "Lecce": 1.125,
