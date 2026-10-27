@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-27T18:10:40.751Z",
+ "lastFull": "2026-10-27T21:01:06.235Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2231,42 +2231,6 @@
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/slovenia-skottland-fjzct2d9"
    }
   },
-  "fb-401861052": {
-   "start": "2026-09-25T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/italia-belgia-dpb2mwtj"
-   }
-  },
-  "fb-401861056": {
-   "start": "2026-09-25T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/montenegro-kypros-xzyb20dh"
-   }
-  },
-  "fb-401861055": {
-   "start": "2026-09-25T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/polen-bosnia-hercegovina-3afg3532"
-   }
-  },
-  "fb-401861051": {
-   "start": "2026-09-25T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/sverige-romania-z3p5w63w"
-   }
-  },
-  "fb-401861053": {
-   "start": "2026-09-25T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/tyrkia-frankrike-hvgjnyyc"
-   }
-  },
-  "fb-401861054": {
-   "start": "2026-09-25T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/ungarn-ukraina-syne8tbj"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -3317,8 +3281,8 @@
     "Borussia Mönchengladbach": 0.42857142857142855
    },
    "ita.1": {
+    "Lazio": 2.7777777777777777,
     "Internazionale": 2.75,
-    "Lazio": 2.75,
     "AS Roma": 2.25,
     "AC Milan": 2.25,
     "Como": 2.125,
@@ -3330,7 +3294,7 @@
     "Atalanta": 1.25,
     "Lecce": 1.125,
     "Bologna": 1,
-    "Sassuolo": 1,
+    "Sassuolo": 0.8888888888888888,
     "Monza": 0.875,
     "Genoa": 0.875,
     "Udinese": 0.5,
