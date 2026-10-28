@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-28T17:10:41.782Z",
+ "lastFull": "2026-10-28T20:01:11.118Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2171,36 +2171,6 @@
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/litauen-aserbajdsjan-98hgwm7h"
    }
   },
-  "fb-401861062": {
-   "start": "2026-09-26T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/albania-belarus-q8g5njbm"
-   }
-  },
-  "fb-401861066": {
-   "start": "2026-09-26T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/england-spania-h8h3npjd"
-   }
-  },
-  "fb-401861065": {
-   "start": "2026-09-26T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/nord-makedonia-sveits-q8d57agg"
-   }
-  },
-  "fb-401861064": {
-   "start": "2026-09-26T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/slovakia-moldova-hnmb8eaj"
-   }
-  },
-  "fb-401861063": {
-   "start": "2026-09-26T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/tsjekkia-kroatia-jzpsqvem"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -3265,26 +3235,26 @@
     "Borussia Mönchengladbach": 0.42857142857142855
    },
    "ita.1": {
+    "Internazionale": 2.7777777777777777,
     "Lazio": 2.7777777777777777,
-    "Internazionale": 2.75,
     "AS Roma": 2.3333333333333335,
     "Como": 2.2222222222222223,
-    "AC Milan": 2.25,
+    "AC Milan": 2,
     "Frosinone": 1.75,
     "Juventus": 1.75,
     "Torino": 1.4444444444444444,
     "Cagliari": 1.4444444444444444,
     "Napoli": 1.375,
+    "Bologna": 1.2222222222222223,
     "Atalanta": 1.25,
     "Lecce": 1.125,
-    "Bologna": 1,
     "Sassuolo": 0.8888888888888888,
     "Monza": 0.875,
     "Genoa": 0.875,
-    "Udinese": 0.5,
+    "Udinese": 0.5555555555555556,
+    "Parma": 0.5555555555555556,
     "Fiorentina": 0.5,
-    "Parma": 0.5,
-    "Venezia": 0.375
+    "Venezia": 0.3333333333333333
    },
    "fra.1": {
     "Paris Saint-Germain": 2.125,
