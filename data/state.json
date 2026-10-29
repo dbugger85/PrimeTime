@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-29T16:10:41.163Z",
+ "lastFull": "2026-10-29T19:01:09.054Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2129,24 +2129,6 @@
    "start": "2026-09-28T16:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/latvia-kypros-y1wsfq15"
-   }
-  },
-  "fb-401861072": {
-   "start": "2026-09-27T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/israel-irland-9bzanr73"
-   }
-  },
-  "fb-401861074": {
-   "start": "2026-09-27T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/tyskland-hellas-jt87jsje"
-   }
-  },
-  "fb-401861073": {
-   "start": "2026-09-27T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/norge-portugal-ymtn2veq"
    }
   },
   "fb-401879268": {
