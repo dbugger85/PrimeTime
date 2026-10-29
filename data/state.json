@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-29T10:25:31.785Z",
+ "lastFull": "2026-10-29T13:15:43.322Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2173,12 +2173,6 @@
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/oesterrike-kosovo-2w965emm"
    }
   },
-  "fb-401861067": {
-   "start": "2026-09-27T13:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/litauen-aserbajdsjan-98hgwm7h"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -2856,6 +2850,27 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/arsenal-hull/s26102915760859422",
     "until": "2026-11-09T17:55:00.000Z"
+   }
+  },
+  "fb-401879241": {
+   "start": "2026-11-07T15:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/fulham-newcastle/s26102943385970322",
+    "until": "2026-11-09T17:30:00.000Z"
+   }
+  },
+  "fb-401878757": {
+   "start": "2026-11-07T17:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/nottingham-forest-man-city/s26102966422349918",
+    "until": "2026-11-09T20:30:00.000Z"
+   }
+  },
+  "fb-401879243": {
+   "start": "2026-11-08T14:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/crystal-palace-liverpool/s26102959242375137",
+    "until": "2026-11-10T16:55:00.000Z"
    }
   }
  },
