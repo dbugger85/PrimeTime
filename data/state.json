@@ -490,7 +490,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-29T07:31:03.517Z",
+ "lastFull": "2026-10-29T10:25:31.785Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2849,6 +2849,13 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/leeds-tottenham/s26102800529867590",
     "until": "2026-11-09T15:25:00.000Z"
+   }
+  },
+  "fb-401878760": {
+   "start": "2026-11-07T15:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/arsenal-hull/s26102915760859422",
+    "until": "2026-11-09T17:55:00.000Z"
    }
   }
  },
