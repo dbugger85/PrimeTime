@@ -29,4 +29,15 @@ DESCRIPTION:Nations League\nWatch on TV 2 Play\nhttps://dbugger85.github.io
  /PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401861146@primetime
+DTSTAMP:20261112T170000Z
+DTSTART:20261112T170000Z
+DTEND:20261112T190000Z
+SUMMARY:Armenia – Cyprus
+LOCATION:TV 2 Play
+DESCRIPTION:Nations League\nWatch on TV 2 Play\nhttps://dbugger85.github.io
+ /PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
