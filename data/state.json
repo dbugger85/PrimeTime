@@ -268,6 +268,7 @@
    "20261007",
    "20261008",
    "20261009",
+   "20261010",
    "20261011",
    "20261012",
    "20261013",
@@ -490,7 +491,7 @@
   "188-2026",
   "189-2026"
  ],
- "lastFull": "2026-10-30T15:10:44.561Z",
+ "lastFull": "2026-10-30T18:01:08.505Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2125,24 +2126,6 @@
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/tyrkia-italia-n9fvc39e"
    }
   },
-  "fb-401861076": {
-   "start": "2026-09-28T16:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/armenia-montenegro-5qhpr6gf"
-   }
-  },
-  "fb-401861075": {
-   "start": "2026-09-28T16:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/georgia-ukraina-ac9vm4aj"
-   }
-  },
-  "fb-401861082": {
-   "start": "2026-09-28T16:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/latvia-kypros-y1wsfq15"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -2841,6 +2824,18 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/crystal-palace-liverpool/s26102959242375137",
     "until": "2026-11-10T16:55:00.000Z"
+   }
+  },
+  "fb-401915311": {
+   "start": "2026-11-03T17:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/galatasaray-stuttgart-jc3esxn0"
+   }
+  },
+  "fb-401915310": {
+   "start": "2026-11-03T17:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/shakhtar-sporting-cp-nsgx9vy4"
    }
   }
  },
