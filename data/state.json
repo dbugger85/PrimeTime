@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-10-31T16:15:40.879Z",
+ "lastFull": "2026-10-31T19:10:41.050Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -679,14 +679,6 @@
   "fb-401843482": {
    "code": "title",
    "start": "2026-11-08T16:00Z"
-  },
-  "fb-401843470": {
-   "code": "relegation",
-   "start": "2026-11-01T16:00Z"
-  },
-  "fb-401843478": {
-   "code": "relegation",
-   "start": "2026-11-07T17:00Z"
   },
   "fb-401861147": {
    "code": "group",
@@ -2066,54 +2058,6 @@
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/aserbajdsjan-liechtenstein-6n7xmmyn"
    }
   },
-  "fb-401861083": {
-   "start": "2026-09-29T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/bulgaria-estland-nftpf2nv"
-   }
-  },
-  "fb-401861086": {
-   "start": "2026-09-29T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/luxembourg-island-4wr4kh9x"
-   }
-  },
-  "fb-401861088": {
-   "start": "2026-09-29T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/san-marino-albania-t1bsmszp"
-   }
-  },
-  "fb-401861091": {
-   "start": "2026-09-29T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/skottland-sveits-36f88kpz"
-   }
-  },
-  "fb-401861085": {
-   "start": "2026-09-29T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/slovakia-kasakhstan-8hpwvv5k"
-   }
-  },
-  "fb-401861087": {
-   "start": "2026-09-29T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/slovenia-nord-makedonia-evgs1yyw"
-   }
-  },
-  "fb-401861084": {
-   "start": "2026-09-29T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/spania-kroatia-ca5q2cbq"
-   }
-  },
-  "fb-401861092": {
-   "start": "2026-09-29T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/tsjekkia-england-737pakhx"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -3182,26 +3126,26 @@
   },
   "ppg": {
    "eng.1": {
-    "Manchester City": 2.625,
+    "Manchester City": 2.3333333333333335,
     "Arsenal": 2.625,
-    "Brighton & Hove Albion": 2,
+    "Brighton & Hove Albion": 2.111111111111111,
     "Chelsea": 1.7777777777777777,
     "Liverpool": 1.875,
-    "Brentford": 1.375,
-    "Leeds United": 1.375,
+    "Brentford": 1.5555555555555556,
+    "AFC Bournemouth": 1.3333333333333333,
+    "Hull City": 1.2222222222222223,
+    "Leeds United": 1.2222222222222223,
     "Newcastle United": 1.375,
     "Aston Villa": 1.375,
-    "Hull City": 1.25,
+    "Ipswich Town": 1.2222222222222223,
     "Everton": 1.25,
-    "Ipswich Town": 1.25,
-    "AFC Bournemouth": 1.125,
     "Tottenham Hotspur": 1.125,
+    "Coventry City": 1,
     "Fulham": 1,
     "Manchester United": 0.7777777777777778,
     "Crystal Palace": 0.875,
-    "Nottingham Forest": 0.75,
-    "Coventry City": 0.75,
-    "Sunderland": 0.625
+    "Nottingham Forest": 0.6666666666666666,
+    "Sunderland": 0.5555555555555556
    },
    "uefa.champions": {
     "Paris Saint-Germain": 3,
@@ -3245,17 +3189,17 @@
     "Viking FK": 2.36,
     "Bodo/Glimt": 2.36,
     "Molde": 1.7916666666666667,
-    "Rosenborg": 1.6666666666666667,
+    "Rosenborg": 1.72,
     "Tromso": 1.6666666666666667,
     "Lillestrom": 1.625,
     "Sarpsborg FK": 1.2916666666666667,
     "KFUM Oslo": 1.25,
     "SK Brann": 1.2083333333333333,
     "Vålerenga": 1.2083333333333333,
-    "Fredrikstad": 1.2083333333333333,
+    "Fredrikstad": 1.16,
+    "Sandefjord": 1.08,
     "Hamarkameratene": 1.0833333333333333,
-    "Sandefjord": 1,
-    "Aalesund": 1,
+    "Aalesund": 0.96,
     "Kristiansund BK": 0.8333333333333334,
     "IK Start": 0.7916666666666666
    },
@@ -3268,15 +3212,15 @@
     "Sevilla": 1.7,
     "Alavés": 1.2,
     "Athletic Club": 1.3333333333333333,
-    "Celta Vigo": 1.2,
     "Villarreal": 1.0909090909090908,
+    "Celta Vigo": 1.0909090909090908,
+    "Rayo Vallecano": 1.2,
     "Deportivo": 1.1,
     "Espanyol": 1,
     "Osasuna": 1.1,
     "Racing Santander": 1.1,
     "Elche": 1,
     "Levante": 0.9090909090909091,
-    "Rayo Vallecano": 1,
     "Getafe": 0.9,
     "Valencia": 0.6,
     "Málaga": 0.5
@@ -3284,27 +3228,27 @@
    "ger.1": {
     "Bayern Munich": 2.4285714285714284,
     "Borussia Dortmund": 2.4285714285714284,
-    "SC Freiburg": 1.8571428571428572,
-    "Bayer Leverkusen": 1.8571428571428572,
+    "SC Freiburg": 2,
+    "RB Leipzig": 1.875,
+    "Werder Bremen": 1.875,
+    "Bayer Leverkusen": 1.625,
     "SV Elversberg": 1.625,
-    "RB Leipzig": 1.7142857142857142,
-    "Werder Bremen": 1.7142857142857142,
     "Mainz": 1.25,
-    "FC Augsburg": 1.2857142857142858,
-    "TSG Hoffenheim": 1.2857142857142858,
+    "FC Augsburg": 1.125,
+    "VfB Stuttgart": 1.125,
+    "TSG Hoffenheim": 1.125,
+    "SC Paderborn 07": 1.125,
     "Hamburg SV": 1.2857142857142858,
     "FC Cologne": 1.1428571428571428,
-    "SC Paderborn 07": 1.1428571428571428,
     "Eintracht Frankfurt": 1.1428571428571428,
-    "VfB Stuttgart": 0.8571428571428571,
-    "Schalke 04": 0.8571428571428571,
+    "Schalke 04": 0.75,
     "1. FC Union Berlin": 0.8571428571428571,
-    "Borussia Mönchengladbach": 0.42857142857142855
+    "Borussia Mönchengladbach": 0.5
    },
    "ita.1": {
     "Internazionale": 2.7777777777777777,
     "Lazio": 2.7777777777777777,
-    "AS Roma": 2.3333333333333335,
+    "AS Roma": 2.4,
     "Como": 2.2222222222222223,
     "AC Milan": 2,
     "Frosinone": 1.8888888888888888,
@@ -3318,9 +3262,9 @@
     "Lecce": 1,
     "Sassuolo": 0.8888888888888888,
     "Monza": 0.7,
-    "Udinese": 0.5555555555555556,
     "Fiorentina": 0.5555555555555556,
     "Parma": 0.5555555555555556,
+    "Udinese": 0.5,
     "Venezia": 0.3333333333333333
    },
    "fra.1": {
@@ -3344,29 +3288,29 @@
     "Le Havre AC": 0.2222222222222222
    },
    "eng.2": {
-    "Middlesbrough": 2.0833333333333335,
+    "Middlesbrough": 2.1538461538461537,
+    "Swansea City": 2,
+    "Wolverhampton Wanderers": 1.8461538461538463,
+    "West Bromwich Albion": 1.8461538461538463,
+    "Southampton": 1.7692307692307692,
     "Birmingham City": 1.7692307692307692,
     "Stoke City": 1.7692307692307692,
-    "Swansea City": 1.9166666666666667,
-    "West Ham United": 1.8333333333333333,
-    "Wolverhampton Wanderers": 1.75,
-    "West Bromwich Albion": 1.75,
-    "Southampton": 1.6666666666666667,
-    "Queens Park Rangers": 1.6666666666666667,
+    "West Ham United": 1.6923076923076923,
+    "Queens Park Rangers": 1.5384615384615385,
     "Sheffield United": 1.4615384615384615,
-    "Blackburn Rovers": 1.5,
-    "Portsmouth": 1.5,
+    "Portsmouth": 1.4615384615384615,
+    "Millwall": 1.3846153846153846,
+    "Blackburn Rovers": 1.3846153846153846,
+    "Bristol City": 1.3846153846153846,
     "Norwich City": 1.1538461538461537,
-    "Millwall": 1.25,
-    "Bristol City": 1.25,
     "Lincoln City": 1.1538461538461537,
-    "Cardiff City": 1.1666666666666667,
+    "Cardiff City": 1.0769230769230769,
     "Wrexham": 1.0769230769230769,
-    "Bolton Wanderers": 1.1666666666666667,
-    "Charlton Athletic": 1.1666666666666667,
+    "Bolton Wanderers": 1.0769230769230769,
+    "Charlton Athletic": 1.0769230769230769,
     "Watford": 0.8461538461538461,
-    "Burnley": 0.6666666666666666,
-    "Derby County": 0.5833333333333334,
+    "Burnley": 0.6923076923076923,
+    "Derby County": 0.5384615384615384,
     "Preston North End": 0.38461538461538464
    },
    "uefa.europa": {
