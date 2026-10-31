@@ -93,6 +93,12 @@
       "validTo": "2027-12-31",
       "source": "https://www.allente.no/tv-guide-old/tv-rettigheter-i-norge/"
     },
+    "tennis.atp": {
+      "services": ["tv2play"],
+      "validTo": "2026-12-31",
+      "source": "https://sportcal.com/newsletters/tv2-snaps-up-atp-tour-rights-in-norway-until-2026",
+      "note": "TV 2 has the ATP Tour 2024–2026, including all Masters 1000 and the ATP Finals; check who has it from 2027"
+    },
     "f1": {
       "services": [
         "viaplay",

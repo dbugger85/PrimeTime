@@ -55,7 +55,7 @@ export function skipShades(e) {
 }
 
 const LATE_ROUNDS = {
-  r3: ['Round 3', 'Round 4', 'Quarterfinal', 'Semifinal', 'Final'],
+  r3: ['Round 3', 'Round 4', 'Group Stage', 'Quarterfinal', 'Semifinal', 'Final'], // ATP Finals: the group stage is all top 8
   qf: ['Quarterfinal', 'Semifinal', 'Final'],
 };
 

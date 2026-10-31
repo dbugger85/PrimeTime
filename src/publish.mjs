@@ -128,7 +128,7 @@ export function trimFacts(f) {
 
 // Players are sorted by name: ESPN tends to list the winner second.
 export const publishTennis = (match, scored) => ({
-  ...base(`tn-${match.espnId}`, 'tennis', 'tennis.slam', match.tournament, match.start, scored, 'tennis.slam'),
+  ...base(`tn-${match.espnId}`, 'tennis', match.comp ?? 'tennis.slam', match.tournament, match.start, scored, match.comp ?? 'tennis.slam'),
   players: [...match.players].sort((a, b) => a.localeCompare(b)),
   draw: match.draw,
   round: match.round,
@@ -231,7 +231,7 @@ export const upcomingFootball = (comp, match, { lineups, stakes, forecast, outlo
 });
 
 export const upcomingTennis = (match) => ({
-  ...upcomingBase(`tn-${match.espnId}`, 'tennis', 'tennis.slam', match.tournament, match.start, match.live, 'tennis.slam'),
+  ...upcomingBase(`tn-${match.espnId}`, 'tennis', match.comp ?? 'tennis.slam', match.tournament, match.start, match.live, match.comp ?? 'tennis.slam'),
   players: [...match.players].sort((a, b) => a.localeCompare(b)),
   draw: match.draw,
   round: match.round,

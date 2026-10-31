@@ -5,10 +5,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { factsFromSummary } from '../src/sources/espn-football.mjs';
-import { matchesFromSlam } from '../src/sources/espn-tennis.mjs';
+import { matchesFromSlam, upcomingFromSlam } from '../src/sources/espn-tennis.mjs';
 import { factsFromRace, factsFromQuali } from '../src/sources/openf1.mjs';
 import { scoreFootball, footballAdvice } from '../src/scoring/football.mjs';
 import { scoreTennis, tennisAdvice } from '../src/scoring/tennis.mjs';
+import { publishTennis } from '../src/publish.mjs';
 import { scoreF1, f1Advice, scoreQuali } from '../src/scoring/f1.mjs';
 import { quietRuns, heat, SCORING_VERSIONS, fingerprint, finalScore, tally } from '../src/scoring/common.mjs';
 import { forecastOf, outlookOf, stakesFor } from '../src/prematch.mjs';
@@ -285,6 +286,18 @@ test('F1 sprints: a third of the distance, so overtakes count three times', () =
 const winter = (name) => fixture(`winter/${name}.json`);
 const biathlon = (name) => { const { r, d } = winter(name); return scoreBiathlon(biathlonFacts(r, d)); };
 const fisPage = (name) => fis.resultFromPage(winter(name).html);
+
+test('ATP events: own names, best of three, men\'s singles only, on TV 2 Play', () => {
+  const event = fixture('tennis/atpfinals2025.json').events[0];
+  const matches = matchesFromSlam(event);
+  assert.equal(matches.length, 15, '12 group matches, 2 semifinals, the final');
+  assert.ok(matches.every((m) => m.comp === 'tennis.atp' && m.tournament === 'ATP Finals' && m.bestOf === 3));
+  assert.deepEqual(publishTennis(matches[0], scoreTennis(matches[0])).services, ['tv2play']);
+  // Joint ATP/WTA events (Indian Wells, Madrid …): the women's draw is left out.
+  const joint = { ...event, groupings: event.groupings.map((g) => ({ ...g, grouping: { ...g.grouping, slug: 'womens-singles' } })) };
+  assert.equal(matchesFromSlam(joint).length, 0);
+  assert.equal(upcomingFromSlam(joint).length, 0);
+});
 
 test('biathlon: a mass start decided by 0.3 s beats a runaway sprint', () => {
   const ms = biathlon('biathlon-annecy-2025-women-mass-start'); // 0.3 s, four lead changes

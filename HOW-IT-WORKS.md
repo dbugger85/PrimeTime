@@ -54,7 +54,7 @@ Each pillar has a soft ceiling, so piling up more of the same counts less and le
 - **Skip tips** come from quiet 5-minute spells, roughly no more than one shot on target, like "Skip 20'–50'" or "Start at 35'". There are at most three. They stop a little before the action, so you get the build-up.
 - The better the match, the longer a quiet spell must be before it's worth skipping. A 9 or more is always "Watch it all", and under 3 is "Highlights".
 
-## Tennis (Grand Slam singles)
+## Tennis (Grand Slam singles, ATP Masters 1000 and the ATP Finals)
 
 - **The distance:** the full five (or three) sets gets the most; four sets in a best-of-five gets some.
 - **Close sets:** a tiebreak or 7–5 counts fully, 6–4 a bit, 6–1 hardly at all. Each tiebreak adds more, and a final-set tiebreak most.

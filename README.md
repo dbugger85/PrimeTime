@@ -21,7 +21,7 @@
   </tr>
 </table>
 
-PrimeTime rates finished football matches, tennis Grand Slam matches, F1 races and winter sports (biathlon, alpine, cross-country) from 0 to 10 for how exciting they were, without ever showing a result. Each event gets:
+PrimeTime rates finished football matches, tennis matches (Grand Slams, ATP Masters 1000 and the ATP Finals), F1 races and winter sports (biathlon, alpine, cross-country) from 0 to 10 for how exciting they were, without ever showing a result. Each event gets:
 
 - a **watchability score** and a label (Skip it / Decent / Good / Must-watch),
 - a **skip tip**, like "Skip the first half", "Start from set 3" or "Watch the start, then skip to lap 30",

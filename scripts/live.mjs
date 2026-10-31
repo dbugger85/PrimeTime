@@ -141,15 +141,17 @@ async function liveF1() {
 
 async function liveTennis() {
   if (!upcoming.some((e) => e.sport === 'tennis' && inWindow(e, 6))) return;
-  // During a Slam, today's scoreboard returns the whole tournament in one request.
-  const current = await tennis.fetchSlamOn(ymd(now.toISOString()));
-  if (!current) return;
-  for (const m of tennis.matchesFromSlam(current)) {
+  // Today's scoreboard returns each tournament being played (Slam, Masters, ATP Finals) whole, in one request.
+  const current = await tennis.fetchSlamsOn(ymd(now.toISOString()));
+  if (!current.length) return;
+  for (const m of current.flatMap(tennis.matchesFromSlam)) {
     if (events.has(`tn-${m.espnId}`)) continue;
     const scored = scoreTennis(m);
     save(publishTennis(m, scored), scored);
   }
-  upcoming = [...upcoming.filter((e) => e.sport !== 'tennis'), ...tennis.upcomingFromSlam(current).map(upcomingTennis)];
+  // Tournaments not on today's scoreboard (one that starts tomorrow) keep their entries.
+  const fresh = new Set(current.map(tennis.nameOf));
+  upcoming = [...upcoming.filter((e) => e.sport !== 'tennis' || !fresh.has(e.compName)), ...current.flatMap(tennis.upcomingFromSlam).map(upcomingTennis)];
 }
 
 // Winter races: only the LIVE badge, by the clock. They're scored by the full
