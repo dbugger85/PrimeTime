@@ -217,6 +217,10 @@ test('winter: titles, gender filter, sport chips and favorites per sport and gen
   assert.equal(adviceText({ code: 'skip', unit: 'stage', ranges: [[1, 2]] }), 'Start after shooting 2');
   assert.equal(adviceText({ code: 'skip', unit: 'leg', ranges: [[1, 2]] }), 'Start at leg 3');
   assert.equal(adviceText({ code: 'skip', unit: 'run', ranges: [[1, 1]] }), 'Skip run 1');
+  assert.equal(adviceText({ code: 'watch', unit: 'bib', ranges: [[1, 10], [41, 50]] }), 'Watch bibs 1–10 and 41–50');
+  assert.equal(adviceText({ code: 'watch', unit: 'run', ranges: [[1, 10]], last: 15 }), 'Run 1: bibs 1–10, then the last 15 in run 2');
+  assert.equal(adviceText({ code: 'watch', unit: 'run', ranges: [], last: 10 }), 'Skip run 1, then watch the last 10 in run 2');
+  assert.equal(adviceText({ code: 'watch', unit: 'run', ranges: [[1, 20]], last: 30 }), 'Run 1: bibs 1–20, then all of run 2');
 });
 
 test('pre-match hints: one short line, or nothing', () => {

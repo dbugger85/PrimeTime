@@ -15,6 +15,12 @@ const joinAnd = (parts) => (parts.length < 2 ? parts.join('') : `${parts.slice(0
 export function adviceText(a) {
   if (a?.code === 'full') return 'Watch it all';
   if (a?.code === 'highlights') return 'Highlights are enough';
+  if (a?.code === 'watch') { // winter: the bibs (start numbers) where the top 3 started
+    const bibs = joinAnd(a.ranges.map(([x, y]) => `${x}–${y}`));
+    if (a.unit === 'bib') return `Watch bibs ${bibs}`;
+    const run2 = a.last >= 30 ? 'all of run 2' : `the last ${a.last} in run 2`;
+    return a.ranges.length ? `Run 1: bibs ${bibs}, then ${run2}` : `Skip run 1, then watch ${run2}`;
+  }
   if (a?.code !== 'skip' || !a.ranges?.length) return '';
   const r = a.ranges;
   if (a.unit === 'set') {

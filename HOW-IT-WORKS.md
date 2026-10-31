@@ -80,6 +80,8 @@ The score never shows whether the driver on pole won: a pass for the lead counts
 - **Alpine skiing:** the winning margin (under 0.05 s gets the most), a tight top 5, and in two-run races a comeback from 4th or worse after run 1. In one-run races, a skier starting 30th or later reaching the podium.
 - **Cross-country skiing:** the winning margin, a big group at the finish, and a close podium.
 
+**Which part to watch:** races where skiers start one by one say which bibs (start numbers) to watch, like "Watch bibs 1–10 and 41–50": the windows of ten where the top 3 started. That's alpine downhill and super-G, biathlon sprints and individuals, and cross-country interval starts. Slalom and giant slalom say it per run, like "Run 1: bibs 1–10, then the last 15 in run 2". Run 2 starts in reverse order, so the leader after run 1 goes last. These tips give a small hint (a late window means someone from far back did well), which is accepted for being more useful. Head-to-head races (mass starts, pursuits, relays) keep "Watch it all" or a shooting/leg to start from.
+
 Athlete names are never shown on winter cards, because start lists give earlier results away.
 
 ## Never a spoiler

@@ -125,6 +125,7 @@ export function alpineFacts(page) {
     runs,
     gapP2: rows[1] ? gap(rows[1]) : null,
     gapP5: rows[4] ? gap(rows[4]) : null,
+    topBibs: rows.slice(0, 3).map((r) => r.bib), // for "Watch bibs 1–20"
     result: podium(rows, gap),
   };
   if (runs === 2) {
@@ -138,6 +139,8 @@ export function alpineFacts(page) {
     f.run1LeaderFinish = run1[0].rank; // null: the leader went out in run 2
     f.run1Spread = run1[4] ? run1[4].time - run1[0].time : null; // top 5 after run 1
     f.bigMover = rows.slice(0, 10).some((r) => run1Rank.get(r) - r.rank >= 10);
+    f.run1TopBibs = run1.slice(0, 3).map((x) => x.row.bib); // run 1 goes in bib order
+    f.run2Last = Math.max(...rows.slice(0, 3).map((r) => run1Rank.get(r))); // run 2 goes in reverse run-1 order
     f.result += ` (winner ${run1Rank.get(rows[0])}. after run 1)`;
   } else {
     f.lateBibPodium = rows.slice(0, 3).some((r) => r.bib >= 30);
@@ -155,6 +158,7 @@ export function crossCountryFacts(page, discipline) {
     gapP2: rows[1] ? gap(rows[1]) : null,
     gapP3: rows[2] ? gap(rows[2]) : null,
     within5: rows.filter((r) => gap(r) <= 5).length,
+    topBibs: rows.slice(0, 3).map((r) => r.bib), // interval starts go in bib order
     result: podium(rows, gap),
   };
 }

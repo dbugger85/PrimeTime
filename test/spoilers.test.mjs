@@ -90,7 +90,15 @@ export function checkEvent(e) {
   for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}"`);
   if (!quali) {
     assert.ok(ADVICE_CODES.includes(e.advice.code), `${e.id}: advice ${e.advice.code}`);
-    assert.deepEqual(Object.keys(e.advice).filter((k) => !['code', 'unit', 'ranges'].includes(k)), []);
+    assert.deepEqual(Object.keys(e.advice).filter((k) => !['code', 'unit', 'ranges', 'last'].includes(k)), []);
+  }
+  if (e.advice?.code === 'watch') {
+    assert.equal(e.sport, 'winter', `${e.id}: bib tips are for winter races`);
+    assert.ok(['bib', 'run'].includes(e.advice.unit), `${e.id}: unit ${e.advice.unit}`);
+    assert.ok(e.advice.ranges.length <= 3 && (e.advice.unit === 'run' || e.advice.ranges.length >= 1));
+    assert.ok(e.advice.ranges.every(([a, b]) => Number.isInteger(a) && Number.isInteger(b) && a <= b && a % 10 === 1 && b % 10 === 0), `${e.id}: windows of ten bibs`);
+    if (e.advice.unit === 'run') assert.ok([10, 15, 20, 30].includes(e.advice.last), `${e.id}: run-2 starters ${e.advice.last}`);
+    else assert.equal(e.advice.last, undefined);
   }
   if (e.advice?.code === 'skip') {
     assert.ok(e.advice.ranges.length >= 1 && e.advice.ranges.length <= 3);

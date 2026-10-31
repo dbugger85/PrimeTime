@@ -8,8 +8,8 @@ import { FORECASTS, OUTLOOKS, STAKES } from './prematch.mjs';
 
 const rights = JSON.parse(readFileSync(new URL('./rights/norway.json', import.meta.url)));
 
-export const ADVICE_CODES = ['full', 'highlights', 'skip'];
-const UNITS = ['min', 'lap', 'set', 'stage', 'leg', 'run']; // stage, leg: biathlon; run: alpine
+export const ADVICE_CODES = ['full', 'highlights', 'skip', 'watch'];
+const UNITS = ['min', 'lap', 'set', 'stage', 'leg', 'run', 'bib']; // stage, leg: biathlon; run: alpine; bib: winter
 
 // ctx { country, series, start } is used by entries with rules (winter sports):
 // the first rule whose conditions all match decides, otherwise `services`.
@@ -25,9 +25,11 @@ export function servicesFor(rightsKey, ctx = {}) {
 
 function cleanAdvice(a) {
   if (!ADVICE_CODES.includes(a?.code)) throw new Error(`Unknown advice code: ${a?.code}`);
-  if (a.code !== 'skip') return { code: a.code };
+  if (a.code !== 'skip' && a.code !== 'watch') return { code: a.code };
   if (!UNITS.includes(a.unit)) throw new Error(`Unknown advice unit: ${a.unit}`);
   const ranges = a.ranges.slice(0, 3).map(([from, to]) => [Math.round(from), Math.round(to)]);
+  // Watch tips: bibs to watch; alpine two-run races also `last` (run-2 starters), and no run-1 bibs means skip run 1.
+  if (a.code === 'watch') return a.unit === 'run' ? { code: 'watch', unit: 'run', ranges, last: Math.round(a.last) } : { code: 'watch', unit: a.unit, ranges };
   return { code: 'skip', unit: a.unit, ranges };
 }
 

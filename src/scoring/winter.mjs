@@ -11,6 +11,21 @@
 import { finalScore, heat, tally, plural, times } from './common.mjs';
 import { BIATHLON as B, ALPINE as A, CROSS_COUNTRY as C } from './weights.mjs';
 
+// The bibs of the top 3 as windows of ten, joined when they touch: [4, 9, 42] -> [[1, 10], [41, 50]].
+export function bibWindows(bibs = []) {
+  const out = [];
+  for (const k of [...new Set(bibs.filter((b) => b > 0).map((b) => Math.ceil(b / 10)))].sort((a, b) => a - b)) {
+    const last = out.at(-1);
+    if (last && last[1] === k * 10 - 10) last[1] = k * 10;
+    else out.push([k * 10 - 9, k * 10]);
+  }
+  return out;
+}
+// Run 2 of slalom and giant slalom goes in reverse run-1 order (the run-1 leader last),
+// so "the last 15 starters" covers everyone who ends in the top 3.
+const RUN2_LAST = [10, 15, 20, 30];
+const run2Last = (worst) => RUN2_LAST.find((n) => n >= (worst ?? 30)) ?? 30;
+
 const ordinal = (n) => `${n}${n % 10 === 1 && n % 100 !== 11 ? 'st' : n % 10 === 2 && n % 100 !== 12 ? 'nd' : n % 10 === 3 && n % 100 !== 13 ? 'rd' : 'th'}`;
 
 export function scoreBiathlon(f) {
@@ -51,6 +66,7 @@ export function scoreBiathlon(f) {
 // clock get "Watch it all" or "Highlights are enough".
 export function biathlonAdvice(score, blocks, f) {
   if (score < 3) return { code: 'highlights' };
+  if (!f.h2h && !f.relay && f.topBibs?.length) return { code: 'watch', unit: 'bib', ranges: bibWindows(f.topBibs) };
   if (score >= 9 || !f.h2h) return { code: score >= 5 ? 'full' : 'highlights' };
   const skippable = f.relay ? blocks.length - 1 : blocks.length - 2; // not the last leg; not the last shooting or the finish
   let k = 0;
@@ -76,10 +92,13 @@ export function scoreAlpine(f) {
   const score = finalScore(t.total);
   // Two-run races: one block per run. Run 2 carries the finish.
   const segments = f.runs === 2 ? heat([f.run1Spread != null ? Math.max(0, 1.5 - f.run1Spread) : 0.5, 1 + (t.total - A.base)]) : [];
-  // "Skip run 1" only looks at run 1 (a big spread at the top), never at who won:
-  // whether the run-1 leader won is exactly what someone who saw run 1 mustn't learn.
+  // Which bibs to watch: where the top 3 started. Two-run races also say how many of
+  // the last run-2 starters to watch. "Skip run 1" only looks at run 1 (a big spread at the top).
+  const skipRun1 = f.runs === 2 && score < 9 && (f.run1Spread ?? 0) > 1;
   const advice = score < 3 ? { code: 'highlights' }
-    : f.runs === 2 && score < 9 && (f.run1Spread ?? 0) > 1 ? { code: 'skip', unit: 'run', ranges: [[1, 1]] }
+    : f.runs === 2 && f.run1TopBibs ? { code: 'watch', unit: 'run', ranges: skipRun1 ? [] : bibWindows(f.run1TopBibs), last: run2Last(f.run2Last) }
+    : f.runs !== 2 && f.topBibs?.length ? { code: 'watch', unit: 'bib', ranges: bibWindows(f.topBibs) }
+    : skipRun1 ? { code: 'skip', unit: 'run', ranges: [[1, 1]] }
     : { code: score >= 5 ? 'full' : 'highlights' };
   return { score, segments, advice, reasons: t.reasons, result: f.result };
 }
@@ -99,5 +118,8 @@ export function scoreCrossCountry(f) {
     if (f.massStart) t.add(f.within5 >= 6 ? C.bigGroup : f.within5 >= 3 ? C.groupFinish : 0, `${f.within5} within 5 s at the finish`);
   }
   const score = finalScore(t.total);
-  return { score, segments: [], advice: { code: score >= 5 ? 'full' : 'highlights' }, reasons: t.reasons, result: f.result };
+  const advice = score < 3 ? { code: 'highlights' }
+    : !f.massStart && !f.sprint && f.topBibs?.length ? { code: 'watch', unit: 'bib', ranges: bibWindows(f.topBibs) }
+    : { code: score >= 5 ? 'full' : 'highlights' };
+  return { score, segments: [], advice, reasons: t.reasons, result: f.result };
 }

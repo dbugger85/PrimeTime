@@ -142,6 +142,7 @@ export function factsFromRace(race, d) {
     gapP3: rows[2] ? behind(rows[2]) : null,
     within10: rows.filter((r) => behind(r) <= 10).length,
     within30: rows.filter((r) => behind(r) <= 30).length,
+    topBibs: rows.slice(0, 3).map((r) => r.StartOrder).filter(Number.isInteger), // sprint and individual go in this order
     missesByStage,
     leaders, // IBU ids, after each shooting (pursuit and mass start only)
     leadChanges,

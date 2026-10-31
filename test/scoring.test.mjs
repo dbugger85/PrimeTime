@@ -17,7 +17,7 @@ import { tablesFrom } from '../src/sources/espn-standings.mjs';
 import * as WEIGHTS from '../src/scoring/weights.mjs';
 import { factsFromRace as biathlonFacts, seconds } from '../src/sources/ibu.mjs';
 import * as fis from '../src/sources/fis.mjs';
-import { scoreBiathlon, scoreAlpine, scoreCrossCountry, biathlonAdvice } from '../src/scoring/winter.mjs';
+import { scoreBiathlon, scoreAlpine, scoreCrossCountry, biathlonAdvice, bibWindows } from '../src/scoring/winter.mjs';
 import { calendarDays } from '../src/sources/winter.mjs';
 
 const fixture = (path) => JSON.parse(readFileSync(new URL(`./fixtures/${path}`, import.meta.url)));
@@ -339,6 +339,18 @@ test('FIS pages: result rows, times and gaps', () => {
   assert.deepEqual(calendarDays('29 Nov-01 Dec 2025').map((d) => d.toISOString().slice(0, 10)), ['2025-11-29', '2025-12-01']);
 });
 
+test('winter bib tips: windows of ten around where the top 3 started', () => {
+  assert.deepEqual(bibWindows([4, 9, 42]), [[1, 10], [41, 50]]);
+  assert.deepEqual(bibWindows([12, 25, 31]), [[11, 40]], 'touching windows join');
+  assert.deepEqual(bibWindows([54, 62, 50]), [[41, 70]]);
+  const sprint = { h2h: false, relay: false, gapP2: 4, gapP3: 6, within30: 5, missesByStage: [3, 3], topBibs: [46, 48, 22] };
+  assert.deepEqual(scoreBiathlon(sprint).advice, { code: 'watch', unit: 'bib', ranges: [[21, 30], [41, 50]] });
+  assert.deepEqual(scoreCrossCountry({ massStart: false, sprint: false, gapP2: 2, gapP3: 5, within5: 2, topBibs: [54, 62, 50] }).advice, { code: 'watch', unit: 'bib', ranges: [[41, 70]] });
+  assert.equal(scoreCrossCountry({ massStart: true, sprint: false, gapP2: 0.2, gapP3: 1, within5: 7, topBibs: [1, 2, 3] }).advice.code, 'full', 'mass starts: no bibs');
+  assert.deepEqual(scoreAlpine(fis.alpineFacts(fisPage('alpine-val-di-fassa-2026-women-downhill'))).advice, { code: 'watch', unit: 'bib', ranges: [[1, 20]] });
+  assert.deepEqual(scoreAlpine(fis.alpineFacts(fisPage('alpine-gurgl-2025-men-slalom'))).advice, { code: 'watch', unit: 'run', ranges: [[1, 10], [21, 30]], last: 15 }, 'won from 14th after run 1');
+});
+
 // From 2026/27 FIS shows a "live"/"review" badge by each race and a ski brand column in results.
 test('FIS pages: the 2026/27 layout (Soelden, men\'s giant slalom)', () => {
   const f = winter('alpine-soelden-2026-men-giant-slalom');
@@ -415,13 +427,13 @@ test('stakes add a little to the score, and say so', () => {
 });
 
 test('alpine: "Skip run 1" never depends on who won', () => {
-  const base = { runs: 2, gapP2: 0.1, gapP5: 0.4, run1Spread: 1.3, bigMover: false, result: 'x' };
-  const leaderWon = scoreAlpine({ ...base, winnerRun1: 1, run1LeaderFinish: 1 });
-  const leaderLost = scoreAlpine({ ...base, winnerRun1: 2, run1LeaderFinish: 2 });
-  const leaderOut = scoreAlpine({ ...base, winnerRun1: 2, run1LeaderFinish: null });
-  assert.equal(leaderWon.advice.code, 'skip');
+  const base = { runs: 2, gapP2: 0.1, gapP5: 0.4, run1Spread: 1.3, bigMover: false, result: 'x', run1TopBibs: [3, 8, 14] };
+  const leaderWon = scoreAlpine({ ...base, winnerRun1: 1, run1LeaderFinish: 1, run2Last: 4 });
+  const leaderLost = scoreAlpine({ ...base, winnerRun1: 2, run1LeaderFinish: 2, run2Last: 4 });
+  const leaderOut = scoreAlpine({ ...base, winnerRun1: 2, run1LeaderFinish: null, run2Last: 12 });
+  assert.deepEqual(leaderWon.advice, { code: 'watch', unit: 'run', ranges: [], last: 10 }, 'skip run 1, the last 10 in run 2');
   assert.deepEqual(leaderLost.advice, leaderWon.advice);
-  assert.deepEqual(leaderOut.advice, leaderWon.advice);
+  assert.equal(leaderOut.advice.last, 15, 'a podium from 12th after run 1: the last 15');
   assert.ok(leaderOut.reasons.some(([, l]) => /out of the result/.test(l)), 'a run-1 leader who went out is noticed');
 });
 
