@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-10-31T13:25:31.330Z",
+ "lastFull": "2026-10-31T16:15:40.879Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2114,18 +2114,6 @@
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/tsjekkia-england-737pakhx"
    }
   },
-  "fb-401861089": {
-   "start": "2026-09-29T16:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/finland-belarus-3yncfvnc"
-   }
-  },
-  "fb-401861090": {
-   "start": "2026-09-29T16:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/moldova-faeroeyene-bbqpedp0"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -2873,6 +2861,54 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/manchester-united-roma-exg00tvt"
    }
+  },
+  "fb-401915383": {
+   "start": "2026-11-04T17:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/aek-real-madrid-xhhw7qmb"
+   }
+  },
+  "fb-401915382": {
+   "start": "2026-11-04T17:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/fenerbahce-liverpool-zzh6beqh"
+   }
+  },
+  "fb-401915304": {
+   "start": "2026-11-04T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/dortmund-real-betis-9k3x9n2y"
+   }
+  },
+  "fb-401915306": {
+   "start": "2026-11-04T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/leipzig-manchester-city-egwa8dwv"
+   }
+  },
+  "fb-401915305": {
+   "start": "2026-11-04T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/lens-como-tfyeazk4"
+   }
+  },
+  "fb-401915303": {
+   "start": "2026-11-04T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/psv-club-brugge-pmpf3h1w"
+   }
+  },
+  "fb-401915301": {
+   "start": "2026-11-04T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/porto-napoli-m038qkz0"
+   }
+  },
+  "fb-401915302": {
+   "start": "2026-11-04T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/viking-sabah-be69e5yj"
+   }
   }
  },
  "ratings": {
@@ -3149,8 +3185,8 @@
     "Manchester City": 2.625,
     "Arsenal": 2.625,
     "Brighton & Hove Albion": 2,
+    "Chelsea": 1.7777777777777777,
     "Liverpool": 1.875,
-    "Chelsea": 1.625,
     "Brentford": 1.375,
     "Leeds United": 1.375,
     "Newcastle United": 1.375,
@@ -3161,7 +3197,7 @@
     "AFC Bournemouth": 1.125,
     "Tottenham Hotspur": 1.125,
     "Fulham": 1,
-    "Manchester United": 0.875,
+    "Manchester United": 0.7777777777777778,
     "Crystal Palace": 0.875,
     "Nottingham Forest": 0.75,
     "Coventry City": 0.75,
@@ -3224,8 +3260,8 @@
     "IK Start": 0.7916666666666666
    },
    "esp.1": {
+    "Atlético Madrid": 2.5454545454545454,
     "Barcelona": 2.7,
-    "Atlético Madrid": 2.5,
     "Real Madrid": 2.4,
     "Real Betis": 2,
     "Real Sociedad": 1.9,
@@ -3238,8 +3274,8 @@
     "Espanyol": 1,
     "Osasuna": 1.1,
     "Racing Santander": 1.1,
-    "Levante": 1,
     "Elche": 1,
+    "Levante": 0.9090909090909091,
     "Rayo Vallecano": 1,
     "Getafe": 0.9,
     "Valencia": 0.6,
@@ -3274,14 +3310,14 @@
     "Frosinone": 1.8888888888888888,
     "Napoli": 1.5555555555555556,
     "Juventus": 1.5555555555555556,
+    "Bologna": 1.4,
     "Torino": 1.4444444444444444,
     "Cagliari": 1.4444444444444444,
-    "Bologna": 1.2222222222222223,
     "Atalanta": 1.2222222222222223,
     "Genoa": 1.1111111111111112,
     "Lecce": 1,
     "Sassuolo": 0.8888888888888888,
-    "Monza": 0.7777777777777778,
+    "Monza": 0.7,
     "Udinese": 0.5555555555555556,
     "Fiorentina": 0.5555555555555556,
     "Parma": 0.5555555555555556,
@@ -3309,29 +3345,29 @@
    },
    "eng.2": {
     "Middlesbrough": 2.0833333333333335,
+    "Birmingham City": 1.7692307692307692,
+    "Stoke City": 1.7692307692307692,
     "Swansea City": 1.9166666666666667,
     "West Ham United": 1.8333333333333333,
     "Wolverhampton Wanderers": 1.75,
     "West Bromwich Albion": 1.75,
     "Southampton": 1.6666666666666667,
-    "Birmingham City": 1.6666666666666667,
     "Queens Park Rangers": 1.6666666666666667,
-    "Stoke City": 1.6666666666666667,
     "Sheffield United": 1.4615384615384615,
     "Blackburn Rovers": 1.5,
     "Portsmouth": 1.5,
+    "Norwich City": 1.1538461538461537,
     "Millwall": 1.25,
     "Bristol City": 1.25,
-    "Lincoln City": 1.25,
+    "Lincoln City": 1.1538461538461537,
     "Cardiff City": 1.1666666666666667,
     "Wrexham": 1.0769230769230769,
     "Bolton Wanderers": 1.1666666666666667,
     "Charlton Athletic": 1.1666666666666667,
-    "Norwich City": 1,
-    "Watford": 0.9166666666666666,
+    "Watford": 0.8461538461538461,
     "Burnley": 0.6666666666666666,
     "Derby County": 0.5833333333333334,
-    "Preston North End": 0.4166666666666667
+    "Preston North End": 0.38461538461538464
    },
    "uefa.europa": {
     "Benfica": 3,
