@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-10-31T19:10:41.050Z",
+ "lastFull": "2026-10-31T22:01:05.976Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -3133,17 +3133,17 @@
     "Liverpool": 1.875,
     "Brentford": 1.5555555555555556,
     "AFC Bournemouth": 1.3333333333333333,
+    "Tottenham Hotspur": 1.3333333333333333,
+    "Aston Villa": 1.3333333333333333,
     "Hull City": 1.2222222222222223,
     "Leeds United": 1.2222222222222223,
     "Newcastle United": 1.375,
-    "Aston Villa": 1.375,
     "Ipswich Town": 1.2222222222222223,
     "Everton": 1.25,
-    "Tottenham Hotspur": 1.125,
-    "Coventry City": 1,
     "Fulham": 1,
+    "Coventry City": 1,
     "Manchester United": 0.7777777777777778,
-    "Crystal Palace": 0.875,
+    "Crystal Palace": 0.7777777777777778,
     "Nottingham Forest": 0.6666666666666666,
     "Sunderland": 0.5555555555555556
    },
@@ -3204,16 +3204,16 @@
     "IK Start": 0.7916666666666666
    },
    "esp.1": {
+    "Barcelona": 2.727272727272727,
     "Atlético Madrid": 2.5454545454545454,
-    "Barcelona": 2.7,
     "Real Madrid": 2.4,
-    "Real Betis": 2,
+    "Real Betis": 2.090909090909091,
     "Real Sociedad": 1.9,
     "Sevilla": 1.7,
-    "Alavés": 1.2,
     "Athletic Club": 1.3333333333333333,
     "Villarreal": 1.0909090909090908,
     "Celta Vigo": 1.0909090909090908,
+    "Alavés": 1.0909090909090908,
     "Rayo Vallecano": 1.2,
     "Deportivo": 1.1,
     "Espanyol": 1,
@@ -3223,11 +3223,11 @@
     "Levante": 0.9090909090909091,
     "Getafe": 0.9,
     "Valencia": 0.6,
-    "Málaga": 0.5
+    "Málaga": 0.45454545454545453
    },
    "ger.1": {
-    "Bayern Munich": 2.4285714285714284,
-    "Borussia Dortmund": 2.4285714285714284,
+    "Bayern Munich": 2.25,
+    "Borussia Dortmund": 2.25,
     "SC Freiburg": 2,
     "RB Leipzig": 1.875,
     "Werder Bremen": 1.875,
@@ -3246,11 +3246,11 @@
     "Borussia Mönchengladbach": 0.5
    },
    "ita.1": {
-    "Internazionale": 2.7777777777777777,
     "Lazio": 2.7777777777777777,
+    "Internazionale": 2.5,
     "AS Roma": 2.4,
+    "AC Milan": 2.1,
     "Como": 2.2222222222222223,
-    "AC Milan": 2,
     "Frosinone": 1.8888888888888888,
     "Napoli": 1.5555555555555556,
     "Juventus": 1.5555555555555556,
@@ -3282,9 +3282,9 @@
     "AJ Auxerre": 1.25,
     "Brest": 1.125,
     "Angers": 1,
-    "Le Mans": 0.875,
+    "Troyes": 0.8888888888888888,
     "Strasbourg": 0.875,
-    "Troyes": 0.625,
+    "Le Mans": 0.7777777777777778,
     "Le Havre AC": 0.2222222222222222
    },
    "eng.2": {
