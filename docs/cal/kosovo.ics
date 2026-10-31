@@ -29,4 +29,15 @@ DESCRIPTION:Nations League\nWatch on TV 2 Play\nhttps://dbugger85.github.io
  /PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401861163@primetime
+DTSTAMP:20261114T140000Z
+DTSTART:20261114T140000Z
+DTEND:20261114T160000Z
+SUMMARY:Kosovo – Israel
+LOCATION:TV 2 Play
+DESCRIPTION:Nations League · Relegation battle\nWatch on TV 2 Play\nhttps:
+ //dbugger85.github.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
