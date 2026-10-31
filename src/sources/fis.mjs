@@ -49,7 +49,8 @@ export function racesFromEvent(html) {
   for (const row of body.split(/<div class="table-row reset-padding/).slice(1)) {
     const raceId = row.match(/raceid=(\d+)/)?.[1];
     if (!raceId) continue;
-    const t = texts(row).filter((x) => !/^[DPC]$/.test(x) && x !== '">');
+    // FIS's small "live" / "review" badge next to the codex (since 2026/27) isn't a column.
+    const t = texts(row.replace(/<div class="live\b[^"]*"[^>]*>[\s\S]*?<\/div>\s*<\/div>/g, '')).filter((x) => !/^[DPC]$/.test(x) && x !== '">');
     // [date, time, codex, discipline, (venue, for events at several venues), discipline, category, gender, …]
     const codexAt = t.findIndex((x) => /^\d{4}$/.test(x));
     const genderAt = t.findIndex((x, i) => i > codexAt + 2 && /^[WMX]$/.test(x));
@@ -89,20 +90,24 @@ export function resultFromPage(html) {
   for (const chunk of html.split(/<a class="table-row"/).slice(1)) {
     if (!/athlete-biography/.test(chunk.slice(0, 300))) continue;
     const t = texts(chunk.slice(0, chunk.indexOf('</a>'))).slice(1); // the first piece is the link's attributes
-    // Ranked rows: rank, bib, FIS code, name, year, nation, times… Unranked (DNF, DSQ): bib, code, name, …
+    // Ranked rows: rank, bib, FIS code, name, (ski brand, since 2026/27), year, nation, times…
+    // Unranked (DNF, DSQ): bib, code, name, (brand), year, nation, …
     const ranked = /^\d{5,}$/.test(t[2] ?? '') && /^\d+$/.test(t[0]);
+    const nameAt = ranked ? 3 : 2;
+    const nationAt = t.findIndex((x, i) => i > nameAt + 1 && /^[A-Z]{3}$/.test(x) && /^\d{4}$/.test(t[i - 1]));
+    if (nationAt < 0) continue;
     if (!ranked) {
       unranked++;
-      if (TIME.test(t[5] ?? '')) out.push({ bib: Number(t[0]), name: t[2], nation: t[4], run1: secondsOf(t[5]) });
+      if (TIME.test(t[nationAt + 1] ?? '')) out.push({ bib: Number(t[0]), name: t[2], nation: t[nationAt], run1: secondsOf(t[nationAt + 1]) });
       continue;
     }
     // After the times comes the gap to the winner ("+0.58"; the winner's own row
     // repeats their time there), then FIS points. Keep only the times.
-    const rest = t.slice(6);
+    const rest = t.slice(nationAt + 1);
     let gapAt = rest.findIndex((x) => x.startsWith('+'));
     if (gapAt < 0) gapAt = rest.findIndex((x, i) => i > 0 && x === rest[i - 1]);
     const timesList = (gapAt < 0 ? rest : rest.slice(0, gapAt)).filter((x) => TIME.test(x));
-    rows.push({ rank: Number(t[0]), bib: Number(t[1]), name: t[3], nation: t[5], times: timesList.map(secondsOf) });
+    rows.push({ rank: Number(t[0]), bib: Number(t[1]), name: t[3], nation: t[nationAt], times: timesList.map(secondsOf) });
   }
   return { place: head[1] ?? '', series: head[2] ?? '', name: head[3] ?? '', rows, unranked, out };
 }

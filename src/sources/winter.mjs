@@ -76,7 +76,8 @@ export async function listRaces(now, state, { aheadDays = 14, keepDays = 400 } =
             });
           }
           // An event that ended over two days ago with official results for every race (or over a week ago) won't change.
-          if (last && ((now - last > 2 * 864e5 && list.every((r) => r.official)) || now - last > 7 * 864e5)) done.add(`${sector}${ev.eventId}`);
+          // An empty list isn't "all official": it can mean the page wasn't understood.
+          if (last && ((now - last > 2 * 864e5 && list.length && list.every((r) => r.official)) || now - last > 7 * 864e5)) done.add(`${sector}${ev.eventId}`);
         }
       }
     }

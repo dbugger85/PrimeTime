@@ -339,6 +339,21 @@ test('FIS pages: result rows, times and gaps', () => {
   assert.deepEqual(calendarDays('29 Nov-01 Dec 2025').map((d) => d.toISOString().slice(0, 10)), ['2025-11-29', '2025-12-01']);
 });
 
+// From 2026/27 FIS shows a "live"/"review" badge by each race and a ski brand column in results.
+test('FIS pages: the 2026/27 layout (Soelden, men\'s giant slalom)', () => {
+  const f = winter('alpine-soelden-2026-men-giant-slalom');
+  for (const html of [f.eventHtml, f.eventHtml.replace(/>review</g, '>live<')]) {
+    assert.deepEqual(fis.racesFromEvent(html).map((r) => [r.discipline, r.venue, r.gender, r.official]),
+      [['Giant Slalom', null, 'women', true], ['Giant Slalom', null, 'men', true]]);
+  }
+  const p = fisPage('alpine-soelden-2026-men-giant-slalom');
+  assert.deepEqual(p.rows[0], { rank: 1, bib: 4, name: 'PINHEIRO BRAATHEN Lucas', nation: 'BRA', times: [52.4, 52.32, 104.72] });
+  assert.equal(p.rows[1].nation, 'SUI');
+  assert.equal(p.rows.length, 26);
+  assert.ok(p.out.every((o) => /^[A-Z]{3}$/.test(o.nation) && o.run1 > 50), 'unranked rows: nation and run-1 time');
+  assert.equal(fis.alpineFacts(p).winnerRun1, 1);
+});
+
 test('cross-country: a 50 km decided by 0.4 s beats a 22 s interval start', () => {
   const oslo = scoreCrossCountry(fis.crossCountryFacts(fisPage('cross-country-oslo-2026-men-50km'), '50km Mass Start Free'));
   const lahti = scoreCrossCountry(fis.crossCountryFacts(fisPage('cross-country-lahti-2026-men-10km'), '10km Interval Start Classic'));

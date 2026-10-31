@@ -252,16 +252,19 @@ for (const [sport, steps] of Object.entries(builders)) {
     upcoming.push(...previousUpcoming.filter((e) => e.sport === sport)); // keep what the skipped sport had
     continue;
   }
+  let failed = false;
   for (const build of steps) {
     try {
       await build();
     } catch (err) {
+      failed = true;
       if (err.f1Live) console.log(`${sport}: a live F1 session is on, so OpenF1 is closed to free users; trying again next run`);
       else warn(`${sport} failed: ${err.message}`); // one broken source shouldn't stop the others
     }
   }
-  // If a source failed before listing anything, keep what it had in "Coming up".
-  if (!upcoming.some((e) => e.sport === sport)) upcoming.push(...previousUpcoming.filter((e) => e.sport === sport));
+  // If a source failed before listing anything, keep what it had in "Coming up"
+  // (not when it worked and just has nothing on: a finished race would stay "live").
+  if (failed && !upcoming.some((e) => e.sport === sport)) upcoming.push(...previousUpcoming.filter((e) => e.sport === sport));
 }
 
 for (const [id, e] of events) {

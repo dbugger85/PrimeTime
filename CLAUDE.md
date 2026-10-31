@@ -197,7 +197,7 @@ Biathlon, alpine and cross-country are all `sport: 'winter'`. `comp` is `biathlo
 - `ibu.mjs` handles biathlon. It rebuilds the order after each shooting from lap and range times, plus 25 s per penalty loop.
 - In relays, an unknown leader at the last handover (missing `TeamRankAfterLeg`) counts as unknown, not as "the leader didn't win".
 - `fis.mjs` reads the FIS pages. `texts()` splits HTML into text pieces. Olympic events at several venues have an extra venue column.
-- **If FIS changes its site, `fis.mjs` is what breaks.** `test/fixtures/winter/*.json` hold trimmed copies of real pages.
+- **If FIS changes its site, `fis.mjs` is what breaks.** `test/fixtures/winter/*.json` hold trimmed copies of real pages. In 2026/27 FIS added a "live"/"review" badge by each race on event pages and a ski-brand column in results (fixture `alpine-soelden-2026-men-giant-slalom`). A full build that lists no races for a sport (without failing) now empties that sport's "Coming up", so a finished race can't stay LIVE.
 - FIS races without official results two days after their start count as cancelled. `state.winterEventsDone` lists finished FIS events, so their pages aren't read again. It's reset when the winter version changes.
 
 **Spoilers:**
