@@ -169,6 +169,13 @@ export function searchNames(names, query, favs, max = 8) {
     .map(({ kind, name, label }) => (label ? { kind, name, label } : { kind, name }));
 }
 
+// The favorite whose name is exactly what was typed ("Lille" while "Lillestrom" is still suggested), or null.
+export function followedMatch(names, query, favs) {
+  const q = fold(query.trim());
+  const hit = q && names.find((n) => (favs[n.kind] ?? []).includes(n.name) && fold(n.label ?? n.name) === q);
+  return hit ? hit.label ?? hit.name : null;
+}
+
 // Upcoming and live events, soonest first (live ones on top).
 export function filterUpcoming(list, prefs) {
   return list

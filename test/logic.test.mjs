@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chancesLine, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel, prematchLine, followsLeague, leagueGroups } from '../docs/logic.js';
+import { followedMatch, chancesLine, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel, prematchLine, followsLeague, leagueGroups } from '../docs/logic.js';
 
 const now = Date.parse('2026-09-26T12:00:00Z');
 const ev = (o) => ({ services: [], segments: [], advice: { code: 'full' }, compName: 'X', ...o });
@@ -221,6 +221,14 @@ test('winter: titles, gender filter, sport chips and favorites per sport and gen
   assert.equal(adviceText({ code: 'watch', unit: 'run', ranges: [[1, 10]], last: 15 }), 'Run 1: bibs 1–10, then the last 15 in run 2');
   assert.equal(adviceText({ code: 'watch', unit: 'run', ranges: [], last: 10 }), 'Skip run 1, then watch the last 10 in run 2');
   assert.equal(adviceText({ code: 'watch', unit: 'run', ranges: [[1, 20]], last: 30 }), 'Run 1: bibs 1–20, then all of run 2');
+});
+
+test('favorites search: a followed name typed in full is pointed out, even beside other suggestions', () => {
+  const names = [{ kind: 'teams', name: 'Lille' }, { kind: 'teams', name: 'Lillestrom' }];
+  const favs = { teams: ['Lille'] };
+  assert.equal(followedMatch(names, ' lille ', favs), 'Lille');
+  assert.equal(followedMatch(names, 'Lill', favs), null, 'only the full name');
+  assert.equal(followedMatch(names, 'Lillestrom', favs), null, 'not followed');
 });
 
 test('pre-match hints: one short line, or nothing', () => {
