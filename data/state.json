@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-11-01T18:10:42.351Z",
+ "lastFull": "2026-11-01T21:01:07.858Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2873,6 +2873,13 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/viking-sabah-be69e5yj"
    }
+  },
+  "fb-401879239": {
+   "start": "2026-11-08T14:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/sunderland-chelsea/s26102968613288504",
+    "until": "2026-11-10T16:30:00.000Z"
+   }
   }
  },
  "ratings": {
@@ -3146,11 +3153,11 @@
   },
   "ppg": {
    "eng.1": {
+    "Arsenal": 2.6666666666666665,
     "Manchester City": 2.3333333333333335,
-    "Arsenal": 2.625,
     "Brighton & Hove Albion": 2.111111111111111,
     "Chelsea": 1.7777777777777777,
-    "Liverpool": 1.875,
+    "Liverpool": 1.6666666666666667,
     "Brentford": 1.5555555555555556,
     "AFC Bournemouth": 1.3333333333333333,
     "Tottenham Hotspur": 1.3333333333333333,
@@ -3211,11 +3218,11 @@
     "Molde": 1.72,
     "Rosenborg": 1.72,
     "Lillestrom": 1.68,
-    "Tromso": 1.6666666666666667,
+    "Tromso": 1.6,
     "SK Brann": 1.28,
+    "Vålerenga": 1.28,
     "Sarpsborg FK": 1.24,
     "KFUM Oslo": 1.24,
-    "Vålerenga": 1.2083333333333333,
     "Fredrikstad": 1.16,
     "Sandefjord": 1.08,
     "Hamarkameratene": 1.08,
@@ -3240,9 +3247,9 @@
     "Espanyol": 1,
     "Osasuna": 1.1,
     "Racing Santander": 1,
-    "Elche": 1,
+    "Elche": 0.9090909090909091,
     "Levante": 0.9090909090909091,
-    "Valencia": 0.6,
+    "Valencia": 0.8181818181818182,
     "Málaga": 0.45454545454545453
    },
    "ger.1": {
@@ -3253,14 +3260,14 @@
     "Werder Bremen": 1.875,
     "Bayer Leverkusen": 1.625,
     "SV Elversberg": 1.625,
+    "Eintracht Frankfurt": 1.375,
     "Mainz": 1.25,
     "FC Augsburg": 1.125,
     "VfB Stuttgart": 1.125,
     "TSG Hoffenheim": 1.125,
     "FC Cologne": 1.125,
     "SC Paderborn 07": 1.125,
-    "Hamburg SV": 1.2857142857142858,
-    "Eintracht Frankfurt": 1.1428571428571428,
+    "Hamburg SV": 1.125,
     "1. FC Union Berlin": 0.875,
     "Schalke 04": 0.75,
     "Borussia Mönchengladbach": 0.5
@@ -3276,10 +3283,10 @@
     "Juventus": 1.5555555555555556,
     "Bologna": 1.4,
     "Torino": 1.3,
+    "Genoa": 1.3,
     "Cagliari": 1.3,
     "Atalanta": 1.2222222222222223,
-    "Genoa": 1.1111111111111112,
-    "Lecce": 1,
+    "Lecce": 0.9,
     "Sassuolo": 0.8888888888888888,
     "Monza": 0.7,
     "Fiorentina": 0.5555555555555556,
@@ -3291,9 +3298,9 @@
     "Paris Saint-Germain": 2.2222222222222223,
     "Lille": 2,
     "Lyon": 1.8888888888888888,
+    "Paris FC": 1.8888888888888888,
     "Stade Rennais": 1.7777777777777777,
-    "AS Monaco": 1.875,
-    "Paris FC": 1.75,
+    "AS Monaco": 1.6666666666666667,
     "Nice": 1.5555555555555556,
     "Lens": 1.4444444444444444,
     "Marseille": 1.5,
