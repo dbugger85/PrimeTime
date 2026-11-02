@@ -29,4 +29,15 @@ DESCRIPTION:Nations League · Relegation battle\nWatch on TV 2 Play\nhttps:
  //dbugger85.github.io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401861181@primetime
+DTSTAMP:20261116T150000Z
+DTSTART:20261116T150000Z
+DTEND:20261116T170000Z
+SUMMARY:Kazakhstan – Slovakia
+LOCATION:TV 2 Play
+DESCRIPTION:Nations League\nWatch on TV 2 Play\nhttps://dbugger85.github.io
+ /PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
