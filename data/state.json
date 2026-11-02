@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-11-02T17:10:40.878Z",
+ "lastFull": "2026-11-02T20:01:06.748Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2034,48 +2034,6 @@
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/brann-viking-r6tkf8xy"
    }
   },
-  "fb-401861096": {
-   "start": "2026-10-01T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/danmark-portugal-wpz45ewa"
-   }
-  },
-  "fb-401861098": {
-   "start": "2026-10-01T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/hellas-nederland-7fkwcpjn"
-   }
-  },
-  "fb-401861094": {
-   "start": "2026-10-01T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/irland-oesterrike-d55aqqgp"
-   }
-  },
-  "fb-401861095": {
-   "start": "2026-10-01T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/israel-kosovo-1czs4t6b"
-   }
-  },
-  "fb-401861099": {
-   "start": "2026-10-01T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/malta-gibraltar-rfnbg2he"
-   }
-  },
-  "fb-401861097": {
-   "start": "2026-10-01T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/tyskland-serbia-r7gw8159"
-   }
-  },
-  "fb-401861100": {
-   "start": "2026-10-01T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/wales-norge-bfqn4se1"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
@@ -3306,9 +3264,9 @@
     "Cagliari": 1.3,
     "Atalanta": 1.2222222222222223,
     "Lecce": 0.9,
-    "Sassuolo": 0.8888888888888888,
+    "Fiorentina": 0.8,
+    "Sassuolo": 0.8,
     "Monza": 0.7,
-    "Fiorentina": 0.5555555555555556,
     "Parma": 0.5555555555555556,
     "Udinese": 0.5,
     "Venezia": 0.3
