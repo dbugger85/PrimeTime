@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-11-03T16:10:43.889Z",
+ "lastFull": "2026-11-03T19:01:28.963Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1776,48 +1776,6 @@
   }
  },
  "links": {
-  "fb-401861109": {
-   "start": "2026-10-02T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/belgia-tyrkia-1601n15m"
-   }
-  },
-  "fb-401861107": {
-   "start": "2026-10-02T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/bosnia-hercegovina-sverige-rryqk0mj"
-   }
-  },
-  "fb-401861103": {
-   "start": "2026-10-02T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/frankrike-italia-8gs2y0qd"
-   }
-  },
-  "fb-401861110": {
-   "start": "2026-10-02T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/faeroeyene-slovakia-gt5fb09c"
-   }
-  },
-  "fb-401861108": {
-   "start": "2026-10-02T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/polen-romania-jy7cy5jb"
-   }
-  },
-  "fb-401861106": {
-   "start": "2026-10-02T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/ukraina-nord-irland-n7eh87xc"
-   }
-  },
-  "fb-401861102": {
-   "start": "2026-10-02T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/ungarn-georgia-509kmzmf"
-   }
-  },
   "fb-401861111": {
    "start": "2026-10-03T13:00Z",
    "tv2play": {
