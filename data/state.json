@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-11-03T19:01:28.963Z",
+ "lastFull": "2026-11-03T21:53:13.335Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -747,6 +747,10 @@
   "fb-401861192": {
    "code": "relegation",
    "start": "2026-11-17T19:45Z"
+  },
+  "fb-401915303": {
+   "code": "playoff",
+   "start": "2026-11-04T20:00Z"
   }
  },
  "calTeams": {
@@ -2809,6 +2813,12 @@
     "url": "https://viaplay.no/sport/fotball/premier-league/man-united-aston-villa/s26102987040911632",
     "until": "2026-11-10T19:30:00.000Z"
    }
+  },
+  "fb-401843480": {
+   "start": "2026-11-07T15:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kristiansund-vaalerenga-w23nar96"
+   }
   }
  },
  "ratings": {
@@ -3108,37 +3118,37 @@
     "Aston Villa": 3,
     "Liverpool": 3,
     "Real Madrid": 3,
+    "Sporting CP": 2.25,
     "Real Betis": 3,
-    "VfB Stuttgart": 2.3333333333333335,
     "Arsenal": 2.3333333333333335,
+    "VfB Stuttgart": 1.75,
     "Barcelona": 2,
     "Como": 2,
     "Manchester City": 2,
     "Club Brugge": 2,
-    "Sporting CP": 2,
     "Borussia Dortmund": 2,
+    "Galatasaray": 1.5,
     "Bayern Munich": 1.6666666666666667,
     "AS Roma": 1.3333333333333333,
     "Atlético Madrid": 1.3333333333333333,
-    "Shakhtar Donetsk": 1.3333333333333333,
+    "Shakhtar Donetsk": 1,
     "PSV Eindhoven": 1.3333333333333333,
-    "Villarreal": 1,
+    "Bodo/Glimt": 1,
     "Internazionale": 1,
     "Manchester United": 1,
     "Napoli": 1,
-    "Galatasaray": 1,
     "LASK Linz": 1,
     "Sabah FK": 1,
     "Feyenoord Rotterdam": 1,
     "Lens": 1,
-    "Bodo/Glimt": 1,
     "AEK Athens": 1,
     "RB Leipzig": 1,
+    "Villarreal": 0.75,
     "Fenerbahce": 0.6666666666666666,
     "Slavia Prague": 0.3333333333333333,
     "Viking FK": 0.3333333333333333,
+    "Lille": 0.25,
     "FC Porto": 0,
-    "Lille": 0,
     "Slovan Bratislava": 0
    },
    "nor.1": {
@@ -3245,29 +3255,29 @@
    },
    "eng.2": {
     "Middlesbrough": 2.1538461538461537,
-    "Swansea City": 2,
+    "Birmingham City": 1.8571428571428572,
+    "Stoke City": 1.8571428571428572,
+    "Swansea City": 1.8571428571428572,
     "Wolverhampton Wanderers": 1.8461538461538463,
     "West Bromwich Albion": 1.8461538461538463,
     "Southampton": 1.7692307692307692,
-    "Birmingham City": 1.7692307692307692,
-    "Stoke City": 1.7692307692307692,
     "West Ham United": 1.6923076923076923,
-    "Queens Park Rangers": 1.5384615384615385,
-    "Sheffield United": 1.4615384615384615,
-    "Portsmouth": 1.4615384615384615,
-    "Millwall": 1.3846153846153846,
-    "Blackburn Rovers": 1.3846153846153846,
+    "Sheffield United": 1.5714285714285714,
+    "Portsmouth": 1.5714285714285714,
+    "Queens Park Rangers": 1.5,
+    "Norwich City": 1.2857142857142858,
+    "Millwall": 1.2857142857142858,
+    "Blackburn Rovers": 1.2857142857142858,
     "Bristol City": 1.3846153846153846,
-    "Norwich City": 1.1538461538461537,
-    "Lincoln City": 1.1538461538461537,
+    "Bolton Wanderers": 1.2142857142857142,
+    "Lincoln City": 1.0714285714285714,
     "Cardiff City": 1.0769230769230769,
     "Wrexham": 1.0769230769230769,
-    "Bolton Wanderers": 1.0769230769230769,
-    "Charlton Athletic": 1.0769230769230769,
-    "Watford": 0.8461538461538461,
-    "Burnley": 0.6923076923076923,
-    "Derby County": 0.5384615384615384,
-    "Preston North End": 0.38461538461538464
+    "Watford": 1,
+    "Charlton Athletic": 1,
+    "Burnley": 0.7142857142857143,
+    "Derby County": 0.5,
+    "Preston North End": 0.35714285714285715
    },
    "uefa.europa": {
     "Benfica": 3,
