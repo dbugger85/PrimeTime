@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-11-04T18:05:28.139Z",
+ "lastFull": "2026-11-04T20:55:33.006Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1804,24 +1804,6 @@
   }
  },
  "links": {
-  "fb-401861116": {
-   "start": "2026-10-03T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/nord-makedonia-skottland-wsa86m60"
-   }
-  },
-  "fb-401861118": {
-   "start": "2026-10-03T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/spania-tsjekkia-a0ppken1"
-   }
-  },
-  "fb-401861117": {
-   "start": "2026-10-03T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/sveits-slovenia-sjydbs8k"
-   }
-  },
   "fb-401861119": {
    "start": "2026-10-04T13:00Z",
    "tv2play": {
@@ -2813,6 +2795,12 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kristiansund-vaalerenga-w23nar96"
    }
+  },
+  "fb-401843478": {
+   "start": "2026-11-07T17:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/rosenborg-start-kaxqy7pb"
+   }
   }
  },
  "ratings": {
@@ -3109,10 +3097,10 @@
    },
    "uefa.champions": {
     "Paris Saint-Germain": 3,
+    "Real Madrid": 3,
     "Barcelona": 2.25,
     "Aston Villa": 2.25,
-    "Liverpool": 3,
-    "Real Madrid": 3,
+    "Liverpool": 2.25,
     "Sporting CP": 2.25,
     "Real Betis": 3,
     "Bayern Munich": 2,
@@ -3126,6 +3114,7 @@
     "Borussia Dortmund": 2,
     "Manchester United": 1.5,
     "Galatasaray": 1.5,
+    "Fenerbahce": 1.25,
     "AS Roma": 1,
     "Shakhtar Donetsk": 1,
     "PSV Eindhoven": 1.3333333333333333,
@@ -3134,11 +3123,10 @@
     "Napoli": 1,
     "Sabah FK": 1,
     "Lens": 1,
-    "AEK Athens": 1,
     "RB Leipzig": 1,
     "Villarreal": 0.75,
+    "AEK Athens": 0.75,
     "Feyenoord Rotterdam": 0.75,
-    "Fenerbahce": 0.6666666666666666,
     "Slavia Prague": 0.3333333333333333,
     "Viking FK": 0.3333333333333333,
     "Lille": 0.25,
