@@ -1,7 +1,6 @@
 {
  "footballDays": {
   "eng.1": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -30,10 +29,10 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ],
   "uefa.champions": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -62,10 +61,10 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ],
   "nor.1": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -94,10 +93,10 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ],
   "uefa.nations": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -126,10 +125,10 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ],
   "uefa.euroq": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -158,10 +157,10 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ],
   "fifa.worldq.uefa": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -190,10 +189,10 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ],
   "uefa.euro": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -222,10 +221,10 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ],
   "fifa.world": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -254,10 +253,10 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ],
   "esp.1": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -286,10 +285,10 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ],
   "ger.1": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -318,10 +317,10 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ],
   "ita.1": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -350,10 +349,10 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ],
   "fra.1": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -382,10 +381,10 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ],
   "eng.2": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -414,10 +413,10 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ],
   "uefa.europa": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -446,10 +445,10 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ],
   "uefa.europa.conf": [
-   "20261003",
    "20261004",
    "20261005",
    "20261006",
@@ -478,7 +477,8 @@
    "20261029",
    "20261030",
    "20261031",
-   "20261101"
+   "20261101",
+   "20261102"
   ]
  },
  "slamsDone": [
@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-11-03T21:53:13.335Z",
+ "lastFull": "2026-11-04T00:45:45.275Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -751,1032 +751,1036 @@
   "fb-401915303": {
    "code": "playoff",
    "start": "2026-11-04T20:00Z"
+  },
+  "fb-401915305": {
+   "code": "playoff",
+   "start": "2026-11-04T20:00Z"
   }
  },
  "calTeams": {
   "bulgaria": {
    "team": "Bulgaria",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "estonia": {
    "team": "Estonia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "czechia": {
    "team": "Czechia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "england": {
    "team": "England",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "luxembourg": {
    "team": "Luxembourg",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "iceland": {
    "team": "Iceland",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "san-marino": {
    "team": "San Marino",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "albania": {
    "team": "Albania",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "scotland": {
    "team": "Scotland",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "switzerland": {
    "team": "Switzerland",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "slovakia": {
    "team": "Slovakia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "kazakhstan": {
    "team": "Kazakhstan",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "slovenia": {
    "team": "Slovenia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "north-macedonia": {
    "team": "North Macedonia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "spain": {
    "team": "Spain",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "croatia": {
    "team": "Croatia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "finland": {
    "team": "Finland",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "belarus": {
    "team": "Belarus",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "moldova": {
    "team": "Moldova",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "faroe-islands": {
    "team": "Faroe Islands",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "belgium": {
    "team": "Belgium",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "france": {
    "team": "France",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "northern-ireland": {
    "team": "Northern Ireland",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "hungary": {
    "team": "Hungary",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "romania": {
    "team": "Romania",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "bosnia-herzegovina": {
    "team": "Bosnia-Herzegovina",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sweden": {
    "team": "Sweden",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "poland": {
    "team": "Poland",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "turkiye": {
    "team": "Türkiye",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "italy": {
    "team": "Italy",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "armenia": {
    "team": "Armenia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "montenegro": {
    "team": "Montenegro",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "georgia": {
    "team": "Georgia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "ukraine": {
    "team": "Ukraine",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "latvia": {
    "team": "Latvia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "cyprus": {
    "team": "Cyprus",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "germany": {
    "team": "Germany",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "greece": {
    "team": "Greece",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "israel": {
    "team": "Israel",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "republic-of-ireland": {
    "team": "Republic of Ireland",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "norway": {
    "team": "Norway",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "portugal": {
    "team": "Portugal",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "austria": {
    "team": "Austria",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "kosovo": {
    "team": "Kosovo",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "denmark": {
    "team": "Denmark",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "wales": {
    "team": "Wales",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "gibraltar": {
    "team": "Gibraltar",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "andorra": {
    "team": "Andorra",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "serbia": {
    "team": "Serbia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "netherlands": {
    "team": "Netherlands",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "lithuania": {
    "team": "Lithuania",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "azerbaijan": {
    "team": "Azerbaijan",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "liechtenstein": {
    "team": "Liechtenstein",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "malta": {
    "team": "Malta",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sk-brann": {
    "team": "SK Brann",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "bodo-glimt": {
    "team": "Bodo/Glimt",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "fulham": {
    "team": "Fulham",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "manchester-united": {
    "team": "Manchester United",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sandefjord": {
    "team": "Sandefjord",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "ik-start": {
    "team": "IK Start",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "tromso": {
    "team": "Tromso",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "hamarkameratene": {
    "team": "Hamarkameratene",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "viking-fk": {
    "team": "Viking FK",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "lillestrom": {
    "team": "Lillestrom",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "afc-bournemouth": {
    "team": "AFC Bournemouth",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "liverpool": {
    "team": "Liverpool",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "leeds-united": {
    "team": "Leeds United",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "crystal-palace": {
    "team": "Crystal Palace",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "manchester-city": {
    "team": "Manchester City",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sunderland": {
    "team": "Sunderland",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "valerenga": {
    "team": "Vålerenga",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "fredrikstad": {
    "team": "Fredrikstad",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "nottingham-forest": {
    "team": "Nottingham Forest",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "coventry-city": {
    "team": "Coventry City",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "molde": {
    "team": "Molde",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "aalesund": {
    "team": "Aalesund",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "brighton-hove-albion": {
    "team": "Brighton & Hove Albion",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "arsenal": {
    "team": "Arsenal",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "everton": {
    "team": "Everton",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "ipswich-town": {
    "team": "Ipswich Town",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "newcastle-united": {
    "team": "Newcastle United",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "hull-city": {
    "team": "Hull City",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "kristiansund-bk": {
    "team": "Kristiansund BK",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "rosenborg": {
    "team": "Rosenborg",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "tottenham-hotspur": {
    "team": "Tottenham Hotspur",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "aston-villa": {
    "team": "Aston Villa",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "brentford": {
    "team": "Brentford",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "chelsea": {
    "team": "Chelsea",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sarpsborg-fk": {
    "team": "Sarpsborg FK",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "kfum-oslo": {
    "team": "KFUM Oslo",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "bayern-munich": {
    "team": "Bayern Munich",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "como": {
    "team": "Como",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "rb-leipzig": {
    "team": "RB Leipzig",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sabah-fk": {
    "team": "Sabah FK",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "slavia-prague": {
    "team": "Slavia Prague",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "lens": {
    "team": "Lens",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "fenerbahce": {
    "team": "Fenerbahce",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "as-roma": {
    "team": "AS Roma",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "psv-eindhoven": {
    "team": "PSV Eindhoven",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "shakhtar-donetsk": {
    "team": "Shakhtar Donetsk",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "atletico-madrid": {
    "team": "Atlético Madrid",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "napoli": {
    "team": "Napoli",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "paris-saint-germain": {
    "team": "Paris Saint-Germain",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "slovan-bratislava": {
    "team": "Slovan Bratislava",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sporting-cp": {
    "team": "Sporting CP",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "galatasaray": {
    "team": "Galatasaray",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "barcelona": {
    "team": "Barcelona",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "feyenoord-rotterdam": {
    "team": "Feyenoord Rotterdam",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "vfb-stuttgart": {
    "team": "VfB Stuttgart",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "borussia-dortmund": {
    "team": "Borussia Dortmund",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "villarreal": {
    "team": "Villarreal",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "fc-porto": {
    "team": "FC Porto",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "lille": {
    "team": "Lille",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "real-betis": {
    "team": "Real Betis",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "real-madrid": {
    "team": "Real Madrid",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "internazionale": {
    "team": "Internazionale",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "aek-athens": {
    "team": "AEK Athens",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "lask-linz": {
    "team": "LASK Linz",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "club-brugge": {
    "team": "Club Brugge",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "lincoln-city": {
    "team": "Lincoln City",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "west-ham-united": {
    "team": "West Ham United",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "norwich-city": {
    "team": "Norwich City",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "southampton": {
    "team": "Southampton",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "portsmouth": {
    "team": "Portsmouth",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sheffield-united": {
    "team": "Sheffield United",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "queens-park-rangers": {
    "team": "Queens Park Rangers",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "derby-county": {
    "team": "Derby County",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "birmingham-city": {
    "team": "Birmingham City",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "preston-north-end": {
    "team": "Preston North End",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "stoke-city": {
    "team": "Stoke City",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "middlesbrough": {
    "team": "Middlesbrough",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "bristol-city": {
    "team": "Bristol City",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "blackburn-rovers": {
    "team": "Blackburn Rovers",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "burnley": {
    "team": "Burnley",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "charlton-athletic": {
    "team": "Charlton Athletic",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "cardiff-city": {
    "team": "Cardiff City",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "watford": {
    "team": "Watford",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "millwall": {
    "team": "Millwall",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "swansea-city": {
    "team": "Swansea City",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "wolverhampton-wanderers": {
    "team": "Wolverhampton Wanderers",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "bolton-wanderers": {
    "team": "Bolton Wanderers",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "wrexham": {
    "team": "Wrexham",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "west-bromwich-albion": {
    "team": "West Bromwich Albion",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "levante": {
    "team": "Levante",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sevilla": {
    "team": "Sevilla",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "torino": {
    "team": "Torino",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "udinese": {
    "team": "Udinese",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "atalanta": {
    "team": "Atalanta",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "venezia": {
    "team": "Venezia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "racing-santander": {
    "team": "Racing Santander",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "valencia": {
    "team": "Valencia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "cagliari": {
    "team": "Cagliari",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "juventus": {
    "team": "Juventus",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "troyes": {
    "team": "Troyes",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "marseille": {
    "team": "Marseille",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "osasuna": {
    "team": "Osasuna",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sassuolo": {
    "team": "Sassuolo",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "ac-milan": {
    "team": "AC Milan",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sc-freiburg": {
    "team": "SC Freiburg",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "schalke-04": {
    "team": "Schalke 04",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "stade-rennais": {
    "team": "Stade Rennais",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "aj-auxerre": {
    "team": "AJ Auxerre",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "real-sociedad": {
    "team": "Real Sociedad",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "deportivo": {
    "team": "Deportivo",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "fc-cologne": {
    "team": "FC Cologne",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "borussia-monchengladbach": {
    "team": "Borussia Mönchengladbach",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "lazio": {
    "team": "Lazio",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "monza": {
    "team": "Monza",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "lecce": {
    "team": "Lecce",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "bologna": {
    "team": "Bologna",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "nice": {
    "team": "Nice",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "strasbourg": {
    "team": "Strasbourg",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "elche": {
    "team": "Elche",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "celta-vigo": {
    "team": "Celta Vigo",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "frosinone": {
    "team": "Frosinone",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "as-monaco": {
    "team": "AS Monaco",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "toulouse": {
    "team": "Toulouse",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "brest": {
    "team": "Brest",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "angers": {
    "team": "Angers",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "lorient": {
    "team": "Lorient",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "paris-fc": {
    "team": "Paris FC",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "le-mans": {
    "team": "Le Mans",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "getafe": {
    "team": "Getafe",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "eintracht-frankfurt": {
    "team": "Eintracht Frankfurt",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "parma": {
    "team": "Parma",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "le-havre-ac": {
    "team": "Le Havre AC",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "alaves": {
    "team": "Alavés",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "1-fc-union-berlin": {
    "team": "1. FC Union Berlin",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sv-elversberg": {
    "team": "SV Elversberg",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "fc-augsburg": {
    "team": "FC Augsburg",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "mainz": {
    "team": "Mainz",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "bayer-leverkusen": {
    "team": "Bayer Leverkusen",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sc-paderborn-07": {
    "team": "SC Paderborn 07",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "tsg-hoffenheim": {
    "team": "TSG Hoffenheim",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "hamburg-sv": {
    "team": "Hamburg SV",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "genoa": {
    "team": "Genoa",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "fiorentina": {
    "team": "Fiorentina",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "malaga": {
    "team": "Málaga",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "espanyol": {
    "team": "Espanyol",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "lyon": {
    "team": "Lyon",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "werder-bremen": {
    "team": "Werder Bremen",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "athletic-club": {
    "team": "Athletic Club",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "rayo-vallecano": {
    "team": "Rayo Vallecano",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "besiktas": {
    "team": "Besiktas",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "celtic": {
    "team": "Celtic",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "ferencvaros": {
    "team": "Ferencvaros",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "lech-poznan": {
    "team": "Lech Poznan",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "nec-nijmegen": {
    "team": "NEC Nijmegen",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "torreense": {
    "team": "Torreense",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "viktoria-plzen": {
    "team": "Viktoria Plzen",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "union-st-gilloise": {
    "team": "Union St.-Gilloise",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "levski-sofia": {
    "team": "Levski Sofia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "rb-salzburg": {
    "team": "RB Salzburg",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "ofi-crete": {
    "team": "OFI Crete",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "benfica": {
    "team": "Benfica",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "anderlecht": {
    "team": "Anderlecht",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "nk-celje": {
    "team": "NK Celje",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "hapoel-be-er": {
    "team": "Hapoel Be'er",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "dinamo-zagreb": {
    "team": "Dinamo Zagreb",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "olympiacos": {
    "team": "Olympiacos",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "jagiellonia-bialystok": {
    "team": "Jagiellonia Bialystok",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sk-sturm-graz": {
    "team": "SK Sturm Graz",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "az-alkmaar": {
    "team": "AZ Alkmaar",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "ararat-armenia": {
    "team": "Ararat-Armenia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sparta-prague": {
    "team": "Sparta Prague",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "omonia-nicosia": {
    "team": "Omonia Nicosia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "cska-sofia": {
    "team": "CSKA Sofia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "csu-craiova": {
    "team": "CSU Craiova",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "egnatia": {
    "team": "Egnatia",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "fc-midtjylland": {
    "team": "FC Midtjylland",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "fc-lugano": {
    "team": "FC Lugano",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "red-star-belgrade": {
    "team": "Red Star Belgrade",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "hajduk-split": {
    "team": "Hajduk Split",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "ajax-amsterdam": {
    "team": "Ajax Amsterdam",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "kaa-gent": {
    "team": "KAA Gent",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "agf": {
    "team": "AGF",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "kups-kuopio": {
    "team": "KuPS Kuopio",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "trabzonspor": {
    "team": "Trabzonspor",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "mjallby-aif": {
    "team": "Mjällby AIF",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "inter-d-escaldes": {
    "team": "Inter D'Escaldes",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "panathinaikos": {
    "team": "Panathinaikos",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "borac-banja-luka": {
    "team": "Borac Banja Luka",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "riga-fc": {
    "team": "Riga FC",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "kairat-almaty": {
    "team": "Kairat Almaty",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "pafos": {
    "team": "Pafos",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "kauno-zalgiris": {
    "team": "Kauno Zalgiris",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "f-c-kobenhavn": {
    "team": "F.C. København",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "braga": {
    "team": "Braga",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "fc-twente": {
    "team": "FC Twente",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "fc-thun": {
    "team": "FC Thun",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "heart-of-midlothian": {
    "team": "Heart of Midlothian",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "fc-nordsjaelland": {
    "team": "FC Nordsjælland",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "jablonec": {
    "team": "Jablonec",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "sint-truidense": {
    "team": "Sint-Truidense",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "iberia-1999": {
    "team": "Iberia 1999",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   },
   "lincoln-red-imps": {
    "team": "Lincoln Red Imps",
-   "seen": "2026-11-03"
+   "seen": "2026-11-04"
   }
  },
  "links": {
@@ -2822,7 +2826,7 @@
   }
  },
  "ratings": {
-  "clubsTried": "2026-11-03",
+  "clubsTried": "2026-11-04",
   "nationsTried": "2026-11-01",
   "leagues": {
    "eng.1": {
@@ -3115,35 +3119,35 @@
    },
    "uefa.champions": {
     "Paris Saint-Germain": 3,
-    "Aston Villa": 3,
+    "Barcelona": 2.25,
+    "Aston Villa": 2.25,
     "Liverpool": 3,
     "Real Madrid": 3,
     "Sporting CP": 2.25,
     "Real Betis": 3,
+    "Bayern Munich": 2,
     "Arsenal": 2.3333333333333335,
     "VfB Stuttgart": 1.75,
-    "Barcelona": 2,
     "Como": 2,
     "Manchester City": 2,
     "Club Brugge": 2,
+    "Internazionale": 1.5,
+    "LASK Linz": 1.5,
     "Borussia Dortmund": 2,
+    "Manchester United": 1.5,
     "Galatasaray": 1.5,
-    "Bayern Munich": 1.6666666666666667,
-    "AS Roma": 1.3333333333333333,
-    "Atlético Madrid": 1.3333333333333333,
+    "AS Roma": 1,
     "Shakhtar Donetsk": 1,
     "PSV Eindhoven": 1.3333333333333333,
+    "Atlético Madrid": 1,
     "Bodo/Glimt": 1,
-    "Internazionale": 1,
-    "Manchester United": 1,
     "Napoli": 1,
-    "LASK Linz": 1,
     "Sabah FK": 1,
-    "Feyenoord Rotterdam": 1,
     "Lens": 1,
     "AEK Athens": 1,
     "RB Leipzig": 1,
     "Villarreal": 0.75,
+    "Feyenoord Rotterdam": 0.75,
     "Fenerbahce": 0.6666666666666666,
     "Slavia Prague": 0.3333333333333333,
     "Viking FK": 0.3333333333333333,
@@ -3258,9 +3262,9 @@
     "Birmingham City": 1.8571428571428572,
     "Stoke City": 1.8571428571428572,
     "Swansea City": 1.8571428571428572,
+    "West Bromwich Albion": 1.7857142857142858,
+    "Southampton": 1.7142857142857142,
     "Wolverhampton Wanderers": 1.8461538461538463,
-    "West Bromwich Albion": 1.8461538461538463,
-    "Southampton": 1.7692307692307692,
     "West Ham United": 1.6923076923076923,
     "Sheffield United": 1.5714285714285714,
     "Portsmouth": 1.5714285714285714,
