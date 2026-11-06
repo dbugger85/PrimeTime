@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-11-06T18:55:32.862Z",
+ "lastFull": "2026-11-06T21:45:37.383Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2741,6 +2741,24 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/fredrikstad-brann-wf4ebtsf"
    }
+  },
+  "fb-401861146": {
+   "start": "2026-11-12T17:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/armenia-kypros-qyfgk2v0"
+   }
+  },
+  "fb-401861145": {
+   "start": "2026-11-12T17:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/tyrkia-belgia-dhzmvtvh"
+   }
+  },
+  "fb-401861147": {
+   "start": "2026-11-12T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/albania-finland-9bem3xpx"
+   }
   }
  },
  "ratings": {
@@ -3121,6 +3139,7 @@
     "Werder Bremen": 1.875,
     "Bayer Leverkusen": 1.625,
     "SV Elversberg": 1.625,
+    "Hamburg SV": 1.3333333333333333,
     "Eintracht Frankfurt": 1.375,
     "Mainz": 1.25,
     "FC Augsburg": 1.125,
@@ -3128,10 +3147,9 @@
     "TSG Hoffenheim": 1.125,
     "FC Cologne": 1.125,
     "SC Paderborn 07": 1.125,
-    "Hamburg SV": 1.125,
     "1. FC Union Berlin": 0.875,
     "Schalke 04": 0.75,
-    "Borussia Mönchengladbach": 0.5
+    "Borussia Mönchengladbach": 0.4444444444444444
    },
    "ita.1": {
     "Lazio": 2.8,
@@ -3152,8 +3170,8 @@
     "Fiorentina": 0.8,
     "Sassuolo": 0.8,
     "Monza": 0.7,
-    "Udinese": 0.5,
-    "Venezia": 0.3
+    "Venezia": 0.5454545454545454,
+    "Udinese": 0.45454545454545453
    },
    "fra.1": {
     "Paris Saint-Germain": 2.2222222222222223,
@@ -3165,10 +3183,10 @@
     "AS Monaco": 1.6666666666666667,
     "Nice": 1.5555555555555556,
     "Lens": 1.4444444444444444,
+    "Toulouse": 1.3,
     "Brest": 1.3333333333333333,
     "Lorient": 1.3333333333333333,
-    "Toulouse": 1.1111111111111112,
-    "Strasbourg": 1.1111111111111112,
+    "Strasbourg": 1,
     "AJ Auxerre": 1.1111111111111112,
     "Angers": 0.8888888888888888,
     "Troyes": 0.8888888888888888,
