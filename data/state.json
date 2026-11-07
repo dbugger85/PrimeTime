@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-11-07T17:55:28.732Z",
+ "lastFull": "2026-11-07T20:45:38.372Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1812,60 +1812,6 @@
   }
  },
  "links": {
-  "fb-401861140": {
-   "start": "2026-10-06T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/albania-san-marino-hzdfh5gc"
-   }
-  },
-  "fb-401861138": {
-   "start": "2026-10-06T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/belarus-finland-fya48xje"
-   }
-  },
-  "fb-401861142": {
-   "start": "2026-10-06T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/england-tsjekkia-nwxdc8g7"
-   }
-  },
-  "fb-401861136": {
-   "start": "2026-10-06T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/estland-island-hndyf7r2"
-   }
-  },
-  "fb-401861137": {
-   "start": "2026-10-06T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/kroatia-spania-558b9f6e"
-   }
-  },
-  "fb-401861141": {
-   "start": "2026-10-06T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/luxembourg-bulgaria-xcka7cgh"
-   }
-  },
-  "fb-401861144": {
-   "start": "2026-10-06T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/moldova-slovakia-9x3rwrjy"
-   }
-  },
-  "fb-401861143": {
-   "start": "2026-10-06T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/skottland-slovenia-srardrd2"
-   }
-  },
-  "fb-401861139": {
-   "start": "2026-10-06T18:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/sveits-nord-makedonia-esaq4p6p"
-   }
-  },
   "fb-401843455": {
    "start": "2026-10-09T17:00Z",
    "tv2play": {
@@ -2954,6 +2900,36 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/spania-england-w0ked959"
    }
+  },
+  "fb-401861180": {
+   "start": "2026-11-16T15:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/faeroeyene-moldova-gks9ggt3"
+   }
+  },
+  "fb-401861181": {
+   "start": "2026-11-16T15:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/kasakhstan-slovakia-p4smrem4"
+   }
+  },
+  "fb-401861183": {
+   "start": "2026-11-16T17:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/estland-bulgaria-x0zh7cbt"
+   }
+  },
+  "fb-401861182": {
+   "start": "2026-11-16T17:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/island-luxembourg-902jzfza"
+   }
+  },
+  "fb-401861184": {
+   "start": "2026-11-16T17:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/litauen-liechtenstein-xvxsqkft"
+   }
   }
  },
  "ratings": {
@@ -3228,7 +3204,7 @@
   "ppg": {
    "eng.1": {
     "Arsenal": 2.7,
-    "Manchester City": 2.3333333333333335,
+    "Manchester City": 2.1,
     "Brighton & Hove Albion": 2.111111111111111,
     "Chelsea": 1.7777777777777777,
     "Everton": 1.6,
@@ -3242,10 +3218,10 @@
     "Hull City": 1.1,
     "Ipswich Town": 1.2222222222222223,
     "Fulham": 1,
+    "Nottingham Forest": 0.9,
     "Coventry City": 0.9,
     "Manchester United": 0.7777777777777778,
     "Crystal Palace": 0.7777777777777778,
-    "Nottingham Forest": 0.6666666666666666,
     "Sunderland": 0.5555555555555556
    },
    "uefa.champions": {
@@ -3289,8 +3265,8 @@
    "nor.1": {
     "Viking FK": 2.36,
     "Bodo/Glimt": 2.36,
+    "Rosenborg": 1.7692307692307692,
     "Molde": 1.72,
-    "Rosenborg": 1.72,
     "Lillestrom": 1.68,
     "Tromso": 1.6,
     "SK Brann": 1.28,
@@ -3302,7 +3278,7 @@
     "Hamarkameratene": 1.08,
     "Aalesund": 0.96,
     "Kristiansund BK": 0.92,
-    "IK Start": 0.76
+    "IK Start": 0.7307692307692307
    },
    "esp.1": {
     "Barcelona": 2.727272727272727,
@@ -3311,7 +3287,7 @@
     "Real Betis": 2.090909090909091,
     "Real Sociedad": 1.7272727272727273,
     "Sevilla": 1.5,
-    "Athletic Club": 1.5,
+    "Athletic Club": 1.4545454545454546,
     "Deportivo": 1.25,
     "Racing Santander": 1.1666666666666667,
     "Alavés": 1.0833333333333333,
@@ -3331,15 +3307,15 @@
     "Borussia Dortmund": 2.3333333333333335,
     "RB Leipzig": 2,
     "SC Freiburg": 2,
-    "Werder Bremen": 1.875,
+    "Werder Bremen": 1.6666666666666667,
     "Bayer Leverkusen": 1.625,
     "SV Elversberg": 1.4444444444444444,
+    "VfB Stuttgart": 1.3333333333333333,
     "Eintracht Frankfurt": 1.3333333333333333,
     "Hamburg SV": 1.3333333333333333,
     "Mainz": 1.1111111111111112,
     "SC Paderborn 07": 1.1111111111111112,
     "FC Augsburg": 1,
-    "VfB Stuttgart": 1.125,
     "TSG Hoffenheim": 1.125,
     "FC Cologne": 1.125,
     "1. FC Union Berlin": 0.875,
@@ -3354,25 +3330,25 @@
     "AC Milan": 2.1,
     "Frosinone": 1.8181818181818181,
     "Juventus": 1.7,
+    "Bologna": 1.5454545454545454,
     "Cagliari": 1.4545454545454546,
     "Napoli": 1.4,
-    "Bologna": 1.4,
     "Torino": 1.2727272727272727,
     "Genoa": 1.3,
     "Atalanta": 1.1,
     "Lecce": 0.9090909090909091,
-    "Parma": 0.8,
     "Fiorentina": 0.8,
     "Sassuolo": 0.8,
+    "Parma": 0.7272727272727273,
     "Monza": 0.7,
     "Venezia": 0.5454545454545454,
     "Udinese": 0.45454545454545453
    },
    "fra.1": {
     "Paris Saint-Germain": 2.2222222222222223,
+    "Paris FC": 2,
     "Lille": 2,
     "Lyon": 1.8888888888888888,
-    "Paris FC": 1.8888888888888888,
     "Stade Rennais": 1.7777777777777777,
     "Marseille": 1.6666666666666667,
     "AS Monaco": 1.6666666666666667,
@@ -3382,7 +3358,7 @@
     "Brest": 1.3333333333333333,
     "Lorient": 1.3333333333333333,
     "Strasbourg": 1,
-    "AJ Auxerre": 1.1111111111111112,
+    "AJ Auxerre": 1,
     "Angers": 0.8888888888888888,
     "Troyes": 0.8888888888888888,
     "Le Mans": 0.7777777777777778,
