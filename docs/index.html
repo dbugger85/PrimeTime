@@ -224,7 +224,7 @@
         <p class="calib-result" hidden></p>
         <p class="sub"></p>
         <p class="sub chances" hidden></p>
-        <div class="row"><div class="svc"></div></div>
+        <div class="row"><div class="svc"></div><button class="bell" type="button" aria-pressed="false" hidden>🔔</button></div>
         <button class="pace-btn" type="button" aria-expanded="false" hidden>Excitement so far</button>
         <p class="pace" aria-live="polite" hidden></p>
         <button class="lineup-btn" type="button" aria-expanded="false" hidden>Line-ups</button>
@@ -242,6 +242,17 @@
       <li>Tap <strong>Add</strong>. PrimeTime is now on your home screen.</li>
     </ol>
     <div class="dlg-buttons"><button type="button" id="ios-install-close" class="danger">Got it</button></div>
+  </dialog>
+
+  <!-- "🔔 Notify me when it starts": explains it before the browser's own question (app.js, notifyDialog) -->
+  <dialog id="notify-dlg">
+    <h2></h2>
+    <p class="dlg-text"></p>
+    <div class="dlg-buttons">
+      <button type="button" id="notify-extra" class="secondary" hidden></button>
+      <button type="button" id="notify-cancel" class="secondary">Not now</button>
+      <button type="button" id="notify-ok" class="danger">OK</button>
+    </div>
   </dialog>
 
   <dialog id="spoiler-dlg">

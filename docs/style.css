@@ -292,6 +292,13 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .advice::before { content: '⏩ '; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
 .svc { display: flex; flex-wrap: wrap; gap: 6px; }
+/* "🔔 Notify me when it starts" on Coming up cards: greyed out until it's on. */
+.bell {
+  min-width: 40px; min-height: 36px; margin-left: auto; padding: 0 8px; border: 1px solid var(--line); border-radius: 999px;
+  background: transparent; font-size: 17px; line-height: 1; cursor: pointer; filter: grayscale(1); opacity: 0.55;
+}
+.bell[aria-pressed="true"] { filter: none; opacity: 1; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.bell:disabled { cursor: progress; opacity: 0.35; }
 .pill {
   display: inline-flex; align-items: center; min-height: 32px;
   font-size: 12.5px; font-weight: 600; padding: 0 12px; border-radius: 999px;

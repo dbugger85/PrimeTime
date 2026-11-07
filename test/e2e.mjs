@@ -670,6 +670,89 @@ try {
     await off.close();
   }
 
+  // "🔔 Notify me when it starts": a bell on Coming up cards that haven't started. Our own dialog
+  // comes before the browser's question; the push service and the helper are stubbed here.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    await ctx.addInitScript(() => {
+      const fake = { endpoint: 'https://fcm.googleapis.com/fcm/send/e2e', toJSON() { return { endpoint: this.endpoint, keys: { p256dh: 'BPub', auth: 'sec' } }; } };
+      PushManager.prototype.getSubscription = async () => null;
+      PushManager.prototype.subscribe = async () => fake;
+    });
+    const calls = [];
+    await ctx.route('https://primetime-push.dbugger85.workers.dev/**', async (r) => {
+      calls.push({ method: r.request().method(), body: JSON.parse(r.request().postData() || '{}') });
+      await r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '{"ok":true}' });
+    });
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(String(e)));
+    await page.goto(base);
+    await page.waitForSelector('.card');
+    await page.click('#views [data-view="upcoming"]');
+    const later = page.locator('.card.soon:not(.live) .bell:not([hidden])').first();
+    if (await later.count()) {
+      assert.equal(await page.locator('.card.soon.live .bell:not([hidden])').count(), 0, 'a bell on a live event');
+      const id = await later.evaluate((b) => b.closest('.card').dataset.id);
+      const bell = page.locator(`.card[data-id="${id}"] .bell`);
+      await bell.click();
+      await page.waitForSelector('#notify-dlg[open]');
+      assert.equal(await page.textContent('#notify-ok'), 'Turn on notifications');
+      await page.screenshot({ path: `${shots}/bell-dialog.png` });
+      await page.click('#notify-cancel');
+      assert.equal(calls.length, 0, 'saved without permission');
+      assert.equal(await bell.getAttribute('aria-pressed'), 'false');
+
+      await ctx.grantPermissions(['notifications']);
+      await bell.click();
+      await page.waitForFunction((i) => document.querySelector(`.card[data-id="${i}"] .bell`)?.getAttribute('aria-pressed') === 'true', id);
+      assert.equal(calls[0].method, 'POST');
+      assert.equal(calls[0].body.id, id);
+      assert.equal(calls[0].body.sub.endpoint, 'https://fcm.googleapis.com/fcm/send/e2e');
+      assert.match(calls[0].body.body, /^Starting now/);
+      assert.doesNotMatch(JSON.stringify(calls[0].body), /\d+\s*[–-]\s*\d+/, 'a score in the notification');
+      await page.locator(`.card[data-id="${id}"]`).screenshot({ path: `${shots}/bell-on.png` });
+      await page.reload();
+      await page.waitForSelector(`.card[data-id="${id}"] .bell[aria-pressed="true"]`); // remembered
+      await page.click(`.card[data-id="${id}"] .bell`);
+      await page.waitForSelector(`.card[data-id="${id}"] .bell[aria-pressed="false"]`);
+      assert.deepEqual([calls[1].method, calls[1].body.id], ['DELETE', id]);
+      // Tennis never names the players in a notification.
+      const tennis = page.locator('.card.soon:not(.live)[data-id^="tn-"] .bell:not([hidden])').first();
+      if (await tennis.count()) {
+        await tennis.click();
+        await page.waitForFunction(() => document.querySelector('.card.soon[data-id^="tn-"] .bell[aria-pressed="true"]'));
+        const sent = calls.at(-1).body;
+        const players = await page.evaluate(async (i) => (await (await fetch('./data/events.json')).json()).upcoming.find((e) => e.id === i).players, sent.id);
+        for (const p of players) assert.ok(!sent.title.includes(p) && !sent.body.includes(p), 'a player named in a notification');
+      }
+    }
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  }
+
+  // iPhone outside the installed app: the bell explains that it has to be installed first.
+  {
+    const ip = await browser.newPage({
+      viewport: { width: 390, height: 844 },
+      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+    });
+    await ip.addInitScript(() => { delete window.PushManager; });
+    await ip.goto(base);
+    await ip.waitForSelector('.card');
+    await ip.click('#views [data-view="upcoming"]');
+    const bell = ip.locator('.card.soon:not(.live) .bell:not([hidden])').first();
+    if (await bell.count()) {
+      await bell.click();
+      await ip.waitForSelector('#notify-dlg[open]');
+      assert.equal(await ip.textContent('#notify-dlg h2'), 'Install PrimeTime first');
+      await ip.screenshot({ path: `${shots}/bell-iphone.png` });
+      await ip.click('#notify-extra');
+      await ip.waitForSelector('#ios-install-dlg[open]');
+    }
+    await ip.close();
+  }
+
   // iPhone Safari has no install popup, so the card's Install button shows the steps; ✕ hides it for good.
   const iphone = await browser.newPage({
     viewport: { width: 390, height: 844 },

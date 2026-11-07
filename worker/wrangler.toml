@@ -1,0 +1,21 @@
+# PrimeTime's notification helper: stores belled events and sends a push at the start.
+# Deploy from this folder: npx wrangler deploy (see "Notifications" in ../CLAUDE.md)
+name = "primetime-push"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+SITE = "https://primetime.re"
+VAPID_PUBLIC = "BKbBhrQYEf5IBeMZQBJg0a1kGFbFvwLpOWwxIbhqguHG2jLvAo42cvgIGDD467FWYg0T1QrS2VCTxqQo9kJsNQ4"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "primetime-push"
+database_id = "f4a10536-025c-4f1e-b0b4-1e3aa35e07da"
+
+# Every minute: send what's due (free plan: 5 cron triggers).
+[triggers]
+crons = ["* * * * *"]
+
+[observability]
+enabled = true

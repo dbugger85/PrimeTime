@@ -58,6 +58,12 @@ let customW = null; // the football weights with your sliders applied
 let calibrating = false; // "Calibration mode": every result shown. This visit only, so a reload never opens full of results
 const calcOpen = new Set(); // "Facts and calculation" opened (calibration mode)
 const liveScore = new Map(); // id -> the live score as ESPN says it (calibration mode only)
+// "🔔 Notify me when it starts": the events belled on this device, { id: start }. The helper
+// (worker/, a Cloudflare Worker) holds the real list and sends the push; see "Notifications" in CLAUDE.md.
+const PUSH_URL = 'https://primetime-push.dbugger85.workers.dev';
+const VAPID_PUBLIC = 'BKbBhrQYEf5IBeMZQBJg0a1kGFbFvwLpOWwxIbhqguHG2jLvAo42cvgIGDD467FWYg0T1QrS2VCTxqQo9kJsNQ4';
+const bells = store.load('pt-bells', {});
+const bellBusy = new Set(); // ids being saved right now
 const PAGE = 40;
 let limit = PAGE; // cards shown; grows with "Show more"
 
@@ -584,9 +590,138 @@ function soonCard(e) {
   li.querySelector('.chances').textContent = chances;
   li.querySelector('.chances').hidden = !chances;
   li.querySelector('.svc').append(...servicePills(e));
+  fillBell(li, e);
   fillPace(li, e);
   fillLineups(li, e);
   return li;
+}
+
+// ── "🔔 Notify me when it starts" ─────────────────────────────────────────────
+// Only on events that haven't started. The first time, our own dialog explains it before the
+// browser asks for permission. The phone gets a push from the helper at the start time.
+function fillBell(li, e) {
+  const b = li.querySelector('.bell');
+  const on = Boolean(bells[e.id]);
+  b.hidden = !on && !(Date.parse(e.start) > Date.now());
+  if (b.hidden) return;
+  b.setAttribute('aria-pressed', String(on));
+  b.disabled = bellBusy.has(e.id);
+  const label = on ? 'Notification on: tap to turn it off' : 'Notify me when it starts';
+  b.setAttribute('aria-label', label);
+  b.title = label;
+  b.onclick = () => toggleBell(e);
+}
+
+const ios = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const pushWorks = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+
+// Our own dialog (never the browser's alert/confirm). `ok` is the action button's text, or
+// nothing for a dialog with just "OK". `onOk` runs inside the tap itself, because iPhones only
+// let the permission question appear straight from a tap.
+function notifyDialog({ title, text, ok, onOk, extra }) {
+  const dlg = $('#notify-dlg');
+  dlg.querySelector('h2').textContent = title;
+  dlg.querySelector('.dlg-text').textContent = text;
+  const okBtn = $('#notify-ok');
+  const cancel = $('#notify-cancel');
+  okBtn.textContent = ok || 'OK';
+  cancel.hidden = !ok;
+  const more = $('#notify-extra');
+  more.hidden = !extra;
+  if (extra) { more.textContent = extra.label; more.onclick = () => { dlg.close(); extra.run(); }; }
+  return new Promise((resolve) => {
+    let result = null;
+    okBtn.onclick = () => { result = ok && onOk ? onOk() : null; dlg.close(); };
+    cancel.onclick = () => dlg.close();
+    dlg.addEventListener('close', () => resolve(result), { once: true });
+    dlg.showModal();
+  });
+}
+
+// What the phone shows. No spoilers: tennis never names the players (a later round tells you who
+// won before), and football leaves out the teams while you've hidden them.
+function bellText(e) {
+  const where = e.services.map((id) => SERVICES[id]?.name).filter(Boolean).join(' · ');
+  const title = e.sport === 'tennis' ? `${e.compName} · ${e.round}`
+    : e.sport === 'football' ? (namesHidden(e, prefs) ? `${e.compName}: teams hidden` : e.teams.join(' – '))
+      : e.sport === 'winter' ? `${e.compName}: ${e.race}` : titleOf(e);
+  return { title, body: where ? `Starting now · ${where}` : 'Starting now' };
+}
+
+async function askPermission() {
+  if (!pushWorks()) {
+    if (ios() && !navigator.standalone) {
+      await notifyDialog({
+        title: 'Install PrimeTime first',
+        text: 'On iPhone and iPad, notifications only work in the installed app. Add PrimeTime to your home screen, open it from there and tap the bell again',
+        extra: { label: 'How to install', run: () => $('#ios-install-dlg').showModal() },
+      });
+    } else {
+      await notifyDialog({ title: 'No notifications here', text: "This browser can't show notifications from websites. Try Chrome, Edge, Firefox or Safari" });
+    }
+    return false;
+  }
+  if (Notification.permission === 'granted') return true;
+  if (Notification.permission === 'denied') {
+    await notifyDialog({ title: 'Notifications are blocked', text: "You've blocked notifications from PrimeTime. Allow them in the browser's site settings (the icon next to the address), or in the phone's settings for the app, then tap the bell again" });
+    return false;
+  }
+  const asked = await notifyDialog({
+    title: '🔔 Notify me when it starts',
+    text: "PrimeTime sends a notification to this device when the event starts. Never a score. Your phone asks if that's OK next. Only an anonymous push address and the events you bell are saved, and each one is deleted once it's sent",
+    ok: 'Turn on notifications',
+    onOk: () => Notification.requestPermission(),
+  });
+  return (await asked) === 'granted';
+}
+
+async function pushSubscription() {
+  const reg = await navigator.serviceWorker.register('./sw.js');
+  await navigator.serviceWorker.ready;
+  return (await reg.pushManager.getSubscription())
+    ?? reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: VAPID_PUBLIC });
+}
+
+const redrawBell = (id) => {
+  const li = document.querySelector(`#cards .card.soon[data-id="${CSS.escape(id)}"]`);
+  const e = upcoming.find((x) => x.id === id);
+  if (li && e) fillBell(li, e);
+};
+
+async function toggleBell(e) {
+  if (bellBusy.has(e.id)) return;
+  const on = Boolean(bells[e.id]);
+  if (!on && !(await askPermission())) return;
+  bellBusy.add(e.id);
+  redrawBell(e.id);
+  try {
+    const sub = await pushSubscription();
+    if (on) {
+      await fetch(`${PUSH_URL}/alert`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint: sub.endpoint, id: e.id }) }).catch(() => {});
+      delete bells[e.id];
+    } else {
+      const res = await fetch(`${PUSH_URL}/alert`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sub: sub.toJSON(), id: e.id, ...bellText(e) }) });
+      if (!res.ok) throw new Error(res.status === 409 ? 'started' : res.status === 429 ? 'full' : `HTTP ${res.status}`);
+      bells[e.id] = e.start;
+    }
+    store.save('pt-bells', bells);
+  } catch (err) {
+    const why = { started: 'It has already started, or it has just been moved', full: "You've belled a lot of events. Turn some off first" }[err.message]
+      ?? 'Something went wrong. Check your connection and try again';
+    notifyDialog({ title: "Couldn't turn on the notification", text: why });
+  } finally {
+    bellBusy.delete(e.id);
+    redrawBell(e.id);
+  }
+}
+
+// Forget bells for events that started long ago (the helper has sent and deleted them).
+function pruneBells() {
+  let changed = false;
+  for (const [id, start] of Object.entries(bells)) {
+    if (Date.now() - Date.parse(start) > 6 * 3600e3) { delete bells[id]; changed = true; }
+  }
+  if (changed) store.save('pt-bells', bells);
 }
 
 // "Excitement so far" on live football cards, behind a button (it says a lot about the match).
@@ -1425,6 +1560,7 @@ async function importSettings() {
 
 function load() {
   setupInstall();
+  pruneBells();
   bind();
   renderControls();
   window.primetimeStarted = true; // tells the safety net in index.html that the app started (set last, so a crash above still shows it)
