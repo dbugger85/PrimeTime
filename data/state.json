@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-11-07T15:04:26.136Z",
+ "lastFull": "2026-11-07T17:55:28.732Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2924,6 +2924,36 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/belarus-albania-v7j42j7v"
    }
+  },
+  "fb-401861174": {
+   "start": "2026-11-15T17:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/finland-san-marino-mcd0svj8"
+   }
+  },
+  "fb-401861176": {
+   "start": "2026-11-15T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/belgia-italia-2hpfcw37"
+   }
+  },
+  "fb-401861177": {
+   "start": "2026-11-15T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/frankrike-tyrkia-48w64mg4"
+   }
+  },
+  "fb-401861178": {
+   "start": "2026-11-15T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/kroatia-tsjekkia-gbc3cmyk"
+   }
+  },
+  "fb-401861175": {
+   "start": "2026-11-15T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/spania-england-w0ked959"
+   }
   }
  },
  "ratings": {
@@ -3197,7 +3227,7 @@
   },
   "ppg": {
    "eng.1": {
-    "Arsenal": 2.6666666666666665,
+    "Arsenal": 2.7,
     "Manchester City": 2.3333333333333335,
     "Brighton & Hove Albion": 2.111111111111111,
     "Chelsea": 1.7777777777777777,
@@ -3207,9 +3237,9 @@
     "Leeds United": 1.4,
     "AFC Bournemouth": 1.3333333333333333,
     "Tottenham Hotspur": 1.2,
+    "Newcastle United": 1.2,
     "Aston Villa": 1.3333333333333333,
-    "Hull City": 1.2222222222222223,
-    "Newcastle United": 1.2222222222222223,
+    "Hull City": 1.1,
     "Ipswich Town": 1.2222222222222223,
     "Fulham": 1,
     "Coventry City": 0.9,
@@ -3282,14 +3312,14 @@
     "Real Sociedad": 1.7272727272727273,
     "Sevilla": 1.5,
     "Athletic Club": 1.5,
-    "Deportivo": 1.2727272727272727,
+    "Deportivo": 1.25,
     "Racing Santander": 1.1666666666666667,
     "Alavés": 1.0833333333333333,
     "Villarreal": 1.0909090909090908,
     "Celta Vigo": 1.0909090909090908,
+    "Espanyol": 1,
     "Rayo Vallecano": 1.2,
     "Getafe": 1.0909090909090908,
-    "Espanyol": 1,
     "Osasuna": 1,
     "Elche": 0.9090909090909091,
     "Levante": 0.9090909090909091,
@@ -3297,21 +3327,21 @@
     "Málaga": 0.4166666666666667
    },
    "ger.1": {
-    "Bayern Munich": 2.25,
-    "Borussia Dortmund": 2.25,
+    "Bayern Munich": 2.3333333333333335,
+    "Borussia Dortmund": 2.3333333333333335,
+    "RB Leipzig": 2,
     "SC Freiburg": 2,
-    "RB Leipzig": 1.875,
     "Werder Bremen": 1.875,
     "Bayer Leverkusen": 1.625,
-    "SV Elversberg": 1.625,
+    "SV Elversberg": 1.4444444444444444,
+    "Eintracht Frankfurt": 1.3333333333333333,
     "Hamburg SV": 1.3333333333333333,
-    "Eintracht Frankfurt": 1.375,
-    "Mainz": 1.25,
-    "FC Augsburg": 1.125,
+    "Mainz": 1.1111111111111112,
+    "SC Paderborn 07": 1.1111111111111112,
+    "FC Augsburg": 1,
     "VfB Stuttgart": 1.125,
     "TSG Hoffenheim": 1.125,
     "FC Cologne": 1.125,
-    "SC Paderborn 07": 1.125,
     "1. FC Union Berlin": 0.875,
     "Schalke 04": 0.75,
     "Borussia Mönchengladbach": 0.4444444444444444
@@ -3322,15 +3352,15 @@
     "AS Roma": 2.4,
     "Como": 2.3,
     "AC Milan": 2.1,
-    "Frosinone": 2,
+    "Frosinone": 1.8181818181818181,
     "Juventus": 1.7,
+    "Cagliari": 1.4545454545454546,
     "Napoli": 1.4,
     "Bologna": 1.4,
-    "Torino": 1.3,
+    "Torino": 1.2727272727272727,
     "Genoa": 1.3,
-    "Cagliari": 1.3,
     "Atalanta": 1.1,
-    "Lecce": 0.9,
+    "Lecce": 0.9090909090909091,
     "Parma": 0.8,
     "Fiorentina": 0.8,
     "Sassuolo": 0.8,
@@ -3359,30 +3389,30 @@
     "Le Havre AC": 0.2222222222222222
    },
    "eng.2": {
+    "Birmingham City": 1.9333333333333333,
+    "Middlesbrough": 1.9333333333333333,
     "Stoke City": 1.9333333333333333,
-    "Middlesbrough": 2,
     "Wolverhampton Wanderers": 1.8666666666666667,
-    "Birmingham City": 1.8571428571428572,
-    "Swansea City": 1.8571428571428572,
-    "West Bromwich Albion": 1.7857142857142858,
-    "Southampton": 1.7142857142857142,
-    "West Ham United": 1.6428571428571428,
-    "Sheffield United": 1.5714285714285714,
+    "West Bromwich Albion": 1.8666666666666667,
+    "Swansea City": 1.7333333333333334,
+    "Southampton": 1.6,
+    "Queens Park Rangers": 1.6,
+    "West Ham United": 1.5333333333333334,
+    "Sheffield United": 1.4666666666666666,
     "Portsmouth": 1.4666666666666666,
     "Norwich City": 1.4,
-    "Queens Park Rangers": 1.5,
-    "Millwall": 1.2857142857142858,
-    "Blackburn Rovers": 1.2857142857142858,
+    "Blackburn Rovers": 1.4,
+    "Cardiff City": 1.2,
     "Wrexham": 1.2,
+    "Millwall": 1.2,
     "Bristol City": 1.2,
     "Bolton Wanderers": 1.1333333333333333,
-    "Cardiff City": 1.0714285714285714,
-    "Lincoln City": 1.0714285714285714,
+    "Charlton Athletic": 1.1333333333333333,
     "Watford": 1,
-    "Charlton Athletic": 1,
-    "Burnley": 0.7142857142857143,
+    "Lincoln City": 1,
+    "Burnley": 0.6666666666666666,
     "Derby County": 0.6666666666666666,
-    "Preston North End": 0.35714285714285715
+    "Preston North End": 0.5333333333333333
    },
    "uefa.europa": {
     "Benfica": 3,
