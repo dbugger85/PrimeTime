@@ -11,7 +11,7 @@ self.addEventListener('push', (e) => {
     body: msg.body || '',
     tag: msg.id || 'primetime', // the same event twice replaces the first
     icon: './icons/icon-192.png',
-    badge: './icons/icon-192.png',
+    badge: './icons/badge-96.png', // Android's status bar: white shape on transparent
     data: { id: msg.id },
   }));
 });
