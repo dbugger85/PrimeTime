@@ -106,4 +106,15 @@ DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
  ime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401874967@primetime
+DTSTAMP:20261121T170000Z
+DTSTART:20261121T170000Z
+DTEND:20261121T190000Z
+SUMMARY:Parma – AS Roma
+LOCATION:VG+ Sport
+DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
