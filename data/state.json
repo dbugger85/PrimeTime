@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-11-07T14:38:52.030Z",
+ "lastFull": "2026-11-07T15:04:26.136Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2876,6 +2876,54 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/georgia-ungarn-4vj585rc"
    }
+  },
+  "fb-401861167": {
+   "start": "2026-11-14T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/portugal-danmark-v4m25f56"
+   }
+  },
+  "fb-401861169": {
+   "start": "2026-11-14T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/nord-irland-ukraina-mnmkpw89"
+   }
+  },
+  "fb-401861168": {
+   "start": "2026-11-14T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/romania-polen-07xnrqcw"
+   }
+  },
+  "fb-401861166": {
+   "start": "2026-11-14T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/sverige-bosnia-hercegovina-mj54pwsq"
+   }
+  },
+  "fb-401861170": {
+   "start": "2026-11-14T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/oesterrike-irland-c5xztgm6"
+   }
+  },
+  "fb-401861172": {
+   "start": "2026-11-15T14:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/kypros-montenegro-h1fpetc4"
+   }
+  },
+  "fb-401861171": {
+   "start": "2026-11-15T14:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/latvia-armenia-mst6k224"
+   }
+  },
+  "fb-401861173": {
+   "start": "2026-11-15T17:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/belarus-albania-v7j42j7v"
+   }
   }
  },
  "ratings": {
@@ -3235,6 +3283,7 @@
     "Sevilla": 1.5,
     "Athletic Club": 1.5,
     "Deportivo": 1.2727272727272727,
+    "Racing Santander": 1.1666666666666667,
     "Alavés": 1.0833333333333333,
     "Villarreal": 1.0909090909090908,
     "Celta Vigo": 1.0909090909090908,
@@ -3242,11 +3291,10 @@
     "Getafe": 1.0909090909090908,
     "Espanyol": 1,
     "Osasuna": 1,
-    "Racing Santander": 1,
     "Elche": 0.9090909090909091,
     "Levante": 0.9090909090909091,
     "Valencia": 0.8181818181818182,
-    "Málaga": 0.45454545454545453
+    "Málaga": 0.4166666666666667
    },
    "ger.1": {
     "Bayern Munich": 2.25,
