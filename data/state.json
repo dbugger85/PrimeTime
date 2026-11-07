@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-11-07T12:10:35.785Z",
+ "lastFull": "2026-11-07T14:38:52.030Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1812,12 +1812,6 @@
   }
  },
  "links": {
-  "fb-401861135": {
-   "start": "2026-10-06T14:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/kasakhstan-faeroeyene-v8em7bp9"
-   }
-  },
   "fb-401861140": {
    "start": "2026-10-06T18:45Z",
    "tv2play": {
@@ -2828,6 +2822,60 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/liechtenstein-aserbajdsjan-e88vvd08"
    }
+  },
+  "fb-401861154": {
+   "start": "2026-11-13T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/luxembourg-estland-czs26mrs"
+   }
+  },
+  "fb-401861159": {
+   "start": "2026-11-13T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/nederland-hellas-br3pzqs9"
+   }
+  },
+  "fb-401861161": {
+   "start": "2026-11-13T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/skottland-nord-makedonia-q74k21eh"
+   }
+  },
+  "fb-401861160": {
+   "start": "2026-11-13T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/slovakia-faeroeyene-gg04tysa"
+   }
+  },
+  "fb-401861156": {
+   "start": "2026-11-13T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/slovenia-sveits-f50xs8h0"
+   }
+  },
+  "fb-401861158": {
+   "start": "2026-11-13T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/serbia-tyskland-waq33qzr"
+   }
+  },
+  "fb-401861163": {
+   "start": "2026-11-14T14:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/kosovo-israel-we8hah76"
+   }
+  },
+  "fb-401861165": {
+   "start": "2026-11-14T17:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/norge-wales-9xxpnejb"
+   }
+  },
+  "fb-401861164": {
+   "start": "2026-11-14T17:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/georgia-ungarn-4vj585rc"
+   }
   }
  },
  "ratings": {
@@ -3108,11 +3156,11 @@
     "Everton": 1.6,
     "Liverpool": 1.6666666666666667,
     "Brentford": 1.5555555555555556,
+    "Leeds United": 1.4,
     "AFC Bournemouth": 1.3333333333333333,
-    "Tottenham Hotspur": 1.3333333333333333,
+    "Tottenham Hotspur": 1.2,
     "Aston Villa": 1.3333333333333333,
     "Hull City": 1.2222222222222223,
-    "Leeds United": 1.2222222222222223,
     "Newcastle United": 1.2222222222222223,
     "Ipswich Town": 1.2222222222222223,
     "Fulham": 1,
@@ -3263,22 +3311,22 @@
     "Le Havre AC": 0.2222222222222222
    },
    "eng.2": {
+    "Stoke City": 1.9333333333333333,
     "Middlesbrough": 2,
-    "Wolverhampton Wanderers": 1.9285714285714286,
+    "Wolverhampton Wanderers": 1.8666666666666667,
     "Birmingham City": 1.8571428571428572,
-    "Stoke City": 1.8571428571428572,
     "Swansea City": 1.8571428571428572,
     "West Bromwich Albion": 1.7857142857142858,
     "Southampton": 1.7142857142857142,
     "West Ham United": 1.6428571428571428,
     "Sheffield United": 1.5714285714285714,
-    "Portsmouth": 1.5714285714285714,
+    "Portsmouth": 1.4666666666666666,
+    "Norwich City": 1.4,
     "Queens Park Rangers": 1.5,
-    "Norwich City": 1.2857142857142858,
     "Millwall": 1.2857142857142858,
     "Blackburn Rovers": 1.2857142857142858,
-    "Bristol City": 1.2857142857142858,
-    "Wrexham": 1.2142857142857142,
+    "Wrexham": 1.2,
+    "Bristol City": 1.2,
     "Bolton Wanderers": 1.1333333333333333,
     "Cardiff City": 1.0714285714285714,
     "Lincoln City": 1.0714285714285714,
