@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-11-08T11:05:35.133Z",
+ "lastFull": "2026-11-08T14:00:57.303Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2938,6 +2938,90 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/litauen-liechtenstein-xvxsqkft"
    }
+  },
+  "fb-401861179": {
+   "start": "2026-11-16T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/gibraltar-malta-5gy3d2kb"
+   }
+  },
+  "fb-401861188": {
+   "start": "2026-11-16T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/hellas-serbia-497exf99"
+   }
+  },
+  "fb-401861187": {
+   "start": "2026-11-16T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/nord-makedonia-slovenia-zejr36fw"
+   }
+  },
+  "fb-401861186": {
+   "start": "2026-11-16T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/sveits-skottland-wdbbyf5n"
+   }
+  },
+  "fb-401861185": {
+   "start": "2026-11-16T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/tyskland-nederland-rt75y8k8"
+   }
+  },
+  "fb-401861196": {
+   "start": "2026-11-17T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/bosnia-hercegovina-romania-9fwce5f3"
+   }
+  },
+  "fb-401861194": {
+   "start": "2026-11-17T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/danmark-norge-zsa15j6y"
+   }
+  },
+  "fb-401861192": {
+   "start": "2026-11-17T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/irland-kosovo-c7hrkhfe"
+   }
+  },
+  "fb-401861193": {
+   "start": "2026-11-17T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/israel-oesterrike-h55fr9tt"
+   }
+  },
+  "fb-401861195": {
+   "start": "2026-11-17T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/polen-sverige-kyxy9v5k"
+   }
+  },
+  "fb-401861190": {
+   "start": "2026-11-17T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/ukraina-georgia-4s0vp0n9"
+   }
+  },
+  "fb-401861191": {
+   "start": "2026-11-17T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/ungarn-nord-irland-4x0b7s30"
+   }
+  },
+  "fb-401861189": {
+   "start": "2026-11-17T19:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-nations-league-y3yqrwwv/wales-portugal-246e63c4"
+   }
+  },
+  "fb-401843486": {
+   "start": "2026-11-20T18:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/molde-bodoe-glimt-56sj701g"
+   }
   }
  },
  "ratings": {
@@ -3331,7 +3415,7 @@
     "Borussia Mönchengladbach": 0.4444444444444444
    },
    "ita.1": {
-    "Lazio": 2.8,
+    "Lazio": 2.6363636363636362,
     "AS Roma": 2.4545454545454546,
     "Internazionale": 2.5,
     "Como": 2.3,
@@ -3340,7 +3424,7 @@
     "Juventus": 1.7,
     "Bologna": 1.5454545454545454,
     "Cagliari": 1.4545454545454546,
-    "Napoli": 1.4,
+    "Napoli": 1.3636363636363635,
     "Torino": 1.2727272727272727,
     "Genoa": 1.3,
     "Atalanta": 1.1,
