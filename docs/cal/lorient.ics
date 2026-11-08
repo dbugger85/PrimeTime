@@ -62,4 +62,15 @@ DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
  e/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876401@primetime
+DTSTAMP:20261122T161500Z
+DTSTART:20261122T161500Z
+DTEND:20261122T181500Z
+SUMMARY:Lorient – Stade Rennais
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
+ e/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR

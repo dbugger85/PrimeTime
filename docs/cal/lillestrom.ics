@@ -95,4 +95,15 @@ DESCRIPTION:Eliteserien · Relegation battle\nWatch on TV 2 Play\nhttps://d
  bugger85.github.io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843484@primetime
+DTSTAMP:20261122T181500Z
+DTSTART:20261122T181500Z
+DTEND:20261122T201500Z
+SUMMARY:Sarpsborg FK – Lillestrom
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
