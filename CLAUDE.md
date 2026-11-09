@@ -9,7 +9,7 @@ A phone-first web page that rates finished football, tennis and F1 events for ho
 ## Commands
 
 ```sh
-npm test              # unit tests: scoring, page logic, live clock and pace, spoiler guard (no install needed)
+npm test              # unit tests: scoring, page logic, live clock and pace, spoiler guard, league tables (no install needed)
 npm run build         # fetch + score everything into docs/data/events.json (takes minutes the first time)
 npm run build -- f1   # only one sport: football | tennis | f1
 npm start             # serve docs/ at http://localhost:8000
@@ -41,6 +41,13 @@ Each run does the following:
 Every request has a 30-second time limit and is retried on failure (`src/http.mjs`), because a server that hangs instead of failing would otherwise use up the whole 30-minute run. `warn` and `saver` (saving a scored event) are shared from `src/store.mjs`.
 
 There's no server and there are no API keys. **Don't commit `docs/data/*.json`, `docs/cal/` or `data/state.json` from a local build,** because the bot owns them and a local commit can conflict with its push. Discard local changes with `git checkout docs/data data docs/cal` (and `git clean -fd docs/cal` for new files).
+
+## Known issues (as of 2026-11-10)
+
+- **`npm run e2e` stops at `"France" from the summary on the page`** (the live-football block, about line 680). The test fakes a live France–England match and then checks the whole page for those names, but the real data now has France and England World Cup qualifiers coming up (12 and 15 Nov), so it fails even though nothing leaked. It fails the same way without the Team view. Until it's fixed, the steps after it and the whole dark-mode pass don't run. Fix: check only the fake match's card, or names that aren't in the real data.
+- **Biathlon:** the full build on 2026-11-09 got `401 Unauthorized` from `biathlonresults.com/modules/sportapi/api/Events` ("winter failed"). If it keeps happening, IBU has closed its API to us and biathlon stops updating.
+- **`node scripts/readme-shots.mjs` (all shots)** fails on the "Coming up" shot when no day heading says "Today" or "Tomorrow" (just after midnight, or a day with no football). Take single shots by name meanwhile.
+- **ATP rights:** the build warns that `tennis.atp` (TV 2 Play) runs out on 2026-12-31; find the 2027 holder (see "Data sources").
 
 ## Outside trigger (cron-job.org)
 
@@ -135,6 +142,8 @@ The owner asked for it: tap a team name on any football card to see that team's 
 - **Tables:** "⚠⚠ League table(s)" in the header goes through `confirmSpoiler(SPOILER_LEVELS.table)`, then fetches `docs/data/standings.json` (skipped in calibration mode). Shown this visit only, per team (`tableShown`), ✕ hides them. One table per competition the team plays in that has one (`TABLE_COMPS` in `logic.js` = `STAKES_COMPS`, checked by a test; EURO/World Cup groups are left out), only the team's own group (Nations League, qualifiers), the full table, the team's row highlighted, a dashed line where ESPN's note changes, a legend ("1–4 Champions League · 18–20 Relegation") and "Updated …". Columns `# Team P W D L GD Pts`; no rank-change arrows (they hint at the last result). Other teams in the table are links to their own view (whose tables need their own warning).
 - **`docs/data/standings.json`** (the fourth spoiler file): `{ [compKey]: { season, updated, groups: [{ name, rows: [{ team, rank, played, won, drawn, lost, gf, ga, gd, points, note }] }] } }`, about 55 KB, through `publishStandings()` in `publish.mjs` (whitelisted fields, whole numbers; no ESPN record strings like "9-0-1", logos, links or colours). `test/standings.test.mjs` checks the shape, the real file and the refresh rules.
 - **How fresh** (the owner chose "refresh after each match"): `src/standings.mjs`. The full build refreshes every table from the requests it makes anyway (`standingsFor()` in `build.mjs`, shared with the stakes and the Elo fields). When a match in a table competition finishes, `noteFinished()` stores it in `state.tablesPending` with both teams' games played; the **live check** then fetches just that competition's table every run (`refreshStandings()`) until both teams show one more game, because ESPN's standings lag behind full-time, giving up after 3 hours. Nothing waiting means no requests. A knockout tie after the league phase (both teams already played every league-phase game) isn't waited for. A failed request keeps the old table. The live check saves only when a table's content changed or a match stopped waiting (a new `updated` time alone doesn't count), so quiet re-checks don't deploy. Matches the full build scores within 6 h of kick-off are noted the same way.
+- **Header layout:** "← Back", the team name (Barlow Condensed) with ☆ Follow / ★ Following beside it, the competitions ("National team · …" for nations), then the count on two lines, "1 match coming up and 4 replays" / "(the last 30 days and the next 14)" (a `<br>` before the brackets, the owner's request, so the line never breaks inside them), then the table button. `#status` is emptied (and hidden) in the Team view.
+- **Tests:** `test/logic.test.mjs` (`teamMatches`, `teamTables`, the hash), `test/standings.test.mjs` (publishing and the refresh rules, with the real Premier League response `test/fixtures/football/standings-eng.1-2026-11-10.json`), and a Team view block in `test/e2e.mjs` (tap a name, only that team's cards, no score-like text, no `standings.json` request before the warning or after cancelling, a highlighted row in every table, fits a phone, another team's page and Back, ✕, back at the same scroll): `team-view-*.png`, `team-table-*.png`. The README has a Team view screenshot (`node scripts/readme-shots.mjs team`; it never opens the tables).
 
 ## Calendar feeds
 
