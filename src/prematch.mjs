@@ -39,7 +39,7 @@ export { STAKES } from '../docs/scoring.js'; // the labels, shared with the page
 export const STAKES_COMPS = new Set(['eng.1', 'nor.1', 'esp.1', 'ger.1', 'ita.1', 'fra.1', 'eng.2',
   'uefa.champions', 'uefa.europa', 'uefa.europa.conf', 'uefa.nations', 'uefa.euroq', 'fifa.worldq.uefa']);
 // UEFA's league phases: one table of 36, each team plays 8 matches (6 in the Conference League).
-const LEAGUE_PHASE = { 'uefa.champions': 8, 'uefa.europa': 8, 'uefa.europa.conf': 6 };
+export const LEAGUE_PHASE = { 'uefa.champions': 8, 'uefa.europa': 8, 'uefa.europa.conf': 6 };
 
 function rulesFor(compKey, groupName, size) {
   switch (compKey) {

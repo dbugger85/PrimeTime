@@ -17,12 +17,14 @@ import * as f1 from '../src/sources/openf1.mjs';
 import * as fotmob from '../src/sources/fotmob.mjs';
 import { chancesOf, publishFootball, publishTennis, publishF1, upcomingFootball, upcomingTennis, lineupFields, trimFacts } from '../src/publish.mjs';
 import { loadData, saveData, warn, saver } from '../src/store.mjs';
+import { noteFinished, refreshStandings } from '../src/standings.mjs';
+import { fetchStandings } from '../src/sources/espn-standings.mjs';
 import { FOOTBALL as FOOTBALL_W, FOOTBALL_LIVE } from '../src/scoring/weights.mjs';
 import { liveFacts, scoreLivePace, liveWeightsFrom, bigMatchFactor, espnDays } from '../docs/live.js';
 
 const now = process.env.NOW ? new Date(process.env.NOW) : new Date(); // NOW=... pretends it's another time (for testing)
 const data = loadData();
-const { events, reasons, results, facts } = data;
+const { events, reasons, results, facts, standings } = data;
 let upcoming = data.upcoming;
 const before = JSON.stringify([upcoming, [...events.keys()]]);
 const save = saver(data);
@@ -76,6 +78,7 @@ async function liveFootball() {
           const scored = scoreFootball(matchFacts);
           save(publishFootball(comp, m, scored, { lineups: football.lineupsFromSummary(summary) ?? old.lineups, stakes: old.stakes }), scored, trimFacts(matchFacts));
           upcoming = upcoming.filter((e) => e.id !== id);
+          noteFinished(data.state, standings, { id, comp: compKey, teams: [m.home, m.away] }, now); // refreshed below
           console.log(`scored ${m.home} – ${m.away}`);
         } catch (err) {
           warn(`football ${compKey} ${m.espnId}: ${err.message}`); // try again next time
@@ -171,8 +174,21 @@ for (const [sport, run] of Object.entries({ football: liveFootball, f1: liveF1, 
   }
 }
 
-if (JSON.stringify([upcoming, [...events.keys()]]) === before && !data.migrated) {
+// The Team view's tables: after a match finishes, its table is fetched once a run until it shows
+// the match (ESPN can lag behind full-time). With nothing waiting, no requests.
+const pendingBefore = JSON.stringify(data.state.tablesPending ?? {});
+let tablesChanged = false;
+try {
+  tablesChanged = await refreshStandings(data.state, standings, fetchStandings, { now, warn });
+  if (tablesChanged) console.log('live: a league table changed');
+} catch (err) {
+  warn(`live standings failed: ${err.message}`);
+}
+// A table that changed, or a match that stopped waiting, is saved (so the next run doesn't ask again).
+const pendingChanged = JSON.stringify(data.state.tablesPending ?? {}) !== pendingBefore;
+
+if (JSON.stringify([upcoming, [...events.keys()]]) === before && !data.migrated && !tablesChanged && !pendingChanged) {
   console.log('live: nothing changed');
 } else {
-  console.log(saveData({ events, upcoming, reasons, results, facts, state: data.state }, now));
+  console.log(saveData({ events, upcoming, reasons, results, facts, standings, state: data.state }, now));
 }

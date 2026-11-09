@@ -242,3 +242,26 @@ export const upcomingF1 = (race) => ({
   circuit: race.circuit,
   ...f1Session(race),
 });
+
+// League tables for the Team view (docs/data/standings.json, loaded only after a warning,
+// since points and wins follow every result). Numbers and names only: no "9-0-1" record
+// strings, logos, links, colours or rank changes (an arrow would hint at the last result).
+const count = (x) => (Number.isInteger(x) && x >= 0 ? x : 0);
+const int = (x) => (Number.isInteger(x) ? x : 0);
+export const STANDING_FIELDS = ['team', 'rank', 'played', 'won', 'drawn', 'lost', 'gf', 'ga', 'gd', 'points', 'note'];
+export function publishStandings({ season, groups }, now = new Date()) {
+  return {
+    season: typeof season === 'string' ? season.slice(0, 80) : '',
+    updated: now.toISOString(),
+    groups: (groups ?? []).map((g) => ({
+      name: typeof g.name === 'string' ? g.name.slice(0, 60) : '',
+      rows: (g.rows ?? []).filter((r) => typeof r.team === 'string' && r.team && count(r.rank) > 0)
+        .map((r) => ({
+          team: r.team.slice(0, 60), rank: count(r.rank), played: count(r.played), won: count(r.won), drawn: count(r.drawn),
+          lost: count(r.lost), gf: count(r.gf), ga: count(r.ga), gd: int(r.gd), points: int(r.points), // both can be negative (points after a deduction)
+          note: typeof r.note === 'string' ? r.note.slice(0, 60) : '',
+        }))
+        .sort((a, b) => a.rank - b.rank),
+    })).filter((g) => g.rows.length),
+  };
+}

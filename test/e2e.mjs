@@ -71,6 +71,8 @@ try {
     const resultRequests = [];
     page.on('request', (r) => r.url().includes('reasons.json') && reasonRequests.push(r.url()));
     page.on('request', (r) => r.url().includes('results.json') && resultRequests.push(r.url()));
+    const tableRequests = [];
+    page.on('request', (r) => r.url().includes('standings.json') && tableRequests.push(r.url()));
     page.on('pageerror', (e) => errors.push(e.message));
     page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
     await page.goto(base);
@@ -319,6 +321,60 @@ try {
       await page.click(`#favs .fav:has-text("${lastTeam}")`); // unfollow again
       await page.click('#sports [data-sport="all"]');
       await page.click('#sports [data-sport="football"]');
+    }
+
+    // Team view: tap a team name for its matches in every competition; the league table is behind a warning.
+    {
+      await page.click('#sports [data-sport="football"]');
+      const name = await page.$eval('.card:nth-child(3) .title .name.team-link', (e) => e.dataset.name); // a card a bit down the list
+      await page.$eval(`.card .title .name.team-link[data-name="${name}"]`, (e) => e.scrollIntoView({ block: 'center' }));
+      const before = await page.evaluate(() => scrollY);
+      await page.click(`.card .title .name.team-link[data-name="${name}"]`);
+      await page.waitForSelector('.team-head h2');
+      assert.match(await page.evaluate(() => location.hash), /^#team=[a-z0-9-]+$/);
+      assert.equal(await page.$eval('.team-head h2', (e) => e.textContent), name);
+      assert.ok(await page.$eval('#filters', (e) => getComputedStyle(e).display === 'none'), 'no filters in the Team view');
+      const titles = await page.$$eval('#cards > .card .title', (els) => els.map((e) => e.textContent));
+      assert.ok(titles.length > 0 && titles.every((t) => t.toLowerCase().includes(name.toLowerCase())), `only ${name} matches: ${titles}`);
+      const text = await page.$eval('#cards', (e) => e.innerText);
+      assert.doesNotMatch(text.replace(/\d{1,2}:\d{2}/g, ''), /\b\d+\s*[-–]\s*\d+\b/, 'a score-like text in the Team view');
+      assert.equal(await page.$$eval(`.team-head ~ .card .name.team-link[data-name="${name}"]`, (els) => els.length), 0, 'the team itself isn\'t a link on its own page');
+      await page.screenshot({ path: `${shots}/team-view-${scheme}.png` });
+      const tableBtn = await page.$('.table-btn');
+      if (tableBtn) {
+        assert.equal(tableRequests.length, 0, 'standings.json loaded before any warning');
+        await tableBtn.click();
+        await page.waitForSelector('#spoiler-dlg[open]');
+        await page.click('#spoiler-dlg button[value="cancel"]');
+        assert.equal(tableRequests.length, 0, 'standings.json loaded after cancelling');
+        assert.equal(await page.$$eval('.standings', (els) => els.length), 0);
+        await page.click('.table-btn');
+        await page.click('#spoiler-dlg button[value="ok"]');
+        await page.waitForSelector('.team-tables .why');
+        if (existsSync(new URL('../docs/data/standings.json', import.meta.url)) || process.env.BASE_URL) {
+          await page.waitForSelector('.standings tr.me');
+          assert.ok((await page.$$eval('.standings tbody tr', (els) => els.length)) >= 4, 'the whole table');
+          assert.equal(await page.$$eval('.standings tr.me', (els) => els.length), await page.$$eval('.standings', (els) => els.length), 'the team is marked in each table');
+          const wide = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+          assert.ok(!wide, 'the table fits a phone');
+          await page.screenshot({ path: `${shots}/team-table-${scheme}.png`, fullPage: true });
+          // Another team in the table opens its own page; Back returns here.
+          const otherTeam = await page.$('.standings th.team-link');
+          if (otherTeam) {
+            const otherName = await otherTeam.textContent();
+            await otherTeam.click();
+            await page.waitForFunction((n) => document.querySelector('.team-head h2')?.textContent === n, otherName);
+            assert.equal(await page.$$eval('.standings', (els) => els.length), 0, 'another team\'s tables need their own warning');
+            await page.goBack();
+            await page.waitForFunction((n) => document.querySelector('.team-head h2')?.textContent === n, name);
+          }
+        }
+        await page.click('.team-tables .why-close');
+        assert.ok(await page.$('.table-btn'), '✕ hides the tables again');
+      } else console.log(`${name} has no league table to test`);
+      await page.click('.team-back');
+      await page.waitForFunction(() => !location.hash && document.querySelector('#filters').offsetParent !== null);
+      assert.ok(Math.abs((await page.evaluate(() => scrollY)) - before) < 5, 'back at the same place in the list');
     }
 
     // Favorites: no stars until you follow something; follow a team, filter to favorites only, search, remove.

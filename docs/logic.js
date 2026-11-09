@@ -405,3 +405,50 @@ export function decodeSettings(code, defaults) {
     return null;
   }
 }
+
+// ── Team view (football) ─────────────────────────────────────────────────────
+// A team's page: its matches in every competition, found by teamSlug() so a one-off
+// spelling ("VIKING FK") still counts. The address is "#team=viking-fk" (no result in it).
+export const teamHash = (slug) => `#team=${slug}`;
+// The competitions with a league table (the leagues, UEFA's league phases, Nations League and
+// qualifier groups). The bot publishes these to docs/data/standings.json (src/standings.mjs).
+export const TABLE_COMPS = new Set(['eng.1', 'nor.1', 'esp.1', 'ger.1', 'ita.1', 'fra.1', 'eng.2',
+  'uefa.champions', 'uefa.europa', 'uefa.europa.conf', 'uefa.nations', 'uefa.euroq', 'fifa.worldq.uefa']);
+export function teamFromHash(hash) {
+  return /^#team=([a-z0-9-]+)$/.exec(hash ?? '')?.[1] ?? null;
+}
+
+// events, upcoming -> { slug, name, nation, replays (newest first), upcoming (live first, then soonest),
+// comps: [{ key, name }] in the order of "My competitions" }, or null when the team isn't in the data.
+export function teamMatches(events, upcoming, slug) {
+  const mine = (e) => e.sport === 'football' && e.teams?.some((t) => teamSlug(t) === slug);
+  const replays = events.filter(mine).sort((a, b) => Date.parse(b.start) - Date.parse(a.start));
+  const soon = upcoming.filter(mine).sort((a, b) => (b.status === 'live') - (a.status === 'live') || Date.parse(a.start) - Date.parse(b.start));
+  const all = [...soon, ...replays];
+  if (!all.length) return null;
+  // The spelling used most; on a tie, the one on the most recent match.
+  const spellings = new Map();
+  for (const e of [...all].sort((a, b) => Date.parse(b.start) - Date.parse(a.start))) {
+    const t = e.teams.find((x) => teamSlug(x) === slug);
+    spellings.set(t, (spellings.get(t) ?? 0) + 1);
+  }
+  const name = [...spellings].reduce((best, s) => (s[1] > best[1] ? s : best))[0];
+  const comps = leagueGroups(all).flatMap((g) => g.comps);
+  const nationComps = LEAGUE_GROUPS.find(([g]) => g === 'National teams')[1];
+  return { slug, name, nation: comps.every((c) => nationComps.includes(c.key)), replays, upcoming: soon, comps };
+}
+
+// The tables to show for a team: for each of its competitions with a table, the group it's in.
+// standings: docs/data/standings.json. -> [{ key, compName, season, updated, group, groups (how many), team }]
+export function teamTables(standings, comps, name) {
+  const slug = teamSlug(name);
+  const out = [];
+  for (const c of comps) {
+    const s = standings?.[c.key];
+    for (const g of s?.groups ?? []) {
+      const row = g.rows.find((r) => r.team === name) ?? g.rows.find((r) => teamSlug(r.team) === slug);
+      if (row) { out.push({ key: c.key, compName: c.name, season: s.season, updated: s.updated, group: g, groups: s.groups.length, team: row.team }); break; }
+    }
+  }
+  return out;
+}

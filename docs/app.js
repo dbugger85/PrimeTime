@@ -1,4 +1,4 @@
-import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, followedMatch, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug, leagueGroups } from './logic.js';
+import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, followedMatch, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug, leagueGroups, teamHash, teamFromHash, teamMatches, teamTables, TABLE_COMPS } from './logic.js';
 import { ESPN, clockOf, liveClockText, espnDays, liveFacts, scoreLivePace, LIVE_FROM, elapsedText, PILLAR_KEYS, pillarShares, pillarWeightKey } from './live.js';
 import { scoreFootball, applyTweaks, cleanTweaks, isStandard, DEFAULT_TWEAKS, TWEAK_GROUPS, STAKES, SCALE_MAX, SCALE_STEP, CURVE_STEP, BOOST_STEP, BOOST_MAX, PILLARS, PILLAR_MAX, PILLAR_STEP } from './scoring.js';
 
@@ -64,6 +64,13 @@ const PUSH_URL = 'https://primetime-push.dbugger85.workers.dev';
 const VAPID_PUBLIC = 'BKbBhrQYEf5IBeMZQBJg0a1kGFbFvwLpOWwxIbhqguHG2jLvAo42cvgIGDD467FWYg0T1QrS2VCTxqQo9kJsNQ4';
 const bells = store.load('pt-bells', {});
 const bellBusy = new Set(); // ids being saved right now
+// Team view (football): "#team=<slug>" in the address shows one team's matches in every
+// competition. The address is the state (not prefs.view), so Back on the phone returns to the list.
+let teamView = null; // the team's slug while the Team view is open
+let listScroll = 0; // where the list was, to return to it
+const tableShown = new Set(); // slugs whose league tables were revealed this visit only (after a warning)
+let standingsFile = null; // docs/data/standings.json: loaded only after the warning
+let standingsAt = 0;
 const PAGE = 40;
 let limit = PAGE; // cards shown; grows with "Show more"
 
@@ -317,7 +324,7 @@ function star(kind, name, label) {
   b.setAttribute('aria-pressed', 'true');
   b.setAttribute('aria-label', `Unfollow ${label}`);
   b.title = b.getAttribute('aria-label');
-  b.onclick = () => setFav(kind, name);
+  b.onclick = (ev) => { ev.stopPropagation(); setFav(kind, name); }; // not also opening the Team view
   return b;
 }
 
@@ -343,6 +350,7 @@ function fillTitle(title, e) {
     if (i) title.append(sep);
     const span = Object.assign(document.createElement('span'), { className: 'name' });
     span.dataset.name = name;
+    if (kind === 'teams' && teamSlug(name) !== teamView) teamLink(span, name);
     const s = star(kind, name, name);
     // "Show Elo ratings": the team's latest Elo, the same on all its cards.
     const elo = kind === 'teams' && prefs.showElo && Number.isFinite(eloRatings[name])
@@ -357,6 +365,48 @@ function fillTitle(title, e) {
     }
     title.append(span);
   });
+}
+
+// A team name in a card title opens its Team view (tap, or Enter/Space with a keyboard).
+function teamLink(span, name) {
+  span.classList.add('team-link');
+  span.setAttribute('role', 'link');
+  span.tabIndex = 0;
+  span.title = `All ${name} matches`;
+  span.onclick = () => openTeam(teamSlug(name));
+  span.onkeydown = (ev) => {
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    ev.preventDefault();
+    openTeam(teamSlug(name));
+  };
+}
+
+function openTeam(slug) {
+  if (!teamView) listScroll = scrollY;
+  history.pushState({ ptTeam: true }, '', teamHash(slug)); // a history entry of its own: Back closes it
+  route();
+}
+
+// Back to the list: through the history when we opened the Team view, otherwise (a shared
+// link opened straight to a team) by dropping the "#team=" from the address.
+function closeTeam() {
+  if (history.state?.ptTeam) return history.back();
+  history.replaceState(null, '', location.pathname + location.search);
+  route();
+}
+
+// Follows the address: "#s=" loads shared settings, "#team=<slug>" opens a Team view.
+function route() {
+  if (/^#s=/.test(location.hash)) return importSettings();
+  const slug = teamFromHash(location.hash);
+  if (slug === teamView) return;
+  const leaving = teamView && !slug;
+  teamView = slug;
+  render();
+  if (slug) {
+    scrollTo(0, 0);
+    document.querySelector('.team-head h2')?.focus({ preventScroll: true });
+  } else if (leaving) scrollTo(0, listScroll);
 }
 
 function card(e) {
@@ -508,6 +558,11 @@ const SPOILER_LEVELS = {
     title: '⚠⚠ Show the result?',
     text: 'This shows the final result: the score, who won, the podium. There is no going back from this one.',
     ok: 'Show the result', file: './data/results.json', shown: resultShown,
+  },
+  table: { // the Team view's league tables (askTable)
+    title: '⚠⚠ League table?',
+    text: 'A league table shows points, wins, draws, losses and goal difference, so it gives recent results away.',
+    ok: 'Show the table',
   },
 };
 // Headings for the groups in "Why this score?" (football).
@@ -799,7 +854,7 @@ async function loadPace(e) {
 const LIVE_POLL_MS = 60e3;
 let polling = false; // one round at a time, even if ESPN is slow
 async function pollLive() {
-  if (polling || prefs.view !== 'upcoming' || document.visibilityState !== 'visible') return;
+  if (polling || (prefs.view !== 'upcoming' && !teamView) || document.visibilityState !== 'visible') return;
   polling = true;
   try { await pollLiveNow(); } finally { polling = false; }
 }
@@ -914,8 +969,152 @@ function renderUpcoming() {
     : prefs.favsOnly ? 'None of your favorites are coming up. Turn off “Only favorites” to see everything.' : 'Nothing coming up that matches these filters.';
 }
 
+// ── Team view (football) ────────────────────────────────────────────────────
+// One team's matches across every competition: coming up first, then the replays, with the
+// same cards as everywhere else (so nothing more is shown than in the lists). The filters don't
+// apply here; the display switches (tips, hints, Elo, hidden names) do.
+const el = (tag, props = {}, ...kids) => {
+  const x = Object.assign(document.createElement(tag), props);
+  x.append(...kids);
+  return x;
+};
+
+function renderTeam() {
+  $('.more')?.remove();
+  const t = teamMatches(events, upcoming, teamView);
+  const back = el('button', { type: 'button', className: 'team-back', textContent: '← Back', onclick: closeTeam });
+  const head = el('li', { className: 'team-head' }, back);
+  if (!t) {
+    $('#cards').replaceChildren(head);
+    $('#status').textContent = lastFetch ? 'No matches for this team in the last 30 days or the next 14.' : 'Loading…';
+    return;
+  }
+  const h2 = el('h2', { textContent: t.name, tabIndex: -1 });
+  const followed = prefs.favs.teams.includes(t.name);
+  const follow = chip(followed ? '★ Following' : '☆ Follow', null, followed, () => setFav('teams', t.name));
+  follow.classList.add('team-follow');
+  const plural = (k, one, many) => `${k} ${k === 1 ? one : many}`;
+  head.append(el('div', { className: 'team-title' }, h2, follow),
+    el('p', { className: 'small', textContent: `${t.nation ? 'National team · ' : ''}${t.comps.map((c) => c.name).join(', ')}` }),
+    el('p', { className: 'small', textContent: `${plural(t.upcoming.length, 'match', 'matches')} coming up and ${plural(t.replays.length, 'replay', 'replays')} (the last 30 days and the next 14).` }));
+  const withTable = t.comps.filter((c) => TABLE_COMPS.has(c.key));
+  if (withTable.length) head.append(tablesBox(t, withTable));
+
+  const items = [head];
+  let lastDay = null;
+  if (t.upcoming.length) items.push(el('li', { className: 'day', textContent: 'Coming up' }));
+  for (const e of t.upcoming) {
+    const day = e.status === 'live' ? 'Live now' : dayLabel(e.start);
+    if (day !== lastDay) {
+      items.push(el('li', { className: 'day sub-day', textContent: day }));
+      lastDay = day;
+    }
+    items.push(soonCard(e));
+  }
+  if (t.replays.length) items.push(el('li', { className: 'day', textContent: 'Replays' }));
+  const ids = new Set(t.replays.map((e) => e.id));
+  // viewEvents(): with custom scoring on, the replays carry your own scores, as in the list.
+  items.push(...viewEvents().filter((e) => ids.has(e.id)).sort((a, b) => Date.parse(b.start) - Date.parse(a.start)).map(card));
+  $('#cards').replaceChildren(...items);
+  $('#status').textContent = '';
+}
+
+// "⚠⚠ League table": behind a warning, since points, wins and goals give recent results away.
+function tablesBox(t, comps) {
+  const box = el('div', { className: 'team-tables' });
+  if (!tableShown.has(t.slug)) {
+    const label = comps.length > 1 ? '⚠⚠ League tables' : '⚠⚠ League table';
+    box.append(el('button', { type: 'button', className: 'why-btn result-btn table-btn', textContent: calibrating ? label.slice(3) : label, onclick: () => askTable(t.slug) }));
+    return box;
+  }
+  const panel = el('div', { className: 'why tables', tabIndex: -1 });
+  const close = el('button', { type: 'button', className: 'why-close', textContent: '✕' });
+  close.setAttribute('aria-label', 'Hide the tables');
+  close.onclick = () => {
+    tableShown.delete(t.slug);
+    render();
+    document.querySelector('.table-btn')?.focus({ preventScroll: true });
+  };
+  panel.append(close);
+  const tables = teamTables(standingsFile, comps, t.name);
+  if (!tables.length) panel.append(el('p', { textContent: standingsFile ? 'No table for this team yet.' : 'Could not load the tables. Try again in a minute.' }));
+  for (const tb of tables) panel.append(leagueTable(tb));
+  box.append(panel);
+  return box;
+}
+
+function leagueTable({ compName, season, updated, group, groups, team }) {
+  const year = /\d{4}(-\d{2,4})?/.exec(season ?? '')?.[0];
+  const many = groups > 1 && group.name; // "Group A1" in the Nations League; a league's one table needs no name
+  const sec = el('section', { className: 'league-table' });
+  sec.append(el('h4', { textContent: [compName, many ? group.name : '', year].filter(Boolean).join(' · ') }));
+  const table = el('table', { className: 'standings' });
+  const cols = [['#', 'Position'], ['Team', ''], ['P', 'Played'], ['W', 'Won'], ['D', 'Drawn'], ['L', 'Lost'], ['GD', 'Goal difference'], ['Pts', 'Points']];
+  const hr = el('tr');
+  for (const [abbr, full] of cols) {
+    const th = el('th', { scope: 'col', textContent: abbr });
+    if (full) th.title = full;
+    if (abbr === 'Team') th.className = 'team';
+    hr.append(th);
+  }
+  const tbody = el('tbody');
+  let lastNote = null;
+  for (const r of group.rows) {
+    const tr = el('tr');
+    if (r.team === team) { tr.className = 'me'; tr.setAttribute('aria-current', 'true'); }
+    if (lastNote !== null && r.note !== lastNote) tr.classList.add('line'); // a line where the places change meaning
+    lastNote = r.note;
+    tr.append(el('td', { textContent: r.rank }), el('th', { scope: 'row', className: 'team', textContent: r.team }),
+      ...[r.played, r.won, r.drawn, r.lost, r.gd > 0 ? `+${r.gd}` : r.gd, r.points].map((v) => el('td', { textContent: v })));
+    if (r.team !== team && teamSlug(r.team) !== teamView) {
+      const cell = tr.querySelector('th.team');
+      cell.classList.add('team-link');
+      cell.setAttribute('role', 'link');
+      cell.tabIndex = 0;
+      cell.onclick = () => openTeam(teamSlug(r.team));
+      cell.onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openTeam(teamSlug(r.team)); } };
+    }
+    tbody.append(tr);
+  }
+  table.append(el('thead', {}, hr), tbody);
+  sec.append(el('div', { className: 'table-scroll' }, table));
+  // What the places mean, from ESPN's notes: "1–4 Champions League · 18–20 Relegation".
+  const ranges = [];
+  for (const r of group.rows) {
+    if (!r.note) continue;
+    const last = ranges.at(-1);
+    if (last && last.note === r.note && last.to === r.rank - 1) last.to = r.rank;
+    else ranges.push({ note: r.note, from: r.rank, to: r.rank });
+  }
+  const legend = ranges.map((x) => `${x.from === x.to ? x.from : `${x.from}–${x.to}`} ${x.note}`).join(' · ');
+  const when = updated ? `Updated ${fmt.format(new Date(updated))}` : '';
+  sec.append(el('p', { className: 'small', textContent: [legend, when].filter(Boolean).join('. ') }));
+  return sec;
+}
+
+async function ensureStandings({ force = false } = {}) {
+  if (standingsFile && !force && Date.now() - standingsAt < REFRESH_MS) return;
+  try {
+    standingsFile = await (await fetch('./data/standings.json', { cache: 'no-cache' })).json();
+    standingsAt = Date.now();
+  } catch { /* "Could not load the tables" */ }
+}
+
+async function askTable(slug) {
+  if (!calibrating && !(await confirmSpoiler(SPOILER_LEVELS.table))) return; // calibration mode: already warned
+  await ensureStandings();
+  tableShown.add(slug);
+  render();
+  const panel = document.querySelector('.team-tables .why');
+  panel?.focus({ preventScroll: true });
+}
+
 function render() {
   renderControls();
+  if (teamView) {
+    document.body.dataset.view = 'team'; // hides the views, sports, favorites and filters (style.css)
+    return renderTeam();
+  }
   if (prefs.view === 'upcoming') return renderUpcoming();
   const list = filterEvents(viewEvents(), prefs, watched);
   $('#cards').replaceChildren(...list.slice(0, limit).map(card));
@@ -1457,6 +1656,7 @@ async function fetchData({ quiet = false } = {}) {
     // Custom scoring or calibration: fetch the facts again when a replay is missing from them (scored since).
     if ((prefs.tweaks.on || calibrating) && (!factsFile || events.some((e) => e.sport === 'football' && !factsFile[e.id]))) await ensureFacts({ force: true });
     if (calibrating && events.some((e) => !resultsFile?.[e.id])) await ensureResults({ force: true });
+    if (tableShown.size) await ensureStandings(); // tables on screen: fresh ones too (at most every 5 minutes)
     recompute();
     for (const id of finished) if (!upcoming.some((e) => e.id === id)) finished.delete(id);
     keepScroll(render); // keeps filters, "Show more" and open panels as they were
@@ -1565,8 +1765,9 @@ function load() {
   renderControls();
   window.primetimeStarted = true; // tells the safety net in index.html that the app started (set last, so a crash above still shows it)
   fetchData(); // fetches the facts too when custom scoring is on (agreed to on an earlier visit)
-  importSettings();
-  addEventListener('hashchange', importSettings); // a link opened while the page is already open
+  route(); // "#s=" settings link or "#team=" Team view
+  addEventListener('hashchange', route); // a link opened while the page is already open
+  addEventListener('popstate', route); // Back and Forward between the list and Team views
   setInterval(() => document.visibilityState === 'visible' && fetchData({ quiet: true }), REFRESH_MS);
   setInterval(updateClocks, 30e3);
   setInterval(pollLive, LIVE_POLL_MS);

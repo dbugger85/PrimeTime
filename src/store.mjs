@@ -3,12 +3,14 @@
 //   docs/data/reasons.json  spoilers: why each event got its score (loaded only after a warning)
 //   docs/data/results.json  big spoilers: the actual result (loaded only after a second warning)
 //   docs/data/facts.json    spoilers: each football match's facts, for "Custom scoring" (loaded only after a warning)
+//   docs/data/standings.json spoilers: league tables for the Team view (loaded only after a warning; src/standings.mjs)
 //   docs/cal/<team>.ics     calendar feeds, one per football team (src/calendar.mjs)
 //   data/state.json         bookkeeping: what's complete, when the last full build ran
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { writeCalendars } from './calendar.mjs';
 import { linkFields } from './publish.mjs';
+import { TABLE_COMPS } from './standings.mjs';
 import { eloList } from './sources/ratings.mjs';
 import { FOOTBALL as FOOTBALL_W, FOOTBALL_LIVE } from './scoring/weights.mjs';
 import { liveWeightsFrom } from '../docs/live.js';
@@ -20,6 +22,7 @@ const EVENTS = new URL('docs/data/events.json', root);
 const REASONS = new URL('docs/data/reasons.json', root);
 const RESULTS = new URL('docs/data/results.json', root);
 const FACTS = new URL('docs/data/facts.json', root);
+const STANDINGS = new URL('docs/data/standings.json', root);
 const STATE = new URL('data/state.json', root);
 const readJson = (url, fallback) => (existsSync(url) ? JSON.parse(readFileSync(url)) : fallback);
 
@@ -43,6 +46,7 @@ export function loadData() {
     reasons: new Map(Object.entries(readJson(REASONS, {}))),
     results: new Map(Object.entries(readJson(RESULTS, {}))),
     facts: new Map(Object.entries(readJson(FACTS, {}))),
+    standings: new Map(Object.entries(readJson(STANDINGS, {}))),
     state: readJson(STATE, {}),
   };
   loaded.migrated = unrateQualifying(loaded); // the live check must save these even if nothing else changed
@@ -63,7 +67,7 @@ function unrateQualifying({ events, reasons }) {
 }
 
 // Writes all the files. Returns a one-line summary.
-export function saveData({ events, upcoming, reasons, results, facts, state }, now = new Date()) {
+export function saveData({ events, upcoming, reasons, results, facts, standings, state }, now = new Date()) {
   // Direct links to the match (state.links, see src/sources/links.mjs) go onto every event here,
   // so both the full build and the live check publish them.
   const withLinks = (e, replay) => {
@@ -89,6 +93,8 @@ export function saveData({ events, upcoming, reasons, results, facts, state }, n
   writeFileSync(REASONS, pick(reasons));
   writeFileSync(RESULTS, pick(results));
   writeFileSync(FACTS, pick(facts ?? new Map()));
+  // Only the competitions that still have a table (one removed from competitions.mjs drops out).
+  if (standings) writeFileSync(STANDINGS, JSON.stringify(Object.fromEntries([...standings].filter(([k]) => TABLE_COMPS.has(k)).sort(([a], [b]) => a.localeCompare(b)))) + '\n');
   const feeds = writeCalendars(new URL('docs/cal/', root), list, soon, state, now); // updates state.calTeams
   writeFileSync(STATE, JSON.stringify(state, null, 1) + '\n');
   const count = (s) => list.filter((e) => e.sport === s).length;

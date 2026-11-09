@@ -17,20 +17,21 @@ import { LINEUP_MINUTES } from '../src/sources/espn-football.mjs';
 import * as tennis from '../src/sources/espn-tennis.mjs';
 import * as f1 from '../src/sources/openf1.mjs';
 import * as winter from '../src/sources/winter.mjs';
-import * as standings from '../src/sources/espn-standings.mjs';
+import * as espnStandings from '../src/sources/espn-standings.mjs';
 import * as fotmob from '../src/sources/fotmob.mjs';
 import { updateRatings, strengthOf } from '../src/sources/ratings.mjs';
 import { updateLinks } from '../src/sources/links.mjs';
 import { forecastOf, outlookOf, stakesFor, STAKES_COMPS } from '../src/prematch.mjs';
 import { chancesOf, publishFootball, publishTennis, publishF1, publishWinter, upcomingFootball, upcomingTennis, upcomingF1, upcomingWinter, expiringRights, trimFacts } from '../src/publish.mjs';
 import { loadData, saveData, warn, saver } from '../src/store.mjs';
+import { TABLE_COMPS, noteFinished, refreshStandings } from '../src/standings.mjs';
 import { FOOTBALL as FOOTBALL_W } from '../src/scoring/weights.mjs';
 import { bigMatchFactor } from '../docs/live.js';
 
 const now = new Date();
 const only = process.argv[2];
 const data = loadData();
-const { events, reasons, results, facts } = data;
+const { events, reasons, results, facts, standings } = data;
 const save = saver(data);
 let state = data.state;
 // A sport's formula or weights changed: forget which days and Slams are done, so they're fetched again.
@@ -70,6 +71,8 @@ const isCurrent = (id) => {
 const ymd = (d) => d.toISOString().slice(0, 10).replaceAll('-', '');
 const daysAgo = (n) => new Date(now.getTime() - n * 864e5);
 
+const previousEvents = new Set(events.keys()); // scored before this run
+
 async function buildFootball() {
   await updateRatings(state, now, tablesFor); // team Elo ratings, at most once a day; never throws
   for (const comp of FOOTBALL) {
@@ -93,6 +96,8 @@ async function buildFootball() {
             strength: strengthOf(state.ratings, comp.key, m.home, m.away) };
           const scored = scoreFootball(matchFacts);
           save(publishFootball(comp, m, scored, { lineups: football.lineupsFromSummary(summary), stakes }), scored, trimFacts(matchFacts));
+          // Finished in the last few hours: its table may not show it yet (see "Team view" in CLAUDE.md).
+          if (!previousEvents.has(id) && now - new Date(m.start) < 6 * 3600e3) noteFinished(state, standings, { id, comp: comp.key, teams: [m.home, m.away] }, now);
         } catch (err) {
           complete = false;
           warn(`football ${comp.key} ${m.espnId}: ${err.message}`);
@@ -118,19 +123,33 @@ async function lineupsFor(comp, m) {
   }
 }
 
-// League tables for "what's at stake": one request per competition and run, only when needed.
-const tables = new Map();
-async function tablesFor(compKey) {
-  if (!STAKES_COMPS.has(compKey)) return null;
+// League tables for "what's at stake", the Elo ratings and the Team view: one request per
+// competition and run, only when needed.
+const tables = new Map(); // compKey -> { season, groups } | null (failed)
+async function standingsFor(compKey) {
   if (!tables.has(compKey)) {
     try {
-      tables.set(compKey, await standings.fetchTables(compKey));
+      tables.set(compKey, await espnStandings.fetchStandings(compKey));
     } catch (err) {
       warn(`standings ${compKey}: ${err.message}`);
       tables.set(compKey, null);
     }
   }
   return tables.get(compKey);
+}
+async function tablesFor(compKey) {
+  if (!STAKES_COMPS.has(compKey)) return null;
+  return (await standingsFor(compKey))?.groups ?? null;
+}
+
+// The Team view's tables: every competition with a table, from this run's requests.
+async function buildStandings() {
+  const comps = new Set(FOOTBALL.map((c) => c.key).filter((k) => TABLE_COMPS.has(k)));
+  await refreshStandings(state, standings, async (k) => {
+    const s = await standingsFor(k);
+    if (!s) throw new Error('no table this run');
+    return s;
+  }, { comps, now, warn: () => {} }); // standingsFor already warned
 }
 
 // The forecast and the stakes are worked out only while a match hasn't started, and then
@@ -245,7 +264,7 @@ async function buildWinter() {
   }
 }
 
-const builders = { football: [buildFootball, buildUpcomingFootball], tennis: [buildTennis], f1: [buildF1], winter: [buildWinter] };
+const builders = { football: [buildFootball, buildUpcomingFootball, buildStandings], tennis: [buildTennis], f1: [buildF1], winter: [buildWinter] };
 const previousUpcoming = data.upcoming;
 for (const [sport, steps] of Object.entries(builders)) {
   if (only && only !== sport) {
@@ -281,4 +300,4 @@ try {
 
 if (!only) state.lastFull = now.toISOString(); // the live check uses this to know when a full build is due
 state.versions = { ...SCORING_VERSIONS };
-console.log(saveData({ events, upcoming, reasons, results, facts, state }, now));
+console.log(saveData({ events, upcoming, reasons, results, facts, standings, state }, now));

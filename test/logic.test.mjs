@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { followedMatch, chancesLine, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel, prematchLine, followsLeague, leagueGroups } from '../docs/logic.js';
+import { followedMatch, chancesLine, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel, prematchLine, followsLeague, leagueGroups, teamHash, teamFromHash, teamMatches, teamTables } from '../docs/logic.js';
 
 const now = Date.parse('2026-09-26T12:00:00Z');
 const ev = (o) => ({ services: [], segments: [], advice: { code: 'full' }, compName: 'X', ...o });
@@ -294,4 +294,44 @@ test('"My competitions": only followed football, favorites always, other sports 
   assert.equal(ids(filterEvents(events.map((e) => ({ ...e, comp: e.compName === 'Eliteserien' ? 'nor.1' : 'eng.1' })), { ...base, leagues: ['nor.1'] }, new Set(), now)), 'bcd');
   const groups = leagueGroups([nor, pl, { sport: 'football', comp: 'zzz.1', compName: 'New' }, { sport: 'f1', comp: 'x' }]);
   assert.deepEqual(groups.map((g) => [g.name, g.comps.map((c) => c.key)]), [['Leagues', ['eng.1', 'nor.1']], ['Other', ['zzz.1']]]);
+});
+
+test('Team view: a team\'s matches in every competition, whatever the spelling', () => {
+  const fb = (id, comp, compName, start, teams, o = {}) => ev({ id, sport: 'football', comp, compName, start, teams, ...o });
+  const replays = [
+    fb('r1', 'nor.1', 'Eliteserien', '2026-10-17T16:00Z', ['VIKING FK', 'Fredrikstad']),
+    fb('r2', 'nor.1', 'Eliteserien', '2026-10-24T16:00Z', ['Brann', 'Viking FK']),
+    fb('r3', 'uefa.europa.conf', 'Conference League', '2026-10-22T19:00Z', ['Viking FK', 'Lyon']),
+    fb('r4', 'nor.1', 'Eliteserien', '2026-10-25T16:00Z', ['Brann', 'Molde']),
+    { id: 't', sport: 'tennis', players: ['Viking FK', 'X'], start: '2026-10-25T16:00Z' },
+  ];
+  const soon = [
+    fb('u1', 'nor.1', 'Eliteserien', '2026-11-20T16:00Z', ['Viking FK', 'Molde']),
+    fb('u2', 'nor.1', 'Eliteserien', '2026-11-12T16:00Z', ['Viking FK', 'Rosenborg'], { status: 'live' }),
+    fb('u3', 'uefa.europa.conf', 'Conference League', '2026-11-15T16:00Z', ['Viking FK', 'Ajax']),
+  ];
+  const t = teamMatches(replays, soon, 'viking-fk');
+  assert.equal(t.name, 'Viking FK', 'the usual spelling, not the one-off');
+  assert.deepEqual(t.replays.map((e) => e.id), ['r2', 'r3', 'r1']);
+  assert.deepEqual(t.upcoming.map((e) => e.id), ['u2', 'u3', 'u1']);
+  assert.deepEqual(t.comps.map((c) => c.key), ['nor.1', 'uefa.europa.conf'], 'leagues first, as in My competitions');
+  assert.equal(t.nation, false);
+  assert.equal(teamMatches(replays, soon, 'nobody'), null);
+  assert.equal(teamMatches([fb('n', 'uefa.nations', 'Nations League', '2026-10-10T18:00Z', ['Norway', 'Italy'])], [], 'norway').nation, true);
+  assert.equal(teamFromHash(teamHash('bodo-glimt')), 'bodo-glimt');
+  for (const bad of ['', '#s=abc', '#team=', '#team=a b', '#team=<x>']) assert.equal(teamFromHash(bad), null);
+});
+
+test('Team view: the group a team is in, in each of its competitions with a table', () => {
+  const row = (team, rank) => ({ team, rank });
+  const standings = {
+    'nor.1': { season: '2026 Eliteserien', updated: 'x', groups: [{ name: '', rows: [row('Brann', 1), row('Viking FK', 2)] }] },
+    'uefa.nations': { season: 'x', updated: 'x', groups: [{ name: 'Group A1', rows: [row('Spain', 1)] }, { name: 'Group B3', rows: [row('Norway', 1)] }] },
+  };
+  const comps = [{ key: 'nor.1', name: 'Eliteserien' }, { key: 'uefa.europa.conf', name: 'Conference League' }];
+  assert.deepEqual(teamTables(standings, comps, 'VIKING FK').map((t) => [t.key, t.team, t.groups]), [['nor.1', 'Viking FK', 1]]);
+  const n = teamTables(standings, [{ key: 'uefa.nations', name: 'Nations League' }], 'Norway');
+  assert.equal(n[0].group.name, 'Group B3');
+  assert.equal(n[0].groups, 2);
+  assert.deepEqual(teamTables(null, comps, 'Viking FK'), []);
 });
