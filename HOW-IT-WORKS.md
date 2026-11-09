@@ -92,6 +92,7 @@ The rules above all serve one idea: **nothing on a card may tell you how it ende
 - Heat strips have fixed lengths, so they don't show extra time, a short race or the number of sets.
 - Skip tips never cover the last 15 minutes of a football match, the deciding set or the end of a race.
 - Team names can be hidden too, and tennis names are hidden by default.
+- League tables (in a football team's Team view) are spoilers too: points, wins and goal difference follow every result. They're in their own file, only downloaded after a warning, and hidden again when you tap ✕ or reload.
 
 ## Make it your own
 

@@ -162,3 +162,9 @@ The owner wanted "Why this score?" to be intuitive: each pillar as a score from 
 - **OBOS-ligaen:** ESPN lists it ("nor.2") but has no matches or table. NIFS (`api.nifs.no`, free JSON: tournament 6, matches with goal/card minutes, team shots, corners and chances, tables; no odds or xG) could be a source. The owner chose **not now** (2026-10-15).
 - **Footer:** "✓ 100% free · No ads · No tracking · No account" at the top (the owner), and the texts sit beside the Share and Suggest buttons to save space.
 
+
+## Later decisions (2026-11-10): Team view
+Planned with Fable before building; the owner chose the defaults.
+- **Tap a team name** on any football card to open its page (`#team=…` in the address, so Back works and the link can be shared): its matches in every competition, coming up and replays, as the usual cards. The filters don't apply there; the display settings do. It covers what the site keeps: the last 30 days and the next 14 (a full season would make the data several times bigger).
+- **League tables behind a ⚠⚠ warning**, this visit only, per team: the full table of each league or group the team plays in (leagues, UEFA league phases, Nations League and qualifier groups; not EURO/World Cup groups for now), its own row highlighted, columns # Team P W D L GD Pts, ESPN's legend (Champions League, relegation …). No up/down arrows: they'd hint at the last result.
+- **Fresh tables** (the owner asked why not more often than every 3 hours): the full build refreshes all tables, and after a match ends the live check re-fetches just that league's table every 5 minutes until it shows the match (ESPN lags behind full-time), giving up after 3 hours. Built by the bot into its own spoiler file, not fetched by the phone from ESPN.

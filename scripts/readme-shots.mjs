@@ -1,5 +1,5 @@
 // Screenshots of the live site for the README (.github/readme/*.jpg), at phone size.
-// Run: node scripts/readme-shots.mjs   (needs `npm install` and /usr/bin/chromium; `magick` turns them into JPEGs)
+// Run: node scripts/readme-shots.mjs [names…]   (all of them, or e.g. `team`; needs `npm install` and /usr/bin/chromium; `magick` turns them into JPEGs)
 // Look at them before committing: a live match can catch an odd clock, and nothing may show a result.
 import { execFileSync } from 'node:child_process';
 import { chromium } from 'playwright-core';
@@ -7,7 +7,9 @@ import { chromium } from 'playwright-core';
 const out = new URL('../.github/readme/', import.meta.url).pathname;
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/usr/bin/chromium' });
 
+const only = process.argv.slice(2);
 async function shot(name, scheme, prep) {
+  if (only.length && !only.includes(name)) return;
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: scheme });
   await page.addInitScript(() => { try { localStorage.setItem('pt-install-hidden', 'true'); localStorage.setItem('pt-favs-open', 'false'); } catch {} });
   await page.goto('https://primetime.re/', { waitUntil: 'networkidle' });
@@ -36,6 +38,11 @@ try {
       const h = [...document.querySelectorAll(sel)].find((e) => /^(today|tomorrow)$/i.test(e.textContent.trim()) && !e.closest('.card'));
       window.scrollTo(0, h.getBoundingClientRect().top + scrollY - 16);
     }, { sel: 'h2, li, p' });
+  });
+  await shot('team', 'dark', async (p) => { // a Team view (tables stay behind their warning)
+    await p.click('#sports [data-sport="football"]');
+    await p.click('.card .title .name.team-link');
+    await p.waitForSelector('.team-head h2');
   });
   await shot('settings', 'light', async (p) => {
     await p.click('#filters summary');

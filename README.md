@@ -11,12 +11,14 @@
     <td><img src=".github/readme/replays.jpg" alt="Replays: each match gets a score, a heat strip and a skip tip" width="200"></td>
     <td><img src=".github/readme/football.jpg" alt="The best football matches of the last 30 days, in light mode" width="200"></td>
     <td><img src=".github/readme/coming-up.jpg" alt="Coming up: kick-off times, where to watch and a pre-match hint" width="200"></td>
+    <td><img src=".github/readme/team.jpg" alt="Team view: one team's matches in every competition, with its league tables behind a warning" width="200"></td>
     <td><img src=".github/readme/settings.jpg" alt="Filters and settings: your streaming services and the competitions you follow" width="200"></td>
   </tr>
   <tr>
     <td align="center">Replays</td>
     <td align="center">Best first</td>
     <td align="center">Coming up</td>
+    <td align="center">Team view</td>
     <td align="center">Your services and competitions</td>
   </tr>
 </table>
@@ -29,6 +31,8 @@ PrimeTime rates finished football matches, tennis matches (Grand Slams, ATP Mast
 - the **Norwegian streaming services** that show it (Viaplay, TV 2 Play, HBO Max, NRK TV, F1 TV, VG+ Sport).
 
 **Football competitions:** the Premier League, La Liga, Bundesliga, Serie A, Ligue 1, Eliteserien and the Championship; the Champions League, Europa League and Conference League; and for national teams the Nations League, the EURO and World Cup qualifiers, the EURO and the World Cup.
+
+**Team view (football):** tap a team's name on any card to see all its matches in every league and cup, coming up and replays, on one page. Its league tables (the full table of each league or group it plays in, its own row highlighted) are behind a spoiler warning, since points and wins give recent results away. The tables refresh within minutes of a match ending.
 
 Tap the services you have to see only what you can watch. Under Filters and settings → **My competitions** you pick the football competitions you follow; the others are hidden everywhere, except your favorite teams' matches. Tennis player names are hidden by default, because just seeing who reached a later round spoils earlier matches.
 
