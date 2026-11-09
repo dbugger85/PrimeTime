@@ -996,7 +996,8 @@ function renderTeam() {
   const plural = (k, one, many) => `${k} ${k === 1 ? one : many}`;
   head.append(el('div', { className: 'team-title' }, h2, follow),
     el('p', { className: 'small', textContent: `${t.nation ? 'National team · ' : ''}${t.comps.map((c) => c.name).join(', ')}` }),
-    el('p', { className: 'small', textContent: `${plural(t.upcoming.length, 'match', 'matches')} coming up and ${plural(t.replays.length, 'replay', 'replays')} (the last 30 days and the next 14).` }));
+    el('p', { className: 'small' }, `${plural(t.upcoming.length, 'match', 'matches')} coming up and ${plural(t.replays.length, 'replay', 'replays')}`,
+      el('br'), '(the last 30 days and the next 14)')); // the line breaks before the brackets, not inside them
   const withTable = t.comps.filter((c) => TABLE_COMPS.has(c.key));
   if (withTable.length) head.append(tablesBox(t, withTable));
 
