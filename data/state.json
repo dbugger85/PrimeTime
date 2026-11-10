@@ -509,7 +509,7 @@
   "718-2026",
   "315-2026"
  ],
- "lastFull": "2026-11-10T14:10:36.301Z",
+ "lastFull": "2026-11-10T17:01:04.012Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -568,10 +568,6 @@
   "CC58250"
  ],
  "stakes": {
-  "fb-401843455": {
-   "code": "title",
-   "start": "2026-10-09T17:00Z"
-  },
   "fb-401843456": {
    "code": "title",
    "start": "2026-10-10T14:00Z"
@@ -1824,12 +1820,6 @@
   }
  },
  "links": {
-  "fb-401843455": {
-   "start": "2026-10-09T17:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/brann-viking-r6tkf8xy"
-   }
-  },
   "fb-401879268": {
    "start": "2026-10-10T11:30Z",
    "viaplay": {
