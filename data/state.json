@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-11T10:15:37.258Z",
+ "lastFull": "2026-11-11T13:05:39.483Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1837,13 +1837,6 @@
   }
  },
  "links": {
-  "fb-401879268": {
-   "start": "2026-10-10T11:30Z",
-   "viaplay": {
-    "url": "https://viaplay.no/sport/fotball/premier-league/arsenal-leeds/s26092360808948610",
-    "until": "2026-10-12T14:25:00.000Z"
-   }
-  },
   "fb-401878776": {
    "start": "2026-10-10T14:00Z",
    "viaplay": {
@@ -3120,6 +3113,34 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/tottenham-ipswich/s26111107132649526",
     "until": "2026-11-23T17:30:00.000Z"
+   }
+  },
+  "fb-401879236": {
+   "start": "2026-11-21T15:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/chelsea-leeds/s26111162451515521",
+    "until": "2026-11-23T17:55:00.000Z"
+   }
+  },
+  "fb-401879232": {
+   "start": "2026-11-21T17:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/newcastle-arsenal/s26111144936008174",
+    "until": "2026-11-23T20:30:00.000Z"
+   }
+  },
+  "fb-401879234": {
+   "start": "2026-11-22T14:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/hull-brighton/s26111103145321945",
+    "until": "2026-11-24T16:30:00.000Z"
+   }
+  },
+  "fb-401878755": {
+   "start": "2026-11-22T16:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/liverpool-man-united/s26111104005348489",
+    "until": "2026-11-24T20:00:00.000Z"
    }
   }
  },
