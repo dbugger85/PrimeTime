@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-11T07:25:29.531Z",
+ "lastFull": "2026-11-11T10:15:37.258Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -3092,6 +3092,34 @@
    "start": "2026-11-24T20:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/arsenal-dortmund-t9g0s7kw"
+   }
+  },
+  "fb-401879233": {
+   "start": "2026-11-21T12:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/man-city-fulham/s26111164045834254",
+    "until": "2026-11-23T15:25:00.000Z"
+   }
+  },
+  "fb-401879238": {
+   "start": "2026-11-21T15:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/bournemouth-nottingham-forest/s26111123450333920",
+    "until": "2026-11-23T17:30:00.000Z"
+   }
+  },
+  "fb-401879235": {
+   "start": "2026-11-21T15:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/coventry-crystal-palace/s26111146684366065",
+    "until": "2026-11-23T17:30:00.000Z"
+   }
+  },
+  "fb-401878754": {
+   "start": "2026-11-21T15:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/tottenham-ipswich/s26111107132649526",
+    "until": "2026-11-23T17:30:00.000Z"
    }
   }
  },
