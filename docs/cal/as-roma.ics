@@ -106,4 +106,15 @@ DESCRIPTION:Serie A\nWatch on VG+ Sport\nhttps://dbugger85.github.io/PrimeT
  ime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915374@primetime
+DTSTAMP:20261125T200000Z
+DTSTART:20261125T200000Z
+DTEND:20261125T220000Z
+SUMMARY:Paris Saint-Germain – AS Roma
+LOCATION:TV 2 Play
+DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
+ io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
