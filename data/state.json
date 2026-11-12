@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-12T12:10:36.946Z",
+ "lastFull": "2026-11-12T15:01:03.513Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -569,14 +569,6 @@
   "CC58250"
  ],
  "stakes": {
-  "fb-401843457": {
-   "code": "relegation",
-   "start": "2026-10-11T15:00Z"
-  },
-  "fb-401843458": {
-   "code": "relegation",
-   "start": "2026-10-11T15:00Z"
-  },
   "fb-401843453": {
    "code": "relegation",
    "start": "2026-10-12T17:00Z"
@@ -1873,20 +1865,6 @@
   }
  },
  "links": {
-  "fb-401879266": {
-   "start": "2026-10-11T13:00Z",
-   "viaplay": {
-    "url": "https://viaplay.no/sport/fotball/premier-league/crystal-palace-nottingham-forest/s26092926667789162",
-    "until": "2026-10-13T15:30:00.000Z"
-   }
-  },
-  "fb-401878774": {
-   "start": "2026-10-11T13:00Z",
-   "viaplay": {
-    "url": "https://viaplay.no/sport/fotball/premier-league/hull-everton/s26092985418352904",
-    "until": "2026-10-13T15:30:00.000Z"
-   }
-  },
   "fb-401879264": {
    "start": "2026-10-11T15:30Z",
    "viaplay": {
@@ -1899,24 +1877,6 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/coventry-newcastle/s26100269417225073",
     "until": "2026-10-14T21:30:00.000Z"
-   }
-  },
-  "fb-401843454": {
-   "start": "2026-10-11T12:30Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/fredrikstad-tromsoe-q5srmkvx"
-   }
-  },
-  "fb-401843457": {
-   "start": "2026-10-11T15:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/aalesund-sarpsborg-08-5f6fbajd"
-   }
-  },
-  "fb-401843458": {
-   "start": "2026-10-11T15:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/start-hamkam-8es08hkg"
    }
   },
   "fb-401843452": {
