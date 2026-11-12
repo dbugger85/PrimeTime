@@ -25,8 +25,8 @@ DTSTART:20261115T140000Z
 DTEND:20261115T160000Z
 SUMMARY:Latvia – Armenia
 LOCATION:TV 2 Play
-DESCRIPTION:Nations League · Relegation battle\nWatch on TV 2 Play\nhttps:
- //dbugger85.github.io/PrimeTime/
+DESCRIPTION:Nations League\nWatch on TV 2 Play\nhttps://dbugger85.github.io
+ /PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 END:VCALENDAR
