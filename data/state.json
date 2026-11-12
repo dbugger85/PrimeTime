@@ -3931,31 +3931,5 @@
    "Zimbabwe": 1381
   },
   "nationsDate": "2026-11-08"
- },
- "tablesPending": {
-  "fb-401861152": {
-   "comp": "uefa.nations",
-   "teams": [
-    "Montenegro",
-    "Latvia"
-   ],
-   "played": [
-    4,
-    4
-   ],
-   "at": "2026-11-12T21:40:37.742Z"
-  },
-  "fb-401861149": {
-   "comp": "uefa.nations",
-   "teams": [
-    "San Marino",
-    "Belarus"
-   ],
-   "played": [
-    4,
-    4
-   ],
-   "at": "2026-11-12T21:40:37.742Z"
-  }
  }
 }
