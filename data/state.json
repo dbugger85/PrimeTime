@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-12T15:01:03.513Z",
+ "lastFull": "2026-11-12T17:55:30.138Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1865,24 +1865,11 @@
   }
  },
  "links": {
-  "fb-401879264": {
-   "start": "2026-10-11T15:30Z",
-   "viaplay": {
-    "url": "https://viaplay.no/sport/fotball/premier-league/liverpool-man-city/s26092953982120275",
-    "until": "2026-10-13T19:00:00.000Z"
-   }
-  },
   "fb-401879267": {
    "start": "2026-10-12T19:00Z",
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/coventry-newcastle/s26100269417225073",
     "until": "2026-10-14T21:30:00.000Z"
-   }
-  },
-  "fb-401843452": {
-   "start": "2026-10-11T17:15Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/lillestroem-molde-b4cg8595"
    }
   },
   "fb-401843453": {
