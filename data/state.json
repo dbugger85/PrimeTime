@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-13T16:55:28.233Z",
+ "lastFull": "2026-11-13T19:45:39.653Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -569,10 +569,6 @@
   "CC58250"
  ],
  "stakes": {
-  "fb-401843453": {
-   "code": "relegation",
-   "start": "2026-10-12T17:00Z"
-  },
   "fb-401843465": {
    "code": "title",
    "start": "2026-10-17T12:00Z"
@@ -1857,19 +1853,6 @@
   }
  },
  "links": {
-  "fb-401879267": {
-   "start": "2026-10-12T19:00Z",
-   "viaplay": {
-    "url": "https://viaplay.no/sport/fotball/premier-league/coventry-newcastle/s26100269417225073",
-    "until": "2026-10-14T21:30:00.000Z"
-   }
-  },
-  "fb-401843453": {
-   "start": "2026-10-12T17:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kfum-oslo-vaalerenga-hn3h0sj1"
-   }
-  },
   "fb-401915418": {
    "start": "2026-10-13T16:45Z",
    "tv2play": {
