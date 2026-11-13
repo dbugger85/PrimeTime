@@ -3917,55 +3917,5 @@
    "Zimbabwe": 1381
   },
   "nationsDate": "2026-11-08"
- },
- "tablesPending": {
-  "fb-401861155": {
-   "comp": "uefa.nations",
-   "teams": [
-    "Andorra",
-    "Gibraltar"
-   ],
-   "played": [
-    3,
-    2
-   ],
-   "at": "2026-11-13T21:40:40.874Z"
-  },
-  "fb-401861153": {
-   "comp": "uefa.nations",
-   "teams": [
-    "Liechtenstein",
-    "Azerbaijan"
-   ],
-   "played": [
-    2,
-    3
-   ],
-   "at": "2026-11-13T21:40:40.874Z"
-  },
-  "fb-401861154": {
-   "comp": "uefa.nations",
-   "teams": [
-    "Luxembourg",
-    "Estonia"
-   ],
-   "played": [
-    4,
-    4
-   ],
-   "at": "2026-11-13T21:40:40.874Z"
-  },
-  "fb-401861158": {
-   "comp": "uefa.nations",
-   "teams": [
-    "Serbia",
-    "Germany"
-   ],
-   "played": [
-    4,
-    4
-   ],
-   "at": "2026-11-13T21:40:40.874Z"
-  }
  }
 }
