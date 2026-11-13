@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-13T08:15:49.527Z",
+ "lastFull": "2026-11-13T11:10:36.213Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -3069,6 +3069,13 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/liverpool-man-united/s26111104005348489",
     "until": "2026-11-24T20:00:00.000Z"
+   }
+  },
+  "fb-401879237": {
+   "start": "2026-11-23T20:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/brentford-everton/s26111359021920426",
+    "until": "2026-11-25T22:30:00.000Z"
    }
   }
  },
