@@ -62,4 +62,15 @@ DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
  Time/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401884720@primetime
+DTSTAMP:20261127T193000Z
+DTSTART:20261127T193000Z
+DTEND:20261127T213000Z
+SUMMARY:Werder Bremen – Borussia Mönchengladbach
+LOCATION:Viaplay
+DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
+ Time/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
