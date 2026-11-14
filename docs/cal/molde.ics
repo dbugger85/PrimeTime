@@ -62,4 +62,15 @@ DESCRIPTION:Eliteserien · Title race\nWatch on TV 2 Play\nhttps://dbugger8
  5.github.io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843497@primetime
+DTSTAMP:20261128T170000Z
+DTSTART:20261128T170000Z
+DTEND:20261128T190000Z
+SUMMARY:Rosenborg – Molde
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien · European spots\nWatch on TV 2 Play\nhttps://dbug
+ ger85.github.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR

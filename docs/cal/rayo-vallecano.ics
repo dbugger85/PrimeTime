@@ -62,4 +62,15 @@ DESCRIPTION:La Liga\nWatch on TV 2 Play\nhttps://dbugger85.github.io/PrimeT
  ime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401882796@primetime
+DTSTAMP:20261128T130000Z
+DTSTART:20261128T130000Z
+DTEND:20261128T150000Z
+SUMMARY:Real Betis – Rayo Vallecano
+LOCATION:TV 2 Play
+DESCRIPTION:La Liga\nWatch on TV 2 Play\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
