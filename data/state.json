@@ -3919,19 +3919,5 @@
    "Zimbabwe": 1381
   },
   "nationsDate": "2026-11-08"
- },
- "tablesPending": {
-  "fb-401861165": {
-   "comp": "uefa.nations",
-   "teams": [
-    "Norway",
-    "Wales"
-   ],
-   "played": [
-    4,
-    4
-   ],
-   "at": "2026-11-14T18:55:26.943Z"
-  }
  }
 }
