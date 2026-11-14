@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-14T18:55:26.943Z",
+ "lastFull": "2026-11-14T19:21:33.788Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1861,24 +1861,6 @@
   }
  },
  "links": {
-  "fb-401915417": {
-   "start": "2026-10-13T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/arsenal-lille-egkbk2nd"
-   }
-  },
-  "fb-401915412": {
-   "start": "2026-10-13T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/atletico-manchester-united-y5p897hq"
-   }
-  },
-  "fb-401915435": {
-   "start": "2026-10-13T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/galatasaray-barcelona-bbarj5r1"
-   }
-  },
   "fb-401878771": {
    "start": "2026-10-17T11:30Z",
    "viaplay": {
@@ -1926,30 +1908,6 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/leeds-man-united/s26100813468056807",
     "until": "2026-10-20T16:30:00.000Z"
-   }
-  },
-  "fb-401915411": {
-   "start": "2026-10-13T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/viking-bayern-c45qmfys"
-   }
-  },
-  "fb-401915413": {
-   "start": "2026-10-13T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/inter-club-brugge-ng3gj029"
-   }
-  },
-  "fb-401915434": {
-   "start": "2026-10-13T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/leipzig-psv-wta5qwch"
-   }
-  },
-  "fb-401915410": {
-   "start": "2026-10-13T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/villarreal-napoli-q2hmmthe"
    }
   },
   "fb-401915416": {
