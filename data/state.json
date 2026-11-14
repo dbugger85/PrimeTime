@@ -4475,7 +4475,57 @@
  "golfHeat": {
   "gf-401850980": {
    "heat": 2,
-   "at": 1794692130207
+   "at": 1794692436655
+  }
+ },
+ "tablesPending": {
+  "fb-401861169": {
+   "comp": "uefa.nations",
+   "teams": [
+    "Northern Ireland",
+    "Ukraine"
+   ],
+   "played": [
+    4,
+    4
+   ],
+   "at": "2026-11-14T21:40:36.655Z"
+  },
+  "fb-401861167": {
+   "comp": "uefa.nations",
+   "teams": [
+    "Portugal",
+    "Denmark"
+   ],
+   "played": [
+    4,
+    4
+   ],
+   "at": "2026-11-14T21:40:36.655Z"
+  },
+  "fb-401861168": {
+   "comp": "uefa.nations",
+   "teams": [
+    "Romania",
+    "Poland"
+   ],
+   "played": [
+    4,
+    4
+   ],
+   "at": "2026-11-14T21:40:36.655Z"
+  },
+  "fb-401861166": {
+   "comp": "uefa.nations",
+   "teams": [
+    "Sweden",
+    "Bosnia-Herzegovina"
+   ],
+   "played": [
+    4,
+    4
+   ],
+   "at": "2026-11-14T21:40:36.655Z"
   }
  }
 }
