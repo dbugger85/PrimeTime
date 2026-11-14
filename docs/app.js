@@ -16,6 +16,7 @@ const DEFAULTS = {
   view: 'replays', sport: 'all', services: [], leagues: [], comp: 'all', days: 30, minScore: 0, sort: 'date',
   round: '', draw: '', f1Session: '', hideTennis: true, hideFootball: false, hints: true, preHints: true, showElo: false, showChances: false, hideWatched: false, glass: true,
   favsOnly: false, favs: { teams: [], players: [], f1: false, winter: [] }, gender: '',
+  golfSpoilers: 1, // "Golf: how much to reveal": 0 schedule, 1 how tense (default), 2 favorites in words, 3 everything (docs/golf.js)
   tweaks: DEFAULT_TWEAKS, // "Custom scoring (football)": the sliders and competition boosts (docs/scoring.js)
 };
 
@@ -209,6 +210,7 @@ function renderControls() {
   $('#f-draw').value = prefs.draw;
   $('#f-f1session').value = prefs.f1Session;
   $('#f-gender').value = prefs.gender;
+  $('#f-golf').value = String(prefs.golfSpoilers);
   $('#f-hide-tn').checked = prefs.hideTennis;
   $('#f-hide-fb').checked = prefs.hideFootball;
   $('#f-hints').checked = prefs.hints;
@@ -647,7 +649,7 @@ function soonCard(e) {
   const now = calibrating && liveScore.get(e.id);
   if (now) Object.assign(li.querySelector('.calib-result'), { hidden: false, textContent: `Now: ${now}` });
   // Tennis: draw and round. Football: the pre-match hints, if any. Otherwise the meta line says it all.
-  const sub = e.sport === 'tennis' ? subtitleOf(e) : e.sport === 'football' && prefs.preHints ? prematchLine(e) : e.sport === 'golf' ? roundLine(e, GOLF_FMT) : '';
+  const sub = e.sport === 'tennis' ? subtitleOf(e) : e.sport === 'football' && prefs.preHints ? prematchLine(e) : e.sport === 'golf' ? roundLine(e, GOLF_FMT, Date.now(), prefs.golfSpoilers) : '';
   li.querySelector('.sub').textContent = sub;
   li.querySelector('.sub').hidden = !sub;
   const chances = prefs.showChances ? chancesLine(e) : '';
@@ -1630,6 +1632,7 @@ function bind() {
   on('#f-draw', 'draw');
   on('#f-f1session', 'f1Session');
   on('#f-gender', 'gender');
+  on('#f-golf', 'golfSpoilers', Number);
   on('#f-hide-tn', 'hideTennis');
   on('#f-hide-fb', 'hideFootball');
   $('#f-reset').onclick = () => {

@@ -239,11 +239,14 @@ function checkLive(e) {
 }
 
 // Golf's upcoming card: the round, round days and tee windows, the field (sorted by name, so its
-// order says nothing) and the round 1–2 tee times. Codes for how tense it is come in piece 2.
-export const GOLF_UPCOMING = ['round', 'rounds', 'field', 'tees'];
+// order says nothing) and the round 1–2 tee times. How tense it is (level 1): `heat` 0–3 on a live
+// card, `outlook` (a code) between rounds, never a name or a number of shots.
+export const GOLF_UPCOMING = ['round', 'rounds', 'field', 'tees', 'heat', 'outlook'];
 const ISO_MIN = /^\d{4}-\d\d-\d\dT\d\d:\d\dZ$/;
 function checkGolf(e) {
   assert.ok(Number.isInteger(e.round) && e.round >= 1 && e.round <= 4, `${e.id}: round`);
+  if ('heat' in e) assert.ok(e.status === 'live' && [0, 1, 2, 3].includes(e.heat), `${e.id}: heat ${e.heat} (live cards only)`);
+  if ('outlook' in e) assert.ok(e.status !== 'live' && ['tight', 'open', 'few', 'clear'].includes(e.outlook), `${e.id}: outlook ${e.outlook} (between rounds only)`);
   assert.equal(e.rounds.length, 4, `${e.id}: four rounds`);
   for (const r of e.rounds) {
     assert.deepEqual(Object.keys(r).filter((k) => !['n', 'day', 'first', 'last'].includes(k)), [], `${e.id}: round fields`);
@@ -448,7 +451,10 @@ test('golf schedule cards: when and where, the field by name, nothing about the 
   // Nothing about positions, scores or the cut: compare with what ESPN had.
   const text = JSON.stringify(e);
   assert.doesNotMatch(text, /T\d{1,3}"|"-\d+"|scoreToPar|CUT|thru/i);
-  assert.ok(!('heat' in e) && !('outlook' in e));
+  assert.ok([0, 1, 2, 3].includes(e.heat) && !('outlook' in e), 'live: a heat code, no outlook');
+  assert.throws(() => checkUpcoming({ ...e, heat: 2.5 }));
+  assert.throws(() => checkUpcoming({ ...e, outlook: 'tight' }), 'an outlook on a live card');
+  assert.throws(() => checkUpcoming({ ...e, status: 'upcoming' }), 'a heat on a card that isn\'t live');
   // A weekend tee time would follow the scores (the leaders go out last): never in the card.
   for (const p of t.players) if (p.tees[2]) assert.ok(!text.includes(p.tees[2]) || e.rounds.some((r) => r.first === p.tees[2] || r.last === p.tees[2]), `${p.name}: a weekend tee time`);
   // A field in ESPN's order (by position) would be refused.

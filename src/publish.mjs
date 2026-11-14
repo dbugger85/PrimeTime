@@ -267,7 +267,9 @@ export function golfTees(tees, field) {
 }
 const golfComp = (t) => (t.major ? 'golf.major' : 'golf.pga');
 const golfCtx = (t) => ({ series: t.series });
-export const upcomingGolf = (t, { round, rounds, field, tees, live }) => {
+// How tense it is (level 1, codes only): `heat` 0–3 on a live card, `outlook` before rounds 3–4.
+export const GOLF_OUTLOOKS = ['tight', 'open', 'few', 'clear'];
+export const upcomingGolf = (t, { round, rounds, field, tees, live, heat, outlook }) => {
   const r = golfRounds(rounds);
   const f = golfField(field);
   const current = r.find((x) => x.n === round) ?? r[0];
@@ -278,6 +280,8 @@ export const upcomingGolf = (t, { round, rounds, field, tees, live }) => {
     rounds: r,
     field: f,
     tees: golfTees(tees, f),
+    ...(live && [0, 1, 2, 3].includes(heat) ? { heat } : {}),
+    ...(!live && GOLF_OUTLOOKS.includes(outlook) ? { outlook } : {}),
   };
 };
 

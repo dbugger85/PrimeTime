@@ -13,7 +13,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
 import { liveWeightsFrom } from '../docs/live.js';
 import * as WEIGHTS from '../src/scoring/weights.mjs';
-import { parseLeaderboard } from '../docs/golf.js';
+import { parseLeaderboard, HEAT_TEXT } from '../docs/golf.js';
 import { golfCard, withSeries } from '../src/sources/espn-golf.mjs';
 import { upcomingGolf } from '../src/publish.mjs';
 
@@ -774,7 +774,12 @@ try {
     page = await golfPage('2026-11-14T19:00:00Z', live);
     const liveCard = page.locator(`.card.live[data-id="${live.id}"]`);
     assert.equal(await liveCard.locator('.time').textContent(), 'LIVE');
-    assert.equal(await liveCard.locator('.sub:not(.chances)').first().textContent(), 'Round 3 · the last group is on the back nine');
+    // Level 1 (the default): how tense it is, from the bot's code.
+    assert.equal(await liveCard.locator('.sub:not(.chances)').first().textContent(), `Round 3 · ${HEAT_TEXT[live.heat]}`);
+    await liveCard.screenshot({ path: `${shots}/golf-live-level1.png` });
+    await openSettings(page);
+    await page.selectOption('#f-golf', '0');
+    assert.equal(await liveCard.locator('.sub:not(.chances)').first().textContent(), 'Round 3 · the last group is on the back nine', 'level 0: the schedule only');
     assert.match(await liveCard.locator('.golf-fav').textContent(), new RegExp(`★ ${fav} in the field`), 'no weekend tee time at level 0');
     const text = await liveCard.innerText();
     assert.doesNotMatch(text, /\b(T?\d+(st|nd|rd|th)|[-+]\d+|thru|cut|leader|contention)\b/i, 'a position or a score on the card');

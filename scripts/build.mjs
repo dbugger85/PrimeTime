@@ -292,9 +292,13 @@ async function buildGolf() {
     if (!t || !t.stroke) continue;
     golf.noteGolfers(state, t, now);
     if (golf.readyToScore(t, now)) continue; // over: scored as a replay (piece 4)
-    upcoming.push(upcomingGolf(t, golf.golfCard(t, previous.get(id), now)));
-    console.log(`golf: ${t.name} (round ${golf.golfCard(t, previous.get(id), now).round}, ${t.state})`);
+    state.golfHeat ??= {};
+    const card = golf.golfCard(t, previous.get(id), now, state.golfHeat[id]);
+    if (card.held) state.golfHeat[id] = card.held; else delete state.golfHeat[id];
+    upcoming.push(upcomingGolf(t, card));
+    console.log(`golf: ${t.name} (round ${card.round}, ${t.state}${card.heat != null ? `, heat ${card.heat}` : ''}${card.outlook ? `, ${card.outlook}` : ''})`);
   }
+  for (const id of Object.keys(state.golfHeat ?? {})) if (!upcoming.some((e) => e.id === id)) delete state.golfHeat[id];
 }
 
 const builders = { football: [buildFootball, buildUpcomingFootball, buildStandings], tennis: [buildTennis], f1: [buildF1], winter: [buildWinter], golf: [buildGolf] };

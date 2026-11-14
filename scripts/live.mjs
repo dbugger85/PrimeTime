@@ -177,7 +177,11 @@ async function liveGolf() {
     if (!(now >= from && now <= to)) continue;
     const t = await golf.fetchTournament(e.id.slice(3));
     if (!t) continue;
-    const card = upcomingGolf(t, golf.golfCard(t, e, now));
+    data.state.golfHeat ??= {};
+    const raw = golf.golfCard(t, e, now, data.state.golfHeat[e.id]);
+    if (raw.held) data.state.golfHeat[e.id] = raw.held; else delete data.state.golfHeat[e.id];
+    // Saved only when the card changed (a new heat level, a new round …), like everything here.
+    const card = upcomingGolf(t, raw);
     upcoming = upcoming.map((x) => (x.id === e.id ? card : x));
   }
 }

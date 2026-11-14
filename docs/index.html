@@ -124,6 +124,12 @@
           <option value="mixed">Mixed</option>
         </select>
       </label>
+      <label data-for="golf all">Golf: how much to reveal
+        <select id="f-golf">
+          <option value="0">Schedule only</option>
+          <option value="1">How tense it is (no names)</option>
+        </select>
+      </label>
       <label data-for="f1">Sessions
         <select id="f-f1session">
           <option value="">All sessions</option>
@@ -141,6 +147,7 @@
       <label class="check replay-only"><input type="checkbox" id="f-watched"> Hide watched</label>
       <label class="check"><input type="checkbox" id="f-glass"> Glass look</label>
     </div>
+    <p class="small" data-for="golf">Golf cards follow today's round. "Schedule only" shows tee times and when the last group reaches the back nine; "How tense it is" also says whether it's quiet or heating up, never who leads.</p>
     <p class="small" data-for="tennis football all">Why hide names? In a tournament, just seeing who plays a later round tells you who won earlier. Tap a hidden name to reveal it.</p>
     <button type="button" class="reset" id="f-reset" hidden>Reset filters</button>
     <!-- Custom scoring (football): re-scores matches on this device with your own weights (docs/scoring.js). -->

@@ -198,3 +198,19 @@ export const FOOTBALL_LIVE = {
   typicalMatch: 6.2, //       early on, each pillar is pulled towards this (a typical match: the pillars average about 6.2; from 0 to 9)
   settleMinutes: 45, //       how many minutes of play the "typical match" counts for at kick-off (it fades to nothing at 90'; from 0 to 90)
 };
+
+// Golf: how tense a live round is (the "heat" 0–3 on the tournament card at "Golf: how much to reveal"
+// level 1 and up; docs/golf.js, heatOf). Worked out by the bot every 5 minutes from ESPN's leaderboard.
+// Tuned on real final rounds replayed hole by hole (test/golf.test.mjs): the Masters 2025 and the
+// Travelers 2026 (both playoffs) get red hot on the back nine; The Open 2025 (won by 4) stays quiet.
+// Nothing here changes a replay score, so editing them doesn't re-score anything.
+export const GOLF_LIVE = {
+  reachEnd: 2.5, //       a chaser this many shots back counts nothing when neither has holes left…
+  reachPerHole: 0.08, //  …and every hole the two of them still have to play adds this many shots of reach
+  nextChaser: 0.5, //     the closest chaser counts fully, the next half, the next a quarter …
+  lateFrom: 0.3, //       how much the chase counts when the leaders tee off (it grows to 1 at their last hole)
+  heat1: 0.2, //          "Something brewing" from this much chase…
+  heat2: 0.45, //         …"Heating up" from this much…
+  heat3: 0.55, //         …and "Red hot" from this much,
+  hotFrom: 0.55, //       but only once the leaders are this far into the round (0.55: about the 10th hole)
+};

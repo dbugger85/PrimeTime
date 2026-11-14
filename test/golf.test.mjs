@@ -3,8 +3,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { parseLeaderboard, roundsOf, currentRound, roundLine, favoriteLines, backNineAt, cleanName } from '../docs/golf.js';
-import { golfCard, readyToScore, shownTournament, seriesOf, withSeries, noteGolfers } from '../src/sources/espn-golf.mjs';
+import { parseLeaderboard, roundsOf, currentRound, roundLine, favoriteLines, backNineAt, cleanName, heatOf, holdHeat, outlookOf, OUTLOOKS } from '../docs/golf.js';
+import { GOLF_LIVE } from '../src/scoring/weights.mjs';
+import { golfCard, readyToScore, shownTournament, seriesOf, withSeries, noteGolfers, holesFromScoreboard } from '../src/sources/espn-golf.mjs';
 import { upcomingGolf, servicesFor } from '../src/publish.mjs';
 import { isFavorite, favNames, titleOf } from '../docs/logic.js';
 
@@ -138,4 +139,99 @@ test('golf streaming rights: HBO Max, the Masters and US Open on Viaplay, both f
   assert.deepEqual(servicesFor('golf', { series: 'us-open' }), ['viaplay']);
   assert.deepEqual(servicesFor('golf', { series: 'pga-championship' }), ['hbomax', 'viaplay']);
   assert.deepEqual(servicesFor('golf', { series: 'the-open' }), ['hbomax', 'viaplay']);
+});
+
+// ── Piece 2: how tense it is (level 1) ─────────────────────────────────────────
+// A real final round replayed in time: each player's holes from the scoreboard, tee times from the
+// leaderboard, about 14.5 minutes a hole. Returns [{ t, players, leaderThru }] every 5 minutes.
+export function replayFinalRound(name, { pace = 14.5 } = {}) {
+  const holes = holesFromScoreboard(golfFixture(`holes-${name}`).events[0]);
+  const lb = parseLeaderboard(golfFixture(`leaderboard-${name}`));
+  const ps = holes.map((p) => ({ ...p, tee: Date.parse(lb.players.find((x) => x.name === p.name)?.tees[3]) }))
+    .filter((p) => Number.isFinite(p.tee) && p.rounds.slice(0, 3).every((r) => r != null) && p.holes.every((h) => h != null));
+  const t0 = Math.min(...ps.map((p) => p.tee)), t1 = Math.max(...ps.map((p) => p.tee)) + 18 * pace * 60e3;
+  const out = [];
+  for (let t = t0; t <= t1 + 10 * 60e3; t += 5 * 60e3) {
+    const players = ps.map((p) => {
+      const thru = Math.max(0, Math.min(18, Math.floor((t - p.tee) / (pace * 60e3))));
+      return { name: p.name, status: 'active', thru, toPar: p.rounds[0] + p.rounds[1] + p.rounds[2] + p.holes.slice(0, thru).reduce((a, b) => a + b, 0) };
+    });
+    const best = Math.min(...players.map((p) => p.toPar));
+    const leaderThru = Math.min(...players.filter((p) => p.toPar === best).map((p) => p.thru));
+    out.push({ t, players, leaderThru });
+  }
+  return out;
+}
+// The published heat over a replay (held for 15 minutes before it drops), with the leaders' hole.
+const heatLine = (name, round = 4) => {
+  let held = null;
+  return replayFinalRound(name).map(({ t, players, leaderThru }) => {
+    held = holdHeat(held, heatOf(players, round, GOLF_LIVE), t);
+    return { t, heat: held.heat, leaderThru };
+  });
+};
+
+test('heat on real final rounds: the Masters 2025 and the Travelers 2026 get red hot, The Open 2025 stays quiet', () => {
+  const masters = heatLine('masters-2025');
+  assert.equal(Math.max(...masters.map((x) => x.heat)), 3, 'Masters: McIlroy and Rose on the back nine');
+  assert.ok(masters.filter((x) => x.leaderThru >= 15).every((x) => x.heat >= 2), 'Masters: the last holes are at least heating up');
+  assert.ok(masters.filter((x) => x.leaderThru >= 6 && x.leaderThru <= 11).every((x) => x.heat <= 1), 'Masters: McIlroy 4 clear around the turn is calm');
+  const travelers = heatLine('travelers-2026');
+  assert.ok(travelers.filter((x) => x.leaderThru >= 12).every((x) => x.heat === 3), 'Travelers: Hovland and Scheffler level to the end, Morikawa\'s 61');
+  const open = heatLine('open-2025');
+  assert.ok(open.every((x) => x.heat <= 1), 'The Open: Scheffler ran away with it');
+  assert.ok(open.filter((x) => x.leaderThru >= 4).every((x) => x.heat === 0));
+  const pga = heatLine('pga-2025');
+  assert.ok(pga.some((x) => x.heat >= 2), 'PGA 2025: Rahm got close around the turn…');
+  assert.ok(pga.filter((x) => x.leaderThru >= 15).every((x) => x.heat === 0), '…then Scheffler ran away');
+});
+
+test('the heat never drops within 15 minutes, and rounds 1–3 are capped', () => {
+  for (const name of ['masters-2025', 'travelers-2026', 'pga-2025']) {
+    const line = heatLine(name);
+    let since = line[0].t;
+    for (let i = 1; i < line.length; i++) {
+      if (line[i].heat > line[i - 1].heat) since = line[i].t;
+      if (line[i].heat < line[i - 1].heat) assert.ok(line[i].t - since >= 15 * 60e3, `${name}: dropped within 15 minutes`);
+    }
+  }
+  assert.deepEqual(holdHeat({ heat: 3, at: 0 }, 1, 10 * 60e3), { heat: 3, at: 0 }, 'held');
+  assert.deepEqual(holdHeat({ heat: 3, at: 0 }, 1, 16 * 60e3), { heat: 1, at: 16 * 60e3 }, 'dropped after 15 minutes');
+  assert.deepEqual(holdHeat({ heat: 1, at: 0 }, 3, 60e3), { heat: 3, at: 60e3 }, 'rises at once');
+  const tense = replayFinalRound('travelers-2026').at(-1).players;
+  assert.equal(heatOf(tense, 4, GOLF_LIVE), 3);
+  assert.equal(heatOf(tense, 3, GOLF_LIVE), 2, 'round 3: at most heating up');
+  assert.equal(heatOf(tense, 2, GOLF_LIVE), 1, 'round 2: at most something brewing (the cut, not the title)');
+  assert.equal(heatOf(tense, 1, GOLF_LIVE), 1);
+});
+
+test('the outlook before rounds 3 and 4, from the leaderboard after the round before', () => {
+  const after3 = (name) => replayFinalRound(name)[0].players.map((p) => ({ ...p, thru: 0 }));
+  assert.equal(outlookOf(after3('open-2025'), 4), 'clear', 'Scheffler 4 clear');
+  assert.equal(outlookOf(after3('travelers-2026'), 4), 'tight', 'Hovland 1 ahead of Scheffler');
+  assert.equal(outlookOf(after3('masters-2025'), 4), 'few', 'McIlroy 2 ahead of DeChambeau');
+  assert.equal(outlookOf(after3('masters-2025'), 2), null, 'nothing to say after round 1');
+});
+
+test('level 1 lines: the codes replace the schedule words, never a name', () => {
+  const t = austin();
+  const e = upcomingGolf(t, { ...golfCard(t, null, new Date('2026-11-14T17:00Z')), heat: 0 });
+  assert.equal(e.heat, 0);
+  const at = Date.parse('2026-11-14T17:00Z');
+  assert.equal(roundLine(e, FMT(at), at, 1), 'Round 3 · Quiet so far');
+  assert.equal(roundLine(e, FMT(at), at, 0), 'Round 3 · started 14:40', 'level 0: no codes');
+  assert.equal(roundLine({ ...e, heat: 2 }, FMT(at), at, 1), 'Round 3 · Heating up now: several players still in it');
+  const r4 = { ...e, status: 'upcoming', round: 4, outlook: 'tight', rounds: e.rounds.map((r) => (r.n === 4 ? { ...r, first: '2026-11-15T13:00Z', last: '2026-11-15T19:40Z' } : r)) };
+  const sun = Date.parse('2026-11-15T08:00Z');
+  assert.equal(roundLine(r4, FMT(sun), sun, 1), 'Round 4 · today · Tight at the top: tune in for the back nine, about 21:50');
+  assert.equal(roundLine({ ...r4, outlook: 'clear' }, FMT(sun), sun, 1), 'Round 4 · today · One player well clear: highlights may do');
+  const sat = Date.parse('2026-11-14T22:00Z');
+  assert.equal(roundLine({ ...r4, rounds: e.rounds }, FMT(sat), sat, 1), 'Round 4 · Sun · Tight at the top: tune in for the back nine');
+  // Published only where it belongs: heat on a live card, the outlook between rounds.
+  assert.ok(!('outlook' in upcomingGolf(t, { ...golfCard(t, null, new Date('2026-11-14T17:00Z')), outlook: 'tight' })));
+  const between = { ...t, state: 'between', period: 3 };
+  const card = golfCard(between, e, new Date('2026-11-14T23:00Z'));
+  assert.equal(card.live, false);
+  assert.ok(OUTLOOKS.includes(card.outlook));
+  assert.ok(!('heat' in upcomingGolf(between, { ...card, heat: 2 })));
 });

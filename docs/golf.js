@@ -111,11 +111,20 @@ export const roundStart = (round) => round.first ?? `${round.day}T12:00:00Z`;
 // e: the published upcoming entry ({ round, rounds: [{ n, day, first?, last? }], status, tees, … }).
 // fmt: { time(iso) -> "14:10", day(iso) -> "Thu", isToday(iso) -> bool }.
 // Returns the main line, e.g. "Round 1 · Thu 13:00–19:30" or "Round 4 · today · last group tees off
-// 19:40 · back nine from about 21:50", or while live "Round 3 · started 15:00".
-export function roundLine(e, fmt, now = Date.now()) {
+// 19:40 · back nine from about 21:50", or while live "Round 3 · started 15:00". From level 1 the bot's
+// codes replace the schedule words: "Round 3 · Quiet so far", "Round 4 · today · Tight at the top:
+// tune in for the back nine, about 21:50".
+export function roundLine(e, fmt, now = Date.now(), level = 0) {
   const r = e.rounds?.find((x) => x.n === e.round);
   if (!r) return '';
   const head = `Round ${r.n}`;
+  if (e.status === 'live' && level >= 1 && HEAT_TEXT[e.heat]) return `${head} · ${HEAT_TEXT[e.heat]}`;
+  if (e.status !== 'live' && level >= 1 && OUTLOOK_TEXT[e.outlook]) {
+    const when = r.first ? (fmt.isToday(r.first) ? 'today' : fmt.day(r.first)) : fmt.isToday(roundStart(r)) ? 'today' : fmt.day(roundStart(r));
+    const bn = r.first && e.outlook !== 'clear' ? fmt.time(backNineAt(r)) : '';
+    const tail = !bn ? '' : e.outlook === 'open' ? ` · back nine from about ${bn}` : `, about ${bn}`;
+    return `${head} · ${when} · ${OUTLOOK_TEXT[e.outlook]}${tail}`;
+  }
   if (e.status === 'live') {
     const bn = backNineAt(r);
     if (bn && now >= Date.parse(bn)) return `${head} · the last group is on the back nine`;
@@ -138,4 +147,75 @@ export function favoriteLines(e, favPlayers, fmt, now = Date.now()) {
     const text = !tee ? 'in the field' : Date.parse(tee) > now ? `tees off ${fmt.time(tee)}` : `teed off ${fmt.time(tee)}`;
     return { name, text };
   });
+}
+
+// ── How tense it is (level 1): codes only, never a name or a position ──────────
+// The bot publishes these in events.json (the owner agreed, like football's live number): `heat`
+// (0–3) while a round is live, `outlook` before rounds 3 and 4. The page shows them at level 1 and up.
+export const HEAT_TEXT = ['Quiet so far', 'Something brewing', 'Heating up now: several players still in it', 'Red hot: a close finish, watch now'];
+export const HEAT_SHORT = ['Quiet so far', 'Something brewing', 'Heating up', 'Red hot'];
+export const OUTLOOKS = ['tight', 'open', 'few', 'clear'];
+export const OUTLOOK_TEXT = {
+  tight: 'Tight at the top: tune in for the back nine',
+  open: 'Wide open: many players still in it',
+  few: 'A few players in it: watch the back nine',
+  clear: 'One player well clear: highlights may do',
+};
+// The most a round can reach: rounds 1 and 2 are about the cut, not the title (the owner: "capped low").
+export const HEAT_CAP = { 1: 1, 2: 1, 3: 2, 4: 3 };
+// A level is held for this long before it may drop (no flicker between two levels).
+export const HOLD_MIN = 15;
+
+// The weights (`w`) are GOLF_LIVE in src/scoring/weights.mjs; only the bot works the heat out.
+const active = (players) => players.filter((p) => !['cut', 'wd', 'dq'].includes(p.status) && Number.isFinite(p.toPar));
+const holesLeft = (p, round) => Math.max(0, (ROUNDS - round) * 18 + 18 - (p.thru ?? 0));
+
+// The chase right now. Each chaser counts 0–1 by how many shots behind the leader they are, against
+// the holes both still have to play (2 back with a round to go is a real chase; 2 back on the last
+// hole is nearly over). The closest chaser counts fully, the next half, the next a quarter…
+// `late`: how far the leaders are into the round (0 at their first tee shot, 1 when they finish).
+export function chaseOf(players, round, w) {
+  const field = active(players);
+  if (field.length < 2) return { chase: 0, late: 0 };
+  const best = Math.min(...field.map((p) => p.toPar));
+  const leader = field.filter((p) => p.toPar === best).sort((a, b) => holesLeft(b, round) - holesLeft(a, round))[0];
+  const leaderLeft = holesLeft(leader, round);
+  const chasers = field.filter((p) => p !== leader)
+    .map((p) => Math.max(0, 1 - (p.toPar - best) / (w.reachEnd + w.reachPerHole * (holesLeft(p, round) + leaderLeft))))
+    .sort((a, b) => b - a);
+  const chase = chasers.reduce((sum, x, k) => sum + x * w.nextChaser ** k, 0);
+  const late = 1 - Math.min(18, Math.max(0, leaderLeft - (ROUNDS - round) * 18)) / 18;
+  return { chase, late };
+}
+
+// Heat 0–3 for a live round, from the leaderboard right now: the chase, counting more as the leaders
+// get further into the round. "Red hot" needs the leaders past about the turn. Capped per round.
+export function heatOf(players, round, w) {
+  const { chase, late } = chaseOf(players, round, w);
+  const h = chase * (w.lateFrom + (1 - w.lateFrom) * late);
+  const heat = h >= w.heat3 && late >= w.hotFrom ? 3 : h >= w.heat2 ? 2 : h >= w.heat1 ? 1 : 0;
+  return Math.min(heat, HEAT_CAP[round] ?? 3);
+}
+
+// The outlook before round 3 or 4, from the leaderboard after the round before (everyone has
+// finished it): 2nd place 4+ shots back is "clear", 1 or level "tight", else 6 or more within 3
+// shots is "open", otherwise "few".
+export function outlookOf(players, nextRound) {
+  if (nextRound < 3) return null; // after round 1 it says nothing yet
+  const field = active(players).map((p) => p.toPar).sort((a, b) => a - b);
+  if (field.length < 2) return null;
+  const [best, second] = field;
+  const within = (k) => field.filter((x) => x - best <= k).length;
+  if (second - best >= 4) return 'clear';
+  if (second - best <= 1) return 'tight';
+  if (within(3) >= 6) return 'open';
+  return 'few';
+}
+
+// The heat as published: it may rise at once, but drops only after it has been lower for HOLD_MIN
+// minutes. prev: { heat, at } (at: when that level was last seen, ms) or null.
+export function holdHeat(prev, heat, now = Date.now()) {
+  if (!prev || heat >= prev.heat) return { heat, at: now };
+  if (now - prev.at < HOLD_MIN * 60e3) return prev;
+  return { heat, at: now };
 }

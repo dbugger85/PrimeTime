@@ -11,7 +11,8 @@
 // start times are T04:00Z with timeValid: false.
 
 import { getJson } from '../http.mjs';
-import { GOLF_LEADERBOARD, parseLeaderboard, cleanName, roundsOf, currentRound } from '../../docs/golf.js';
+import { GOLF_LEADERBOARD, parseLeaderboard, cleanName, roundsOf, currentRound, heatOf, holdHeat, outlookOf } from '../../docs/golf.js';
+import { GOLF_LIVE } from '../scoring/weights.mjs';
 
 const SCOREBOARD = 'https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard';
 
@@ -49,8 +50,11 @@ export const withSeries = (t) => (t ? { ...t, series: seriesOf(t.name, t.major) 
 // round 1–2 tee times are kept as they were (frozen), so no name disappears at the cut or after a
 // withdrawal. A finished tournament stays a live round-4 card for KEEP_FINAL_HOURS after the last
 // tee time: the full build scores it after that, so a playoff never shows as a late change.
+// How tense it is (level 1): `heat` 0–3 while the round is live (held for 15 minutes before it may
+// drop: `held` is { heat, at }, kept in state.golfHeat by the caller), `outlook` between rounds
+// (before rounds 3 and 4). Once the tournament is over the heat stays as it last was.
 export const KEEP_FINAL_HOURS = 6;
-export function golfCard(t, old, now = new Date()) {
+export function golfCard(t, old, now = new Date(), held = null) {
   const rounds = roundsOf(t);
   const started = t.state !== 'pre' || t.players.some((p) => p.thru > 0);
   const frozen = started && old?.field?.length;
@@ -59,7 +63,11 @@ export function golfCard(t, old, now = new Date()) {
   const round = t.state === 'final' ? 4 : currentRound(t);
   const r = rounds[round - 1];
   const live = t.state === 'final' || (t.state === 'in' && (!r.first || now >= new Date(r.first)));
-  return { round, rounds, field, tees, live };
+  let heat = null;
+  if (t.state === 'final') heat = held?.heat ?? old?.heat ?? null; // frozen: a later change would say how it ended
+  else if (live) held = holdHeat(held, heatOf(t.players, round, GOLF_LIVE), now.getTime()), heat = held.heat;
+  const outlook = !live ? outlookOf(t.players, round) : null;
+  return { round, rounds, field, tees, live, heat, outlook, held: live ? held : null };
 }
 
 // The golfers seen in a field in the last GOLFERS_DAYS days (state.golfers: { name: last seen }),
@@ -79,6 +87,31 @@ export function readyToScore(t, now = new Date()) {
   const last = roundsOf(t)[3]?.last;
   const from = last ? Date.parse(last) + KEEP_FINAL_HOURS * 3600e3 : Date.parse(t.end) + 30 * 3600e3;
   return now.getTime() >= from;
+}
+
+// Each player's scores to par from ESPN's scoreboard event: rounds 1–4 (null for a round not played)
+// and round 4 hole by hole (holes 1–18, in hole order), plus the playoff holes (period 5) apart.
+// Round totals come from each round's own `displayValue` ("-4"), never from `score` (which
+// includes the playoff). A hole ESPN marks "OTHER" (a quadruple bogey or worse) is worked out from
+// the round's total when it's the only one.
+const toPar = (s) => (s === 'E' ? 0 : /^[+-]?\d+$/.test(String(s ?? '')) ? Number(s) : null);
+export function holesFromScoreboard(event) {
+  return (event?.competitions?.[0]?.competitors ?? []).map((x) => {
+    const ls = x.linescores ?? [];
+    const rounds = [1, 2, 3, 4].map((n) => {
+      const l = ls.find((r) => r.period === n);
+      return l && Number.isFinite(l.value) && l.value > 0 ? toPar(l.displayValue) : null;
+    });
+    const r4 = ls.find((r) => r.period === 4);
+    const holes = Array(18).fill(null);
+    for (const h of r4?.linescores ?? []) if (h.period >= 1 && h.period <= 18) holes[h.period - 1] = toPar(h.scoreType?.displayValue);
+    const unknown = holes.map((h, i) => (h == null ? i : -1)).filter((i) => i >= 0);
+    if (unknown.length === 1 && (r4?.linescores ?? []).length === 18 && rounds[3] != null) {
+      holes[unknown[0]] = rounds[3] - holes.reduce((a, h) => a + (h ?? 0), 0);
+    }
+    const playoff = (ls.find((r) => r.period === 5)?.linescores ?? []).sort((a, b) => a.period - b.period).map((h) => toPar(h.scoreType?.displayValue));
+    return { name: String(x.athlete?.displayName ?? ''), rounds, holes, playoff };
+  }).filter((p) => p.name);
 }
 
 const ymd = (iso, days = 0) => new Date(Date.parse(iso) + days * 864e5).toISOString().slice(0, 10).replaceAll('-', '');

@@ -92,6 +92,13 @@ Golf is different: a tournament lasts four days, so PrimeTime mostly tells you *
 
 The field (who's playing) is shown by name, never in the order of the leaderboard, and it's frozen when the first ball is hit, so nobody vanishes from it at the cut.
 
+**How much to reveal** is your choice (Filters and settings → "Golf: how much to reveal"). The default, **"How tense it is"**, never names anyone but tells you whether to tune in:
+- **Before the weekend rounds**, from the leaderboard after the round before: "One player well clear" (2nd place 4 or more shots back), "Tight at the top" (1 shot or level), "Wide open" (six or more players within 3 shots) or "A few players in it".
+- **While a round is on**, a heat level from "Quiet so far" to "Red hot". It looks at every player's gap to the leader against the holes both still have to play: 2 shots back with a whole round left is a real chase, 2 back on the last hole almost over. The closest chaser counts most. A chase counts more the further the leaders are into their round, and "Red hot" only comes once they've reached the back nine. Thursday and Friday can only reach "Something brewing" (those days are about making the cut), Saturday "Heating up". The level never drops within 15 minutes, so it doesn't flicker.
+- It was tuned by replaying real final rounds hole by hole: the 2025 Masters and the 2026 Travelers Championship (both decided in a playoff) turn red hot on the back nine; the 2025 Open, which Scottie Scheffler won by four, stays quiet all day.
+
+"Schedule only" leaves even that out.
+
 ## Never a spoiler
 
 The rules above all serve one idea: **nothing on a card may tell you how it ended**.
