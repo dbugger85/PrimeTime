@@ -81,12 +81,14 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .soon.live .badge { border: 0; background: var(--live); color: #fff; }
 .soon.live .tier { font-size: 13px; text-transform: none; letter-spacing: 0; font-variant-numeric: tabular-nums; }
 .sports {
-  display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
+  /* Each button is its label plus an equal share of the spare room, so the gaps between the
+     labels are even (equal columns left "F1" floating and "Football" cramped). */
+  display: flex; gap: 4px;
   margin: 14px 0; padding: 4px; border-radius: 12px; background: var(--chip);
 }
 .sports button {
   min-height: 44px; border: 0; border-radius: 9px; background: transparent;
-  font-weight: 600; cursor: pointer; padding: 0 2px; font-size: clamp(12.5px, 3.5vw, 15px);
+  flex: 1 1 auto; font-weight: 600; cursor: pointer; padding: 0 4px; font-size: clamp(12.5px, 3.5vw, 15px);
 }
 .sports button[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow); color: var(--accent); }
 
