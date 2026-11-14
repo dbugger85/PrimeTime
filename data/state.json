@@ -510,12 +510,13 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-14T19:21:33.788Z",
+ "lastFull": "2026-11-14T20:59:37.902Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
   "f1": "11.376e0bc0",
-  "winter": "3.1e4975a6"
+  "winter": "3.1e4975a6",
+  "golf": "1.919824b7"
  },
  "winterEventsDone": [
   "AL57999",
@@ -3877,5 +3878,604 @@
    "Zimbabwe": 1381
   },
   "nationsDate": "2026-11-08"
+ },
+ "biathlonStages": {
+  "2025–26 Biathlon World Cup – Stage 1": {
+   "last": "2025-12-07T00:00:00.000Z",
+   "races": [
+    {
+     "cat": "SW",
+     "disc": "RL",
+     "name": "Women's 4x6 km relay",
+     "start": "2025-11-29T14:15:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "RL",
+     "name": "Men's 4x7.5 km relay",
+     "start": "2025-11-29T17:55:00.000Z"
+    },
+    {
+     "cat": "MX",
+     "disc": "SR",
+     "name": "Single mixed relay",
+     "start": "2025-11-30T15:00:00.000Z"
+    },
+    {
+     "cat": "MX",
+     "disc": "RL",
+     "name": "Mixed relay",
+     "start": "2025-11-30T17:40:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "IN",
+     "name": "Women's 15 km individual",
+     "start": "2025-12-02T16:30:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "IN",
+     "name": "Men's 20 km individual",
+     "start": "2025-12-03T16:30:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "SP",
+     "name": "Women's 7.5 km sprint",
+     "start": "2025-12-05T17:00:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "SP",
+     "name": "Men's 10 km sprint",
+     "start": "2025-12-06T17:30:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "PU",
+     "name": "Women's 10 km pursuit",
+     "start": "2025-12-07T14:15:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "PU",
+     "name": "Men's 12.5 km pursuit",
+     "start": "2025-12-07T16:20:00.000Z"
+    }
+   ]
+  },
+  "2025–26 Biathlon World Cup – Stage 2": {
+   "last": "2025-12-14T00:00:00.000Z",
+   "races": [
+    {
+     "cat": "SM",
+     "disc": "SP",
+     "name": "Men's 10 km sprint",
+     "start": "2025-12-12T11:25:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "SP",
+     "name": "Women's 7.5 km sprint",
+     "start": "2025-12-12T14:15:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "PU",
+     "name": "Men's 12.5 km pursuit",
+     "start": "2025-12-13T12:00:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "RL",
+     "name": "Women's 4x5 km relay",
+     "start": "2025-12-13T14:15:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "RL",
+     "name": "Men's 4x7.5 km relay",
+     "start": "2025-12-14T12:00:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "PU",
+     "name": "Women's 10 km pursuit",
+     "start": "2025-12-14T14:45:00.000Z"
+    }
+   ]
+  },
+  "2025–26 Biathlon World Cup – Stage 3": {
+   "last": "2025-12-21T00:00:00.000Z",
+   "races": [
+    {
+     "cat": "SW",
+     "disc": "SP",
+     "name": "Women's 7.5 km sprint",
+     "start": "2025-12-18T14:15:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "SP",
+     "name": "Men's 10 km sprint",
+     "start": "2025-12-19T14:15:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "PU",
+     "name": "Women's 10 km pursuit",
+     "start": "2025-12-20T12:10:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "PU",
+     "name": "Men's 12.5 km pursuit",
+     "start": "2025-12-20T14:45:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "MS",
+     "name": "Women's 12.5 km mass start",
+     "start": "2025-12-21T12:15:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "MS",
+     "name": "Men's 15 km mass start",
+     "start": "2025-12-21T14:45:00.000Z"
+    }
+   ]
+  },
+  "2025–26 Biathlon World Cup – Stage 4": {
+   "last": "2026-01-11T00:00:00.000Z",
+   "races": [
+    {
+     "cat": "SM",
+     "disc": "SP",
+     "name": "Men's 10 km sprint",
+     "start": "2026-01-08T10:30:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "SP",
+     "name": "Women's 7.5 km sprint",
+     "start": "2026-01-08T13:15:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "PU",
+     "name": "Men's 12.5 km pursuit",
+     "start": "2026-01-10T11:00:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "RL",
+     "name": "Women's 4x6 km relay",
+     "start": "2026-01-10T13:25:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "RL",
+     "name": "Men's 4x7.5 km relay",
+     "start": "2026-01-11T10:00:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "PU",
+     "name": "Women's 10 km pursuit",
+     "start": "2026-01-11T13:30:00.000Z"
+    }
+   ]
+  },
+  "2025–26 Biathlon World Cup – Stage 5": {
+   "last": "2026-01-18T00:00:00.000Z",
+   "races": [
+    {
+     "cat": "SW",
+     "disc": "RL",
+     "name": "Women's 4x6 km relay",
+     "start": "2026-01-14T13:30:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "RL",
+     "name": "Men's 4x7.5 km relay",
+     "start": "2026-01-15T13:30:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "SP",
+     "name": "Women's 7.5 km sprint",
+     "start": "2026-01-16T13:30:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "SP",
+     "name": "Men's 10 km sprint",
+     "start": "2026-01-17T13:30:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "PU",
+     "name": "Women's 10 km pursuit",
+     "start": "2026-01-18T11:30:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "PU",
+     "name": "Men's 12.5 km pursuit",
+     "start": "2026-01-18T14:00:00.000Z"
+    }
+   ]
+  },
+  "2025–26 Biathlon World Cup – Stage 6": {
+   "last": "2026-01-25T00:00:00.000Z",
+   "races": [
+    {
+     "cat": "SM",
+     "disc": "SI",
+     "name": "Men's 15 km short individual",
+     "start": "2026-01-22T18:15:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "SI",
+     "name": "Women's 12.5 km short individual",
+     "start": "2026-01-23T18:15:00.000Z"
+    },
+    {
+     "cat": "MX",
+     "disc": "SR",
+     "name": "Single mixed relay",
+     "start": "2026-01-24T13:15:00.000Z"
+    },
+    {
+     "cat": "MX",
+     "disc": "RL",
+     "name": "Mixed relay",
+     "start": "2026-01-24T15:10:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "MS",
+     "name": "Men's 15 km mass start",
+     "start": "2026-01-25T15:15:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "MS",
+     "name": "Women's 12.5 km mass start",
+     "start": "2026-01-25T18:15:00.000Z"
+    }
+   ]
+  },
+  "Biathlon at the 2026 Winter Olympics": {
+   "last": "2026-02-21T00:00:00.000Z",
+   "races": [
+    {
+     "cat": "MX",
+     "disc": "RL",
+     "name": "Mixed relay",
+     "start": "2026-02-08T13:05:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "IN",
+     "name": "Men's 20 km individual",
+     "start": "2026-02-10T12:30:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "IN",
+     "name": "Women's 15 km individual",
+     "start": "2026-02-11T13:00:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "SP",
+     "name": "Men's 10 km sprint",
+     "start": "2026-02-13T13:00:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "SP",
+     "name": "Women's 7.5 km sprint",
+     "start": "2026-02-14T13:45:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "PU",
+     "name": "Men's 12.5 km pursuit",
+     "start": "2026-02-15T10:15:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "PU",
+     "name": "Women's 10 km pursuit",
+     "start": "2026-02-15T13:45:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "RL",
+     "name": "Men's 4x7.5 km relay",
+     "start": "2026-02-17T13:30:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "RL",
+     "name": "Women's 4x6 km relay",
+     "start": "2026-02-18T13:45:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "MS",
+     "name": "Men's 15 km mass start",
+     "start": "2026-02-20T13:15:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "MS",
+     "name": "Women's 12.5 km mass start",
+     "start": "2026-02-21T13:15:00.000Z"
+    }
+   ]
+  },
+  "2025–26 Biathlon World Cup – Stage 7": {
+   "last": "2026-03-08T00:00:00.000Z",
+   "races": [
+    {
+     "cat": "SW",
+     "disc": "IN",
+     "name": "Women's 15 km individual",
+     "start": "2026-03-05T16:05:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "IN",
+     "name": "Men's 20 km individual",
+     "start": "2026-03-06T16:10:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "MS",
+     "name": "Women's 12.5 km mass start",
+     "start": "2026-03-07T12:40:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "RL",
+     "name": "Men's 4x7.5 km relay",
+     "start": "2026-03-07T14:40:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "RL",
+     "name": "Women's 4x6 km relay",
+     "start": "2026-03-08T12:30:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "MS",
+     "name": "Men's 15 km mass start",
+     "start": "2026-03-08T15:55:00.000Z"
+    }
+   ]
+  },
+  "2025–26 Biathlon World Cup – Stage 8": {
+   "last": "2026-03-15T00:00:00.000Z",
+   "races": [
+    {
+     "cat": "SM",
+     "disc": "SP",
+     "name": "Men's 10 km sprint",
+     "start": "2026-03-12T14:15:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "SP",
+     "name": "Women's 7.5 km sprint",
+     "start": "2026-03-13T14:15:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "PU",
+     "name": "Men's 12.5 km pursuit",
+     "start": "2026-03-14T12:30:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "PU",
+     "name": "Women's 10 km pursuit",
+     "start": "2026-03-14T15:00:00.000Z"
+    },
+    {
+     "cat": "MX",
+     "disc": "SR",
+     "name": "Single mixed relay",
+     "start": "2026-03-15T11:35:00.000Z"
+    },
+    {
+     "cat": "MX",
+     "disc": "RL",
+     "name": "Mixed relay",
+     "start": "2026-03-15T13:40:00.000Z"
+    }
+   ]
+  },
+  "2025–26 Biathlon World Cup – Stage 9": {
+   "last": "2026-03-22T00:00:00.000Z",
+   "races": [
+    {
+     "cat": "SW",
+     "disc": "SP",
+     "name": "Women's 7.5 km sprint",
+     "start": "2026-03-19T15:15:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "SP",
+     "name": "Men's 10 km sprint",
+     "start": "2026-03-20T15:15:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "PU",
+     "name": "Women's 10 km pursuit",
+     "start": "2026-03-21T12:45:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "PU",
+     "name": "Men's 12.5 km pursuit",
+     "start": "2026-03-21T15:15:00.000Z"
+    },
+    {
+     "cat": "SW",
+     "disc": "MS",
+     "name": "Women's 12.5 km mass start",
+     "start": "2026-03-22T12:45:00.000Z"
+    },
+    {
+     "cat": "SM",
+     "disc": "MS",
+     "name": "Men's 15 km mass start",
+     "start": "2026-03-22T14:45:00.000Z"
+    }
+   ]
+  }
+ },
+ "biathlonGone": {},
+ "biathlonStarts": {},
+ "golfSkip": [
+  "401811927"
+ ],
+ "golfers": {
+  "Zach Bauchou": "2026-11-14",
+  "Nick Hardy": "2026-11-14",
+  "Chad Ramey": "2026-11-14",
+  "Davis Riley": "2026-11-14",
+  "Adam Schenk": "2026-11-14",
+  "Alvaro Ortiz": "2026-11-14",
+  "Eric Cole": "2026-11-14",
+  "Hayden Springer": "2026-11-14",
+  "Aaron Wise": "2026-11-14",
+  "Matthieu Pavon": "2026-11-14",
+  "Taylor Moore": "2026-11-14",
+  "Kevin Streelman": "2026-11-14",
+  "Thomas Rosenmueller": "2026-11-14",
+  "Cam Davis": "2026-11-14",
+  "Jimmy Stanger": "2026-11-14",
+  "Casey Russell": "2026-11-14",
+  "Austin Smotherman": "2026-11-14",
+  "Max Greyserman": "2026-11-14",
+  "Trace Crowe": "2026-11-14",
+  "Rasmus Højgaard": "2026-11-14",
+  "Andrew Novak": "2026-11-14",
+  "Max McGreevy": "2026-11-14",
+  "Rico Hoey": "2026-11-14",
+  "Hank Lebioda": "2026-11-14",
+  "Doug Ghim": "2026-11-14",
+  "Brian Harman": "2026-11-14",
+  "Billy Horschel": "2026-11-14",
+  "Brice Garnett": "2026-11-14",
+  "Matt Kuchar": "2026-11-14",
+  "David Skinns": "2026-11-14",
+  "Chris Kirk": "2026-11-14",
+  "Brendon Todd": "2026-11-14",
+  "Rafael Campos": "2026-11-14",
+  "Michael Thompson": "2026-11-14",
+  "Nick Taylor": "2026-11-14",
+  "Patton Kizzire": "2026-11-14",
+  "Kevin Yu": "2026-11-14",
+  "Rikuya Hoshino": "2026-11-14",
+  "Kristoffer Ventura": "2026-11-14",
+  "Alejandro Tosti": "2026-11-14",
+  "Patrick Fishburn": "2026-11-14",
+  "John VanDerLaan": "2026-11-14",
+  "Pontus Nyholm": "2026-11-14",
+  "Lee Hodges": "2026-11-14",
+  "Vince Whaley": "2026-11-14",
+  "Jeffrey Kang": "2026-11-14",
+  "Danny Walker": "2026-11-14",
+  "Kevin Roy": "2026-11-14",
+  "Takumi Kanaya": "2026-11-14",
+  "Dylan Wu": "2026-11-14",
+  "Austin Eckroat": "2026-11-14",
+  "Sam Stevens": "2026-11-14",
+  "Will Gordon": "2026-11-14",
+  "Sami Välimäki": "2026-11-14",
+  "Marco Penge": "2026-11-14",
+  "Chandler Phillips": "2026-11-14",
+  "Isaiah Salinda": "2026-11-14",
+  "Davis Thompson": "2026-11-14",
+  "Chandler Blanchet": "2026-11-14",
+  "Ben Martin": "2026-11-14",
+  "John Parry": "2026-11-14",
+  "Ricky Castillo": "2026-11-14",
+  "Jesper Svensson": "2026-11-14",
+  "Mac Meissner": "2026-11-14",
+  "Nick Dunlap": "2026-11-14",
+  "Pierceson Coody": "2026-11-14",
+  "Rasmus Neergaard-Petersen": "2026-11-14",
+  "Joe Highsmith": "2026-11-14",
+  "Matt McCarty": "2026-11-14",
+  "Jackson Suber": "2026-11-14",
+  "Christiaan Maas": "2026-11-14",
+  "Kensei Hirata": "2026-11-14",
+  "A.J. Ewart": "2026-11-14",
+  "Adrien Dumont de Chassart": "2026-11-14",
+  "William Mouw": "2026-11-14",
+  "Emilio González": "2026-11-14",
+  "Davis Chatfield": "2026-11-14",
+  "Gordon Sargent": "2026-11-14",
+  "Sudarshan Yellamaraju": "2026-11-14",
+  "Karl Vilips": "2026-11-14",
+  "David Ford": "2026-11-14",
+  "Neal Shipley": "2026-11-14",
+  "Miles Russell": "2026-11-14",
+  "Blades Brown": "2026-11-14",
+  "Cole Sherwood": "2026-11-14",
+  "Jackson Koivun": "2026-11-14",
+  "Luke Clanton": "2026-11-14",
+  "Johnny Keefer": "2026-11-14",
+  "Tommy Morrison": "2026-11-14",
+  "Frankie Harris": "2026-11-14",
+  "William Sides": "2026-11-14",
+  "Andrew Putnam": "2026-11-14",
+  "Peter Malnati": "2026-11-14",
+  "Emiliano Grillo": "2026-11-14",
+  "Séamus Power": "2026-11-14",
+  "C.T. Pan": "2026-11-14",
+  "Joel Dahmen": "2026-11-14",
+  "David Lipsky": "2026-11-14",
+  "Lucas Glover": "2026-11-14",
+  "Patrick Rodgers": "2026-11-14",
+  "Ben Kohles": "2026-11-14",
+  "Mackenzie Hughes": "2026-11-14",
+  "Stephan Jaeger": "2026-11-14",
+  "Adrien Saddier": "2026-11-14",
+  "Nicholas Lindheim": "2026-11-14",
+  "Marcelo Rozo": "2026-11-14",
+  "Zecheng Dou": "2026-11-14",
+  "Max Homa": "2026-11-14",
+  "Daniel Berger": "2026-11-14",
+  "Zac Blair": "2026-11-14",
+  "Adam Svensson": "2026-11-14",
+  "Mark Hubbard": "2026-11-14",
+  "Justin Lower": "2026-11-14",
+  "Haotong Li": "2026-11-14",
+  "Christiaan Bezuidenhout": "2026-11-14",
+  "Erik van Rooyen": "2026-11-14",
+  "Jordan Smith": "2026-11-14",
+  "Tyler Duncan": "2026-11-14",
+  "Paul Peterson": "2026-11-14",
+  "Taylor Pendrith": "2026-11-14"
+ },
+ "golfHeat": {
+  "gf-401850980": {
+   "heat": 2,
+   "at": 1794689977902
+  }
  }
 }
