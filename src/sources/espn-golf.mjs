@@ -11,7 +11,7 @@
 // start times are T04:00Z with timeValid: false.
 
 import { getJson } from '../http.mjs';
-import { GOLF_LEADERBOARD, parseLeaderboard, cleanName, roundsOf, currentRound, heatOf, holdHeat, outlookOf } from '../../docs/golf.js';
+import { GOLF_LEADERBOARD, parseLeaderboard, cleanName, roundsOf, currentRound, heatOf, holdHeat, outlookOf, playerState } from '../../docs/golf.js';
 import { GOLF_LIVE } from '../scoring/weights.mjs';
 
 const SCOREBOARD = 'https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard';
@@ -121,4 +121,26 @@ const ymd = (iso, days = 0) => new Date(Date.parse(iso) + days * 864e5).toISOStr
 export async function fetchHoles(t) {
   const data = await getJson(`${SCOREBOARD}?dates=${ymd(t.start)}-${ymd(t.end, 1)}`);
   return (data.events ?? []).find((e) => String(e.id) === String(t.id)) ?? null;
+}
+
+// docs/data/golf.json, the fourth kind of spoiler file (see "Golf" in CLAUDE.md): per tournament on
+// now, the leaderboard as the page's levels 2–3 need it (a fallback for when ESPN refuses the
+// page, and what the push helper reads for "Hovland is in contention"). Only fetched by the page at
+// level 2+. To keep deploys down it's rewritten only when someone's level-2 status changes (in
+// contention, near the cut line …) or GOLF_FILE_MIN minutes after the last write.
+export const GOLF_FILE_MIN = 15;
+const STATUS_KEYS = (t, field, round) => JSON.stringify(field.map((n) => playerState(t, n, round)?.status ?? null));
+export function golfFileEntry(t, card, old, now = new Date()) {
+  if (t.state === 'pre' && !t.players.some((p) => p.thru > 0)) return null; // nothing to tell before the first tee shot
+  const field = new Set(card.field);
+  const t2 = {
+    state: t.state, period: t.period, cutRound: t.cutRound,
+    players: t.players.filter((p) => field.has(p.name)).map((p) => ({
+      name: p.name, toPar: p.toPar, thru: p.thru, pos: p.pos, status: p.status, sort: p.sort, tees: p.tees,
+    })),
+  };
+  const entry = { updated: now.toISOString(), round: card.round, t: t2 };
+  if (old && old.round === entry.round && now - new Date(old.updated) < GOLF_FILE_MIN * 60e3
+    && STATUS_KEYS(old.t, card.field, card.round) === STATUS_KEYS(t2, card.field, card.round)) return old;
+  return entry;
 }

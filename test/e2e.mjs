@@ -770,7 +770,7 @@ try {
     assert.match(await card.locator('.golf-fav').textContent(), new RegExp(`★ ${fav} tees off \\d\\d:\\d\\d`));
     assert.ok(await card.locator('.bell').isVisible(), 'a bell before the round starts');
     assert.match(await page.locator(`.card[data-id="${rsm.id}"] .sub`).first().textContent(), /Round 1 · Thu · tee times not out yet/);
-    assert.ok(await page.locator(`.card[data-id="${rsm.id}"] .bell`).isHidden(), 'no bell while the tee times are not out');
+    assert.ok(await page.locator(`.card[data-id="${rsm.id}"] .bell`).isVisible(), 'a golf bell follows the tournament, tee times or not');
     assert.ok((await page.$$eval('.card .sport', (els) => els.map((e) => e.textContent))).every((x) => x === 'Golf'), 'the Golf tab shows only golf');
     await page.screenshot({ path: `${shots}/golf-schedule.png` });
     // Favorites search finds golfers.
@@ -839,6 +839,42 @@ try {
     assert.deepEqual(page.errors, []);
     await page.close();
 
+    // 🔔 on a golf card: one bell for the whole tournament; the helper gets this phone's level and, at
+    // level 2+, the followed golfers in the field (never at level 1).
+    {
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      await ctx.addInitScript(() => {
+        const fake = { endpoint: 'https://fcm.googleapis.com/fcm/send/golf', toJSON() { return { endpoint: this.endpoint, keys: { p256dh: 'BPub', auth: 'sec' } }; } };
+        PushManager.prototype.getSubscription = async () => null;
+        PushManager.prototype.subscribe = async () => fake;
+      });
+      await ctx.grantPermissions(['notifications']);
+      const calls = [];
+      await ctx.route('https://primetime-push.dbugger85.workers.dev/**', async (r) => {
+        calls.push(JSON.parse(r.request().postData() || '{}'));
+        await r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '{"ok":true}' });
+      });
+      await ctx.route('**/data/events.json', (r) => r.fulfill({ json: { ...real, upcoming: [live, ...real.upcoming.filter((e) => e.sport !== 'golf')] } }));
+      await ctx.route('https://site.web.api.espn.com/**', (r) => r.fulfill({ json: board, headers: { 'access-control-allow-origin': '*' } }));
+      const bp = await ctx.newPage();
+      await bp.goto(base);
+      await bp.evaluate(() => localStorage.setItem('pt-prefs', JSON.stringify({ view: 'upcoming', sport: 'golf', golfSpoilers: 1, favs: { teams: [], players: ['Chad Ramey'], f1: false, winter: [] } })));
+      await bp.reload();
+      const bell = bp.locator(`.card[data-id="${live.id}"] .bell`);
+      await bell.click();
+      await bp.waitForFunction((id) => document.querySelector(`.card[data-id="${id}"] .bell`)?.getAttribute('aria-pressed') === 'true', live.id);
+      assert.deepEqual([calls[0].title, calls[0].level, calls[0].players], ['Austin Championship', 1, []], 'level 1: no golfer names to the helper');
+      // Going up to level 2 sends the bell again, now with the followed golfer.
+      await openSettings(bp);
+      await bp.selectOption('#f-golf', '2');
+      await bp.click('#spoiler-dlg button[value="ok"]');
+      await bp.waitForFunction(() => document.querySelectorAll('.card .golf-fav').length);
+      for (let i = 0; i < 50 && calls.length < 2; i++) await bp.waitForTimeout(100);
+      assert.deepEqual([calls[1].level, calls[1].players], [2, ['Chad Ramey']]);
+      await bp.close();
+      await ctx.close();
+    }
+
     // A replay: the final round rated (the Masters 2025, a playoff), the same for every level, no names.
     const mt = withSeries(parseLeaderboard(JSON.parse(readFileSync(new URL('./fixtures/golf/leaderboard-masters-2025.json', import.meta.url), 'utf8'))));
     const mHoles = holesFromScoreboard(JSON.parse(readFileSync(new URL('./fixtures/golf/holes-masters-2025.json', import.meta.url), 'utf8')).events[0]);
@@ -896,7 +932,7 @@ try {
     await page.click('#views [data-view="upcoming"]');
     const later = page.locator('.card.soon:not(.live) .bell:not([hidden])').first();
     if (await later.count()) {
-      assert.equal(await page.locator('.card.soon.live .bell:not([hidden])').count(), 0, 'a bell on a live event');
+      assert.equal(await page.locator('.card.soon.live:not([data-id^="gf-"]) .bell:not([hidden])').count(), 0, 'a bell on a live event (golf bells follow a whole tournament)');
       const id = await later.evaluate((b) => b.closest('.card').dataset.id);
       const bell = page.locator(`.card[data-id="${id}"] .bell`);
       await bell.click();

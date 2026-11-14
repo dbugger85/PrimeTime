@@ -25,9 +25,9 @@ import { liveFacts, scoreLivePace, liveWeightsFrom, bigMatchFactor, espnDays } f
 
 const now = process.env.NOW ? new Date(process.env.NOW) : new Date(); // NOW=... pretends it's another time (for testing)
 const data = loadData();
-const { events, reasons, results, facts, standings } = data;
+const { events, reasons, results, facts, standings, golf: golfFile } = data;
 let upcoming = data.upcoming;
-const before = JSON.stringify([upcoming, [...events.keys()]]);
+const before = JSON.stringify([upcoming, [...events.keys()], [...golfFile]]);
 const save = saver(data);
 
 // "In play" window: from `minutesBefore` the start until `hours` after it.
@@ -183,6 +183,9 @@ async function liveGolf() {
     // Saved only when the card changed (a new heat level, a new round …), like everything here.
     const card = upcomingGolf(t, raw);
     upcoming = upcoming.map((x) => (x.id === e.id ? card : x));
+    // golf.json (level 2+ and pushes): rewritten when a status changes, or every 15 minutes at most.
+    const entry = golf.golfFileEntry(t, card, golfFile.get(e.id), now);
+    if (entry) golfFile.set(e.id, entry); else golfFile.delete(e.id);
   }
 }
 
@@ -208,8 +211,8 @@ try {
 // A table that changed, or a match that stopped waiting, is saved (so the next run doesn't ask again).
 const pendingChanged = JSON.stringify(data.state.tablesPending ?? {}) !== pendingBefore;
 
-if (JSON.stringify([upcoming, [...events.keys()]]) === before && !data.migrated && !tablesChanged && !pendingChanged) {
+if (JSON.stringify([upcoming, [...events.keys()], [...golfFile]]) === before && !data.migrated && !tablesChanged && !pendingChanged) {
   console.log('live: nothing changed');
 } else {
-  console.log(saveData({ events, upcoming, reasons, results, facts, standings, state: data.state }, now));
+  console.log(saveData({ events, upcoming, reasons, results, facts, standings, golf: golfFile, state: data.state }, now));
 }

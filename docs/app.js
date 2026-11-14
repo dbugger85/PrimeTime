@@ -244,6 +244,7 @@ function setFav(kind, name) {
   if (!favCount(prefs.favs)) prefs.favsOnly = false;
   savePrefs({ keepPlace: true });
   render();
+  if (kind === 'players' && prefs.golfSpoilers >= 2) resyncGolfBells(); // golf bells know your golfers
 }
 
 // Calendar feeds for favorite teams: the bot writes docs/cal/<team>.ics (src/calendar.mjs).
@@ -762,7 +763,7 @@ function fillGolfBoard(li, e) {
   });
   table.append(el('thead', {}, head), body);
   panel.replaceChildren(...(all ? [] : [close]), el('div', { className: 'table-scroll' }, table),
-    el('p', { className: 'small', textContent: `From ESPN, ${timeFmt.format(new Date(board.at))}.` }));
+    el('p', { className: 'small', textContent: `${board.bot ? 'As of' : 'From ESPN,'} ${timeFmt.format(new Date(board.at))}.` }));
 }
 
 // Redraws just the golf parts of a card (the favorites and the leaderboard), without a full render.
@@ -784,11 +785,24 @@ async function golfFetch(e) {
     const t = parseLeaderboard(await res.json());
     if (t) golfBoards.set(e.id, { t, at: Date.now() });
   } catch {
-    if (!golfBoards.has(e.id)) golfBoards.set(e.id, { t: null, at: Date.now() }); // "No leaderboard yet"; tried again next minute
+    // ESPN refused: the bot's copy from the last few minutes (docs/data/golf.json, a spoiler file
+    // like results.json, only ever fetched here, at level 2+ or after the leaderboard warning).
+    const saved = await golfFile();
+    if (saved?.[e.id]?.t) golfBoards.set(e.id, { t: saved[e.id].t, at: Date.parse(saved[e.id].updated), bot: true });
+    else if (!golfBoards.has(e.id)) golfBoards.set(e.id, { t: null, at: Date.now() }); // "No leaderboard yet"; tried again next minute
   } finally {
     golfInFlight.delete(e.id);
   }
   refreshGolf(e.id);
+}
+
+let golfFileCache = null;
+async function golfFile() {
+  if (golfFileCache && Date.now() - golfFileCache.at < 60e3) return golfFileCache.data;
+  try {
+    golfFileCache = { at: Date.now(), data: await (await fetch('./data/golf.json', { cache: 'no-cache' })).json() };
+  } catch { golfFileCache = { at: Date.now(), data: null }; }
+  return golfFileCache.data;
 }
 
 // Once a minute, while a golf card is on screen and the tab is visible: the leaderboard again for each
@@ -809,11 +823,11 @@ function pollGolf() {
 function fillBell(li, e) {
   const b = li.querySelector('.bell');
   const on = Boolean(bells[e.id]);
-  b.hidden = !on && (!(Date.parse(e.start) > Date.now()) || golfTbd(e)); // golf: not before the round's tee times are out
+  b.hidden = !on && e.sport !== 'golf' && !(Date.parse(e.start) > Date.now()); // golf: a bell follows the whole tournament
   if (b.hidden) return;
   b.setAttribute('aria-pressed', String(on));
   b.disabled = bellBusy.has(e.id);
-  const label = on ? 'Notification on: tap to turn it off' : 'Notify me when it starts';
+  const label = on ? 'Notification on: tap to turn it off' : e.sport === 'golf' ? 'Notify me during this tournament' : 'Notify me when it starts';
   b.setAttribute('aria-label', label);
   b.title = label;
   b.onclick = () => toggleBell(e);
@@ -849,13 +863,19 @@ function notifyDialog({ title, text, ok, onOk, extra }) {
 // won before), and football leaves out the teams while you've hidden them.
 function bellText(e) {
   const where = e.services.map((id) => SERVICES[id]?.name).filter(Boolean).join(' · ');
+  // Golf: the helper writes each push itself ("Round 3 is starting · HBO Max"); it gets the tournament,
+  // where to watch, this phone's level, and (level 2+ only) the followed golfers in the field.
+  if (e.sport === 'golf') {
+    const players = prefs.golfSpoilers >= 2 ? (e.field ?? []).filter((p) => prefs.favs.players.includes(p)).slice(0, 5) : [];
+    return { title: e.compName, body: where, level: prefs.golfSpoilers, players };
+  }
   const title = e.sport === 'tennis' ? `${e.compName} · ${e.round}`
     : e.sport === 'football' ? (namesHidden(e, prefs) ? `${e.compName}: teams hidden` : e.teams.join(' – '))
       : e.sport === 'winter' ? `${e.compName}: ${e.race}` : e.sport === 'golf' ? `${e.compName}: round ${e.round}` : titleOf(e);
   return { title, body: where ? `Starting now · ${where}` : 'Starting now' };
 }
 
-async function askPermission() {
+async function askPermission(e) {
   if (!pushWorks()) {
     if (ios() && !navigator.standalone) {
       await notifyDialog({
@@ -873,9 +893,12 @@ async function askPermission() {
     await notifyDialog({ title: 'Notifications are blocked', text: "You've blocked notifications from PrimeTime. Allow them in the browser's site settings (the icon next to the address), or in the phone's settings for the app, then tap the bell again" });
     return false;
   }
+  const golf = e?.sport === 'golf';
   const asked = await notifyDialog({
-    title: '🔔 Notify me when it starts',
-    text: "PrimeTime sends a notification to this device when the event starts. Never a score. Your phone asks if that's OK next. Only an anonymous push address and the events you bell are saved, and each one is deleted once it's sent",
+    title: golf ? '🔔 Notify me during this tournament' : '🔔 Notify me when it starts',
+    text: golf
+      ? `PrimeTime sends a notification when each round starts and when the last group reaches the back nine on the weekend${prefs.golfSpoilers >= 1 ? ', and once if it gets tight at the top' : ''}${prefs.golfSpoilers >= 2 ? ', and when a golfer you follow is in contention' : ''}. Never a score. Your phone asks if that's OK next. Only an anonymous push address, the tournament${prefs.golfSpoilers >= 2 ? ', the golfers you follow in it' : ''} and your golf setting are saved, until the tournament is over`
+      : "PrimeTime sends a notification to this device when the event starts. Never a score. Your phone asks if that's OK next. Only an anonymous push address and the events you bell are saved, and each one is deleted once it's sent",
     ok: 'Turn on notifications',
     onOk: () => Notification.requestPermission(),
   });
@@ -898,7 +921,7 @@ const redrawBell = (id) => {
 async function toggleBell(e) {
   if (bellBusy.has(e.id)) return;
   const on = Boolean(bells[e.id]);
-  if (!on && !(await askPermission())) return;
+  if (!on && !(await askPermission(e))) return;
   bellBusy.add(e.id);
   redrawBell(e.id);
   try {
@@ -909,7 +932,7 @@ async function toggleBell(e) {
     } else {
       const res = await fetch(`${PUSH_URL}/alert`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sub: sub.toJSON(), id: e.id, ...bellText(e) }) });
       if (!res.ok) throw new Error(res.status === 409 ? 'started' : res.status === 429 ? 'full' : `HTTP ${res.status}`);
-      bells[e.id] = e.start;
+      bells[e.id] = e.sport === 'golf' ? golfBellUntil(e) : e.start;
     }
     store.save('pt-bells', bells);
   } catch (err) {
@@ -920,6 +943,22 @@ async function toggleBell(e) {
     bellBusy.delete(e.id);
     redrawBell(e.id);
   }
+}
+
+// A golf bell lasts the whole tournament: kept here until the end of round 4's day.
+const golfBellUntil = (e) => `${e.rounds?.[3]?.day ?? e.start.slice(0, 10)}T23:59:00Z`;
+
+// Golf bells carry this phone's level and followed golfers; when either changes, they're sent again
+// (the helper updates its row). Quietly: a failure just keeps the old settings there.
+async function resyncGolfBells() {
+  const mine = upcoming.filter((e) => e.sport === 'golf' && bells[e.id]);
+  if (!mine.length || !pushWorks() || Notification.permission !== 'granted') return;
+  try {
+    const sub = await pushSubscription();
+    for (const e of mine) {
+      await fetch(`${PUSH_URL}/alert`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sub: sub.toJSON(), id: e.id, ...bellText(e) }) }).catch(() => {});
+    }
+  } catch { /* keeps the old settings */ }
 }
 
 // Forget bells for events that started long ago (the helper has sent and deleted them).
@@ -1769,6 +1808,7 @@ function bind() {
     prefs.golfSpoilers = level;
     savePrefs({ keepPlace: true });
     keepScroll(render);
+    resyncGolfBells();
   };
   on('#f-hide-tn', 'hideTennis');
   on('#f-hide-fb', 'hideFootball');

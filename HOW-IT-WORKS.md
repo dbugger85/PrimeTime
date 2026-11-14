@@ -103,6 +103,8 @@ The field (who's playing) is shown by name, never in the order of the leaderboar
 
 For these, your phone fetches the live leaderboard from ESPN once a minute while a golf card is on screen. At the lower levels it never does, and a "⚠⚠ Leaderboard" button lets you peek at one tournament after a warning.
 
+**🔔 The bell on a golf card** follows the whole tournament: a notification when each round starts and when the last group reaches the back nine on the weekend. From "How tense it is" up, also once if Sunday gets tight at the top; at "My favorites" and up, when a golfer you follow is in contention. Never a score.
+
 ### Golf replays: the final round
 
 When a tournament is over, its card moves to Replays and gets a score for **the final round**, with no names. It's worked out from every player's hole-by-hole scores, rebuilding the leaderboard after each hole:

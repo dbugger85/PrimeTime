@@ -72,7 +72,8 @@ jobs:
           git config user.name "primetime-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           [ -f docs/data/standings.json ] || echo '{}' > docs/data/standings.json # until the first full build writes it
-          git add docs/data/events.json docs/data/reasons.json docs/data/results.json docs/data/facts.json docs/data/standings.json data/state.json
+          [ -f docs/data/golf.json ] || echo '{}' > docs/data/golf.json # the same for golf (a live check before the first build)
+          git add docs/data/events.json docs/data/reasons.json docs/data/results.json docs/data/facts.json docs/data/standings.json docs/data/golf.json data/state.json
           mkdir -p docs/cal # git add fails on a folder that isn't there (git doesn't keep empty ones)
           git add -A docs/cal
           if git diff --cached --quiet; then

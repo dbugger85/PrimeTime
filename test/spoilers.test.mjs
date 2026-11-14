@@ -491,3 +491,32 @@ test('golf replays: the final round rated, no names, 6 blocks, tips only to hole
   assert.throws(() => checkEvent({ ...publishGolf({ id: '1', name: 'X', course: '', rounds: [], end: '2026-01-01T00:00Z' }, { score: 5, segments: [1, 1, 1, 1, 1, 1, 1], advice: { code: 'full' }, reasons: [] }), segments: [1, 1, 1, 1, 1, 1, 1] }), 'a seventh block (a playoff) is refused');
   assert.throws(() => checkEvent(publishGolf({ id: '1', name: 'X', course: '', rounds: [], end: '2026-01-01T00:00Z' }, { score: 5, segments: [1, 1, 1, 1, 1, 1], advice: { code: 'skip', unit: 'hole', ranges: [[1, 15]] }, reasons: [] })), 'a tip into the last six holes is refused');
 });
+
+// docs/data/golf.json: golf leaderboards (a spoiler file, fetched by the page only at level 2+, and by
+// the push helper). Names, scores to par, holes played, positions, statuses and tee times; nothing else.
+export function checkGolfFile(file, upcomingIds = null) {
+  for (const [id, entry] of Object.entries(file)) {
+    assert.match(id, /^gf-\d+$/);
+    if (upcomingIds) assert.ok(upcomingIds.has(id), `${id} in golf.json has no card`);
+    assert.deepEqual(Object.keys(entry).sort(), ['round', 't', 'updated']);
+    assert.deepEqual(Object.keys(entry.t).sort(), ['cutRound', 'period', 'players', 'state']);
+    for (const p of entry.t.players) {
+      assert.deepEqual(Object.keys(p).sort(), ['name', 'pos', 'sort', 'status', 'tees', 'thru', 'toPar'], `${id}: player fields`);
+      assert.ok(['active', 'done', 'cut', 'wd', 'dq'].includes(p.status), `${id}: status ${p.status}`);
+    }
+  }
+}
+
+test('golf.json: only what levels 2–3 and the push helper need', async () => {
+  const { parseLeaderboard } = await import('../docs/golf.js');
+  const { golfCard, withSeries, golfFileEntry } = await import('../src/sources/espn-golf.mjs');
+  const { upcomingGolf } = await import('../src/publish.mjs');
+  const t = withSeries(parseLeaderboard(fixture('golf/leaderboard-austin-2026-round3.json')));
+  const card = upcomingGolf(t, golfCard(t, null, new Date('2026-11-14T17:00Z')));
+  checkGolfFile({ [card.id]: golfFileEntry(t, card, null, new Date('2026-11-14T17:00Z')) }, new Set([card.id]));
+});
+
+test('the real docs/data/golf.json is golf leaderboards for cards on the page', { skip: !existsSync(new URL('../docs/data/golf.json', import.meta.url)) }, () => {
+  const read = (f) => JSON.parse(readFileSync(new URL(`../docs/data/${f}`, import.meta.url)));
+  checkGolfFile(read('golf.json'), new Set(read('events.json').upcoming.filter((e) => e.sport === 'golf').map((e) => e.id)));
+});

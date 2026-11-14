@@ -34,7 +34,7 @@ import { bigMatchFactor } from '../docs/live.js';
 const now = new Date();
 const only = process.argv[2];
 const data = loadData();
-const { events, reasons, results, facts, standings } = data;
+const { events, reasons, results, facts, standings, golf: golfFile } = data;
 const save = saver(data);
 let state = data.state;
 // A sport's formula or weights changed: forget which days and Slams are done, so they're fetched again.
@@ -316,6 +316,8 @@ async function buildGolf() {
       const card = golf.golfCard(t, previous.get(id), now, state.golfHeat[id]);
       if (card.held) state.golfHeat[id] = card.held; else delete state.golfHeat[id];
       upcoming.push(upcomingGolf(t, card));
+      const entry = golf.golfFileEntry(t, upcomingGolf(t, card), golfFile.get(id), now); // for level 2+ and pushes
+      if (entry) golfFile.set(id, entry); else golfFile.delete(id);
       console.log(`golf: ${t.name} (round ${card.round}, ${t.state}${card.heat != null ? `, heat ${card.heat}` : ''}${card.outlook ? `, ${card.outlook}` : ''})`);
     } catch (err) {
       warn(`golf ${c.name} ${c.start.slice(0, 4)}: ${err.message}`);
@@ -360,4 +362,4 @@ try {
 
 if (!only) state.lastFull = now.toISOString(); // the live check uses this to know when a full build is due
 state.versions = { ...SCORING_VERSIONS };
-console.log(saveData({ events, upcoming, reasons, results, facts, standings, state }, now));
+console.log(saveData({ events, upcoming, reasons, results, facts, standings, golf: golfFile, state }, now));

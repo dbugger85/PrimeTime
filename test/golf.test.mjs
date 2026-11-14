@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { parseLeaderboard, roundsOf, currentRound, roundLine, favoriteLines, backNineAt, cleanName, heatOf, holdHeat, outlookOf, OUTLOOKS, playerState, favoriteWords, positionText, leaderboardRows, cutLine } from '../docs/golf.js';
 import { GOLF_LIVE } from '../src/scoring/weights.mjs';
-import { golfCard, readyToScore, shownTournament, seriesOf, withSeries, noteGolfers, holesFromScoreboard } from '../src/sources/espn-golf.mjs';
+import { golfCard, readyToScore, shownTournament, seriesOf, withSeries, noteGolfers, holesFromScoreboard, golfFileEntry } from '../src/sources/espn-golf.mjs';
 import { upcomingGolf, servicesFor } from '../src/publish.mjs';
 import { isFavorite, favNames, titleOf, adviceText } from '../docs/logic.js';
 import { scoreGolf, golfFacts, blockValues, golfAdvice } from '../src/scoring/golf.mjs';
@@ -362,4 +362,23 @@ test('limited: no hole-by-hole scores, rated from the round totals, no strip', (
   assert.deepEqual(s.segments, []);
   assert.ok(['full', 'highlights'].includes(s.advice.code));
   assert.match(s.result, /^Scottie Scheffler won at -17, by 4 shots/);
+});
+
+// ── Piece 5: docs/data/golf.json ──────────────────────────────────────────────
+test('golf.json: the field\'s leaderboard, rewritten only when a status changes or every 15 minutes', () => {
+  const t = austin();
+  const now = new Date('2026-11-14T17:00Z');
+  const card = upcomingGolf(t, golfCard(t, null, now));
+  const entry = golfFileEntry(t, card, null, now);
+  assert.equal(entry.round, 3);
+  assert.equal(entry.t.players.length, card.field.length);
+  assert.equal(playerState(entry.t, 'Chad Ramey', 3).status, 'contention', 'the page and the helper can work the words out from it');
+  // A few minutes later, someone has played another hole but nobody's status changed: the old entry stays.
+  const later = { ...t, players: t.players.map((p) => (p.name === 'Zac Blair' ? p : { ...p, thru: Math.min(18, p.thru + 1) })) };
+  assert.equal(golfFileEntry(later, card, entry, new Date('2026-11-14T17:05Z')), entry, 'no rewrite (and no deploy) for a hole played');
+  assert.notEqual(golfFileEntry(later, card, entry, new Date('2026-11-14T17:16Z')), entry, 'rewritten after 15 minutes');
+  // Someone drops out of contention: rewritten at once.
+  const dropped = { ...t, players: t.players.map((p) => (p.name === 'Hayden Springer' ? { ...p, toPar: p.toPar + 3 } : p)) };
+  assert.notEqual(golfFileEntry(dropped, card, entry, new Date('2026-11-14T17:05Z')), entry);
+  assert.equal(golfFileEntry({ ...t, state: 'pre', players: t.players.map((p) => ({ ...p, thru: 0 })) }, card, null, now), null, 'nothing before the first tee shot');
 });
