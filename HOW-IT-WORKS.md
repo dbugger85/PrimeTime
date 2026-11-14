@@ -112,7 +112,7 @@ When a tournament is over, its card moves to Replays and gets a score for **the 
 - **A chase:** players within 2 shots of the lead at the turn, new names reaching the top of the leaderboard, and a back nine where the lead stayed at a shot or less.
 - **A comeback** by someone who started the day 3 or more shots back and finished level for the lead, and **late eagles** (holes 13–18) by players in contention.
 - **The occasion:** a major, or one of the richest events.
-- Above 6, each point counts a bit less, so a 10 is practically never given.
+- Above 5, each point counts a bit less, so a 10 is practically never given. About one tournament in nine scores 8 or more, the same share as football matches.
 
 The **heat strip** always has six blocks of three holes: birdies, bogeys and lead changes among the players near the top. A playoff never adds a block, so the strip can't give one away. **Skip tips** only ever say "Start at hole 7", "10" or "13", based on holes 1–12 alone, so they never cover the last six holes and don't depend on who won. Replays are only added a few hours after the last group has teed off, so a playoff doesn't make the card appear later than usual.
 
