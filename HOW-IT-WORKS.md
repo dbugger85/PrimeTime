@@ -84,6 +84,14 @@ The score never shows whether the driver on pole won: a pass for the lead counts
 
 Athlete names are never shown on winter cards, because start lists give earlier results away.
 
+## Golf
+
+Golf is different: a tournament lasts four days, so PrimeTime mostly tells you **when to watch while it's on**. Each tournament has one card under Coming up/ongoing, always about today's round:
+- when the round starts, and when the last group tees off. The last group holds the leaders on the weekend, and it reaches the **back nine** (holes 10–18, where tournaments are usually decided) about 2 hours 10 minutes after it tees off, so the card tells you that time too;
+- the tee times of golfers you follow, for rounds 1 and 2. Those are drawn before the tournament. Weekend tee times are left out: the leaders go out last, so a tee time would tell you how someone is doing.
+
+The field (who's playing) is shown by name, never in the order of the leaderboard, and it's frozen when the first ball is hit, so nobody vanishes from it at the cut.
+
 ## Never a spoiler
 
 The rules above all serve one idea: **nothing on a card may tell you how it ended**.

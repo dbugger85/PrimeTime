@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>PrimeTime</title>
-  <meta name="description" content="Spoiler-free watchability scores for football, tennis, F1 and winter sports replays.">
+  <meta name="description" content="Spoiler-free watchability scores for football, tennis, F1, winter sports and golf replays.">
   <meta name="theme-color" content="#f3f1ec" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0d1321" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
@@ -52,6 +52,7 @@
     <button data-sport="tennis">Tennis</button>
     <button data-sport="f1">F1</button>
     <button data-sport="winter">Winter</button>
+    <button data-sport="golf">Golf</button>
   </nav>
 
   <nav class="comps" id="comps" aria-label="Competition" hidden></nav>
@@ -74,7 +75,7 @@
           <p class="small">Your teams' matches with kick-off and where to watch, kept up to date. iPhone: tap Subscribe. Android: tap Copy link, then in Google Calendar on a computer choose Other calendars → From URL and paste it (Google updates it about once a day).</p>
         </div>
       </div>
-      <input type="search" id="fav-q" placeholder="Add a team, player, F1 or winter sport…" autocomplete="off" aria-label="Search for a team, player, F1 or winter sport">
+      <input type="search" id="fav-q" placeholder="Add a team, player, golfer or sport…" autocomplete="off" aria-label="Search for a team, player, golfer, F1 or winter sport">
       <div class="chips" id="fav-hits"></div>
     </div>
   </section>
@@ -224,6 +225,7 @@
         <p class="calib-result" hidden></p>
         <p class="sub"></p>
         <p class="sub chances" hidden></p>
+        <div class="golf-favs" hidden></div>
         <div class="row"><div class="svc"></div><button class="bell" type="button" aria-pressed="false" hidden>🔔</button></div>
         <button class="pace-btn" type="button" aria-expanded="false" hidden>Excitement so far</button>
         <p class="pace" aria-live="polite" hidden></p>

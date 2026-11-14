@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createECDH, createHmac, createDecipheriv, createPublicKey, verify } from 'node:crypto';
 import { encrypt, vapidHeader, b64u } from '../worker/src/webpush.js';
-import { sendDue } from '../worker/src/index.js';
+import { sendDue, resyncStarts } from '../worker/src/index.js';
 
 const hmac = (key, data) => createHmac('sha256', key).update(data).digest();
 
@@ -70,6 +70,10 @@ test('the VAPID header is a valid ES256 token for the push service', async () =>
 function fakeDb(rows) {
   const run = (sql, args) => {
     if (sql.startsWith('SELECT * FROM alerts WHERE start <=')) return { results: rows.filter((r) => r.start <= args[0]) };
+    if (sql.startsWith('SELECT DISTINCT event, start FROM alerts WHERE start > ? AND start <= ?')) {
+      return { results: [...new Map(rows.filter((r) => r.start > args[0] && r.start <= args[1]).map((r) => [`${r.event}|${r.start}`, { event: r.event, start: r.start }])).values()] };
+    }
+    if (sql === 'UPDATE alerts SET start = ? WHERE event = ? AND start = ?') { for (const r of rows) if (r.event === args[1] && r.start === args[2]) r.start = args[0]; return {}; }
     if (sql.startsWith('UPDATE alerts SET start')) { const r = rows.find((x) => x.endpoint === args[1] && x.event === args[2]); r.start = args[0]; return {}; }
     if (sql === 'DELETE FROM alerts WHERE endpoint = ? AND event = ?') { rows.splice(0, rows.length, ...rows.filter((x) => !(x.endpoint === args[0] && x.event === args[1]))); return {}; }
     if (sql === 'DELETE FROM alerts WHERE endpoint = ?') { rows.splice(0, rows.length, ...rows.filter((x) => x.endpoint !== args[0])); return {}; }
@@ -112,5 +116,24 @@ test('every minute: sends what has started, waits for moved events, drops cancel
     assert.match(sent[0].auth, /^vapid t=/);
     assert.deepEqual(rows.map((x) => x.event).sort(), ['gone-recent', 'later', 'moved']);
     assert.equal(rows.find((x) => x.event === 'moved').start, Date.parse('2026-11-07T21:00Z'));
+  } finally { globalThis.fetch = realFetch; }
+});
+
+test('every 15 minutes: an event moved earlier (golf tee times brought forward) is caught up', async () => {
+  const now = Date.parse('2026-11-22T10:00Z');
+  const row = (event, start, endpoint) => ({ endpoint, p256dh: 'x', auth: 'y', event, start: Date.parse(start), title: 'T', body: 'B' });
+  const rows = [
+    row('gf-1', '2026-11-22T16:00Z', 'https://fcm.googleapis.com/a'), // the round now starts at 13:00 (storms coming)
+    row('gf-1', '2026-11-22T16:00Z', 'https://fcm.googleapis.com/b'),
+    row('fb-2', '2026-11-22T18:00Z', 'https://fcm.googleapis.com/a'), // moved later: left to sendDue
+    row('fb-3', '2026-11-29T18:00Z', 'https://fcm.googleapis.com/a'), // a week away: not looked at
+  ];
+  const site = { upcoming: [{ id: 'gf-1', start: '2026-11-22T13:00Z' }, { id: 'fb-2', start: '2026-11-22T19:00Z' }, { id: 'fb-3', start: '2026-11-29T12:00Z' }], events: [] };
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify(site));
+  try {
+    const r = await resyncStarts({ DB: fakeDb(rows), SITE: 'https://primetime.re' }, now);
+    assert.equal(r.moved, 1);
+    assert.deepEqual(rows.map((x) => new Date(x.start).toISOString().slice(11, 16)), ['13:00', '13:00', '18:00', '18:00']);
   } finally { globalThis.fetch = realFetch; }
 });

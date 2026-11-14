@@ -243,6 +243,44 @@ export const upcomingF1 = (race) => ({
   ...f1Session(race),
 });
 
+// Golf: one card per tournament all week, always about today's round (see "Golf" in CLAUDE.md).
+// Schedule only (level 0): the round, the round days and tee windows, the field (frozen at the first
+// tee shot, so no name disappears at the cut, sorted by name, never by position) and the round 1–2
+// tee times (drawn before the tournament). No score, position, cut line or weekend tee time.
+const isoTime = (t) => (typeof t === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\dZ$/.test(t) ? t : null);
+export function golfRounds(rounds) {
+  return (rounds ?? []).slice(0, 4).map((r, i) => {
+    const first = isoTime(r.first), last = isoTime(r.last);
+    return { n: i + 1, day: /^\d{4}-\d\d-\d\d$/.test(r.day) ? r.day : '', ...(first && last ? { first, last } : {}) };
+  });
+}
+export function golfField(names) {
+  return [...new Set((names ?? []).filter((n) => typeof n === 'string' && n.trim()).map((n) => n.trim().slice(0, 60)))].sort((a, b) => a.localeCompare(b));
+}
+export function golfTees(tees, field) {
+  const out = {};
+  for (const name of field) {
+    const t = (tees?.[name] ?? []).slice(0, 2).map(isoTime);
+    if (t.some(Boolean)) out[name] = t;
+  }
+  return out;
+}
+const golfComp = (t) => (t.major ? 'golf.major' : 'golf.pga');
+const golfCtx = (t) => ({ series: t.series });
+export const upcomingGolf = (t, { round, rounds, field, tees, live }) => {
+  const r = golfRounds(rounds);
+  const f = golfField(field);
+  const current = r.find((x) => x.n === round) ?? r[0];
+  return {
+    ...upcomingBase(`gf-${t.id}`, 'golf', golfComp(t), t.name, current.first ?? `${current.day}T12:00:00Z`, live, 'golf', golfCtx(t)),
+    course: String(t.course ?? '').slice(0, 80),
+    round: current.n,
+    rounds: r,
+    field: f,
+    tees: golfTees(tees, f),
+  };
+};
+
 // League tables for the Team view (docs/data/standings.json, loaded only after a warning,
 // since points and wins follow every result). Numbers and names only: no "9-0-1" record
 // strings, logos, links, colours or rank changes (an arrow would hint at the last result).

@@ -88,7 +88,9 @@ export function saveData({ events, upcoming, reasons, results, facts, standings,
   const footballWeights = FOOTBALL_W;
   // Where each custom-scoring slider stands with these weights, in points (see sliderScale()).
   const scale = sliderScale(list.filter((e) => e.sport === 'football' && facts?.has(e.id)).map((e) => facts.get(e.id)), FOOTBALL_W);
-  writeFileSync(EVENTS, JSON.stringify({ generated: now.toISOString(), events: list, upcoming: soon, elo, liveWeights, footballWeights, sliderScale: scale }) + '\n');
+  // Golfers for the favorites search box: the fields on the page and of the last few weeks (state.golfers).
+  const golfers = [...new Set([...Object.keys(state.golfers ?? {}), ...soon.flatMap((e) => (e.sport === 'golf' ? e.field : []))])].sort((a, b) => a.localeCompare(b));
+  writeFileSync(EVENTS, JSON.stringify({ generated: now.toISOString(), events: list, upcoming: soon, elo, liveWeights, footballWeights, sliderScale: scale, golfers }) + '\n');
   const pick = (map) => JSON.stringify(Object.fromEntries(list.filter((e) => map.has(e.id)).map((e) => [e.id, map.get(e.id)]))) + '\n';
   writeFileSync(REASONS, pick(reasons));
   writeFileSync(RESULTS, pick(results));
@@ -99,5 +101,5 @@ export function saveData({ events, upcoming, reasons, results, facts, standings,
   writeFileSync(STATE, JSON.stringify(state, null, 1) + '\n');
   const count = (s) => list.filter((e) => e.sport === s).length;
   const live = soon.filter((e) => e.status === 'live').length;
-  return `events.json: ${list.length} events (football ${count('football')}, tennis ${count('tennis')}, f1 ${count('f1')}, winter ${count('winter')}), ${soon.length} upcoming (${live} live), ${feeds} calendar feeds`;
+  return `events.json: ${list.length} events (football ${count('football')}, tennis ${count('tennis')}, f1 ${count('f1')}, winter ${count('winter')}, golf ${count('golf')}), ${soon.length} upcoming (${live} live), ${feeds} calendar feeds`;
 }

@@ -1,5 +1,6 @@
 import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, followedMatch, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug, leagueGroups, teamHash, teamFromHash, teamMatches, teamTables, TABLE_COMPS } from './logic.js';
 import { ESPN, clockOf, liveClockText, espnDays, liveFacts, scoreLivePace, LIVE_FROM, elapsedText, PILLAR_KEYS, pillarShares, pillarWeightKey } from './live.js';
+import { roundLine, favoriteLines } from './golf.js';
 import { scoreFootball, applyTweaks, cleanTweaks, isStandard, DEFAULT_TWEAKS, TWEAK_GROUPS, STAKES, SCALE_MAX, SCALE_STEP, CURVE_STEP, BOOST_STEP, BOOST_MAX, PILLARS, PILLAR_MAX, PILLAR_STEP } from './scoring.js';
 
 const SERVICES = {
@@ -43,6 +44,7 @@ let resultsFile = null; // loaded only after the second warning is accepted
 let events = [];
 let upcoming = [];
 let eloRatings = {}; // the latest Elo per football team, for "Show Elo ratings"
+let golfers = []; // golfers in recent fields, for the favorites search box (from events.json)
 let liveWeights = null; // the weights for "Excitement so far" (from events.json)
 const paceOpen = new Set(); // "Excitement so far" opened this visit only
 const paceNow = new Map(); // id -> { pace, rough } | { early: true } | { failed: true }, worked out here from ESPN
@@ -287,16 +289,19 @@ function renderFavs() {
   );
   renderCalendar(favs.teams);
   $('#favs-hint').textContent = !n
-    ? 'Search below for a team, player, F1 or a winter sport. Its cards then get a ★.'
+    ? 'Search below for a team, player, golfer, F1 or a winter sport. Its cards then get a ★.'
     : prefs.favsOnly && favs.players.length && prefs.view === 'replays' && ['all', 'tennis'].includes(prefs.sport)
       ? 'Tennis players only count under Coming up/ongoing, so replays don\'t spoil who went through.'
       : 'Tap one to remove it.';
   renderFavHits();
 }
 
+// Everything the favorites search box can suggest: teams and players on the cards, plus golfers.
+const favPool = () => favNames([events, upcoming, [{ field: golfers }]]);
+
 function renderFavHits() {
   const q = $('#fav-q').value;
-  const hits = searchNames(favNames([events, upcoming]), q, prefs.favs, prefs.favs.f1 ? 8 : 7);
+  const hits = searchNames(favPool(), q, prefs.favs, prefs.favs.f1 ? 8 : 7);
   const typed = q.trim().toLowerCase();
   const f1 = !prefs.favs.f1 && typed && ['f1', 'formula 1', 'formula one'].some((w) => w.startsWith(typed));
   const add = (kind, name, label = name) => chip(`+ ${label}`, null, false, () => {
@@ -306,10 +311,10 @@ function renderFavHits() {
   });
   $('#fav-hits').replaceChildren(...(f1 ? [add('f1', null, F1_NAME)] : []), ...hits.map((h) => add(h.kind, h.name, h.label)));
   $('#fav-hits').hidden = !q.trim();
-  const followed = followedMatch(favNames([events, upcoming]), q, prefs.favs);
+  const followed = followedMatch(favPool(), q, prefs.favs);
   if (followed && (hits.length || f1)) $('#fav-hits').append(Object.assign(document.createElement('span'), { className: 'small', textContent: `Already one of your favorites: ${followed}` }));
   if (q.trim() && !hits.length && !f1) {
-    const already = searchNames(favNames([events, upcoming]), q, { teams: [], players: [] }, 1).length || (prefs.favs.f1 && typed.startsWith('f'));
+    const already = searchNames(favPool(), q, { teams: [], players: [] }, 1).length || (prefs.favs.f1 && typed.startsWith('f'));
     const text = already ? 'Already one of your favorites.' : 'No team or player by that name in the data yet.';
     $('#fav-hits').replaceChildren(Object.assign(document.createElement('span'), { className: 'small', textContent: text }));
   }
@@ -343,6 +348,10 @@ function fillTitle(title, e) {
   }
   if (e.sport === 'f1') {
     title.append(titleOf(e), star('f1', null, 'F1'));
+    return;
+  }
+  if (e.sport === 'golf') { // the tournament; followed golfers get their own lines (fillGolf)
+    title.append(titleOf(e));
     return;
   }
   const [kind, names, sep] = e.sport === 'football' ? ['teams', e.teams, ' – '] : ['players', e.players, ' vs '];
@@ -628,27 +637,52 @@ function soonCard(e) {
   li.dataset.id = e.id;
   const live = e.status === 'live';
   li.classList.toggle('live', live);
-  li.querySelector('.time').textContent = finished.has(e.id) ? 'ENDED' : live ? 'LIVE' : timeFmt.format(new Date(e.start));
+  li.querySelector('.time').textContent = finished.has(e.id) ? 'ENDED' : live ? 'LIVE' : golfTbd(e) ? dayFmt.format(new Date(e.start)) : timeFmt.format(new Date(e.start));
   li.querySelector('.tier').textContent = live ? liveTier(e) : '';
   li.querySelector('.sport').textContent = e.sport === 'winter' ? e.compName : SPORTS[e.sport];
-  const where = e.sport === 'f1' ? `${f1SessionName(e)} · ${e.circuit}` : e.sport === 'winter' ? e.place : e.compName;
-  const began = live ? ` · ${e.sport === 'tennis' ? 'listed' : 'started'} ${timeFmt.format(new Date(e.start))}` : '';
+  const where = e.sport === 'f1' ? `${f1SessionName(e)} · ${e.circuit}` : e.sport === 'winter' ? e.place : e.sport === 'golf' ? e.course : e.compName;
+  const began = live && e.sport !== 'golf' ? ` · ${e.sport === 'tennis' ? 'listed' : 'started'} ${timeFmt.format(new Date(e.start))}` : '';
   li.querySelector('.comp').textContent = where + began;
   fillTitle(li.querySelector('.title'), e);
   const now = calibrating && liveScore.get(e.id);
   if (now) Object.assign(li.querySelector('.calib-result'), { hidden: false, textContent: `Now: ${now}` });
   // Tennis: draw and round. Football: the pre-match hints, if any. Otherwise the meta line says it all.
-  const sub = e.sport === 'tennis' ? subtitleOf(e) : e.sport === 'football' && prefs.preHints ? prematchLine(e) : '';
+  const sub = e.sport === 'tennis' ? subtitleOf(e) : e.sport === 'football' && prefs.preHints ? prematchLine(e) : e.sport === 'golf' ? roundLine(e, GOLF_FMT) : '';
   li.querySelector('.sub').textContent = sub;
   li.querySelector('.sub').hidden = !sub;
   const chances = prefs.showChances ? chancesLine(e) : '';
   li.querySelector('.chances').textContent = chances;
   li.querySelector('.chances').hidden = !chances;
   li.querySelector('.svc').append(...servicePills(e));
+  fillGolf(li, e);
   fillBell(li, e);
   fillPace(li, e);
   fillLineups(li, e);
   return li;
+}
+
+// ── Golf ─────────────────────────────────────────────────────────────────────
+// One card per tournament all week, about today's round (docs/golf.js writes the lines).
+const dayFmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Oslo', weekday: 'short' });
+const GOLF_FMT = {
+  time: (iso) => timeFmt.format(new Date(iso)),
+  day: (iso) => dayFmt.format(new Date(iso)),
+  isToday: (iso) => dayLabel(iso) === 'Today',
+};
+// The round's tee times aren't out yet: the card shows the day only.
+const golfTbd = (e) => e.sport === 'golf' && !e.rounds?.find((r) => r.n === e.round)?.first;
+
+// Golfers you follow who are in the field: "★ Viktor Hovland tees off 14:10".
+function fillGolf(li, e) {
+  if (e.sport !== 'golf') return;
+  const box = li.querySelector('.golf-favs');
+  const lines = favoriteLines(e, prefs.favs.players, GOLF_FMT);
+  box.hidden = !lines.length;
+  box.replaceChildren(...lines.map(({ name, text }) => {
+    const p = Object.assign(document.createElement('p'), { className: 'golf-fav' });
+    p.append(star('players', name, name), ` ${name} ${text}`);
+    return p;
+  }));
 }
 
 // ── "🔔 Notify me when it starts" ─────────────────────────────────────────────
@@ -657,7 +691,7 @@ function soonCard(e) {
 function fillBell(li, e) {
   const b = li.querySelector('.bell');
   const on = Boolean(bells[e.id]);
-  b.hidden = !on && !(Date.parse(e.start) > Date.now());
+  b.hidden = !on && (!(Date.parse(e.start) > Date.now()) || golfTbd(e)); // golf: not before the round's tee times are out
   if (b.hidden) return;
   b.setAttribute('aria-pressed', String(on));
   b.disabled = bellBusy.has(e.id);
@@ -699,7 +733,7 @@ function bellText(e) {
   const where = e.services.map((id) => SERVICES[id]?.name).filter(Boolean).join(' · ');
   const title = e.sport === 'tennis' ? `${e.compName} · ${e.round}`
     : e.sport === 'football' ? (namesHidden(e, prefs) ? `${e.compName}: teams hidden` : e.teams.join(' – '))
-      : e.sport === 'winter' ? `${e.compName}: ${e.race}` : titleOf(e);
+      : e.sport === 'winter' ? `${e.compName}: ${e.race}` : e.sport === 'golf' ? `${e.compName}: round ${e.round}` : titleOf(e);
   return { title, body: where ? `Starting now · ${where}` : 'Starting now' };
 }
 
@@ -1651,6 +1685,7 @@ async function fetchData({ quiet = false } = {}) {
     events = data.events ?? [];
     upcoming = data.upcoming ?? [];
     eloRatings = data.elo ?? {};
+    golfers = data.golfers ?? [];
     liveWeights = data.liveWeights ?? null;
     footballWeights = data.footballWeights ?? null;
     sliderScale = data.sliderScale ?? {};

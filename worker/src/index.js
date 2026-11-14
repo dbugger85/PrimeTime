@@ -120,6 +120,25 @@ export async function sendDue(env, now = Date.now()) {
   return { sent };
 }
 
+// Every 15 minutes: an event that was moved EARLIER (golf tee times are often brought forward for the
+// weather; a kick-off can move too). sendDue only looks at rows that are due, so without this a
+// bell would wait for the old, later time. Rows for the next two days are compared with the site.
+export const RESYNC_MIN = 15;
+export async function resyncStarts(env, now = Date.now()) {
+  const { results: rows } = await env.DB.prepare('SELECT DISTINCT event, start FROM alerts WHERE start > ? AND start <= ?').bind(now + EARLY, now + 2 * 864e5).all();
+  if (!rows.length) return { moved: 0 };
+  const data = await siteData(env);
+  const upcoming = new Map((data.upcoming ?? []).map((e) => [e.id, e]));
+  let moved = 0;
+  for (const r of rows) {
+    const start = Date.parse(upcoming.get(r.event)?.start);
+    if (!(start < r.start)) continue; // unknown, the same or later (sendDue handles later)
+    await env.DB.prepare('UPDATE alerts SET start = ? WHERE event = ? AND start = ?').bind(start, r.event, r.start).run();
+    moved++;
+  }
+  return { moved };
+}
+
 export default {
   async fetch(req, env) {
     try { return await handle(req, env); } catch (err) {
@@ -127,7 +146,9 @@ export default {
       return new Response(JSON.stringify({ error: 'server' }), { status: 500, headers: { ...cors(req), 'Content-Type': 'application/json' } });
     }
   },
-  async scheduled(_event, env, ctx) {
-    ctx.waitUntil(sendDue(env).then((r) => r.sent && console.log(`sent ${r.sent}`)));
+  async scheduled(event, env, ctx) {
+    const minute = new Date(event?.scheduledTime ?? Date.now()).getUTCMinutes();
+    const resync = minute % RESYNC_MIN === 0 ? resyncStarts(env).then((r) => r.moved && console.log(`moved ${r.moved}`)) : Promise.resolve();
+    ctx.waitUntil(resync.then(() => sendDue(env)).then((r) => r.sent && console.log(`sent ${r.sent}`)));
   },
 };

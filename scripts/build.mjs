@@ -17,12 +17,13 @@ import { LINEUP_MINUTES } from '../src/sources/espn-football.mjs';
 import * as tennis from '../src/sources/espn-tennis.mjs';
 import * as f1 from '../src/sources/openf1.mjs';
 import * as winter from '../src/sources/winter.mjs';
+import * as golf from '../src/sources/espn-golf.mjs';
 import * as espnStandings from '../src/sources/espn-standings.mjs';
 import * as fotmob from '../src/sources/fotmob.mjs';
 import { updateRatings, strengthOf } from '../src/sources/ratings.mjs';
 import { updateLinks } from '../src/sources/links.mjs';
 import { forecastOf, outlookOf, stakesFor, STAKES_COMPS } from '../src/prematch.mjs';
-import { chancesOf, publishFootball, publishTennis, publishF1, publishWinter, upcomingFootball, upcomingTennis, upcomingF1, upcomingWinter, expiringRights, trimFacts } from '../src/publish.mjs';
+import { chancesOf, publishFootball, publishTennis, publishF1, publishWinter, upcomingFootball, upcomingTennis, upcomingF1, upcomingWinter, upcomingGolf, expiringRights, trimFacts } from '../src/publish.mjs';
 import { loadData, saveData, warn, saver } from '../src/store.mjs';
 import { TABLE_COMPS, noteFinished, refreshStandings } from '../src/standings.mjs';
 import { FOOTBALL as FOOTBALL_W } from '../src/scoring/weights.mjs';
@@ -58,7 +59,7 @@ const outOfTime = () => {
 
 // Not-yet-finished events are rebuilt from scratch every run (times change, matches go live).
 const upcoming = [];
-const UPCOMING_DAYS = { football: 14, f1: 60, winter: 14 };
+const UPCOMING_DAYS = { football: 14, f1: 60, winter: 14, golf: 8 };
 
 // Already scored with the current formula and weights for its sport (false for new events).
 // Already scored with the current version. A football match scored without xG (FotMob had
@@ -275,7 +276,28 @@ async function buildWinter() {
   }
 }
 
-const builders = { football: [buildFootball, buildUpcomingFootball, buildStandings], tennis: [buildTennis], f1: [buildF1], winter: [buildWinter] };
+// Golf (see "Golf" in CLAUDE.md): one card per tournament all week, from ESPN's leaderboard.
+// The season's calendar costs two small requests; each tournament on now or within a week, one more.
+async function buildGolf() {
+  const year = now.getUTCFullYear();
+  const years = now.getUTCMonth() === 11 ? [year, year + 1] : [year]; // December: next season's first events
+  const calendar = [];
+  for (const y of years) calendar.push(...await golf.fetchCalendar(y));
+  for (const c of calendar) {
+    const id = `gf-${c.id}`;
+    const start = Date.parse(c.start), end = Date.parse(c.end);
+    // On now, or starting within a week (a Monday finish or a late score: up to 3 days after the end).
+    if (start - now > UPCOMING_DAYS.golf * 864e5 || now - end > 3 * 864e5 || events.has(id)) continue;
+    const t = await golf.fetchTournament(c.id);
+    if (!t || !t.stroke) continue;
+    golf.noteGolfers(state, t, now);
+    if (golf.readyToScore(t, now)) continue; // over: scored as a replay (piece 4)
+    upcoming.push(upcomingGolf(t, golf.golfCard(t, previous.get(id), now)));
+    console.log(`golf: ${t.name} (round ${golf.golfCard(t, previous.get(id), now).round}, ${t.state})`);
+  }
+}
+
+const builders = { football: [buildFootball, buildUpcomingFootball, buildStandings], tennis: [buildTennis], f1: [buildF1], winter: [buildWinter], golf: [buildGolf] };
 const previousUpcoming = data.upcoming;
 for (const [sport, steps] of Object.entries(builders)) {
   if (only && only !== sport) {

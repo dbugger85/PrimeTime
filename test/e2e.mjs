@@ -13,6 +13,9 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
 import { liveWeightsFrom } from '../docs/live.js';
 import * as WEIGHTS from '../src/scoring/weights.mjs';
+import { parseLeaderboard } from '../docs/golf.js';
+import { golfCard, withSeries } from '../src/sources/espn-golf.mjs';
+import { upcomingGolf } from '../src/publish.mjs';
 
 // Services and custom scoring live inside "Filters and settings": open it first when it's closed.
 const openSettings = async (page) => { if (!(await page.$eval('#filters', (d) => d.open))) await page.click('#filters summary'); };
@@ -727,6 +730,58 @@ try {
     await off.clock.fastForward(61e3);
     assert.equal(await off.locator('.card[data-id="fb-999001"] .tier').textContent(), "68'", 'the bot\'s minute, counted up');
     await off.close();
+  }
+
+  // Golf: one tournament card about today's round, made from a real ESPN leaderboard (the Austin
+  // Championship, round 3), at two moments. Nothing golf-related is asked from ESPN or golf.json.
+  {
+    const t = withSeries(parseLeaderboard(JSON.parse(readFileSync(new URL('./fixtures/golf/leaderboard-austin-2026-round3.json', import.meta.url), 'utf8'))));
+    const live = upcomingGolf(t, golfCard(t, null, new Date('2026-11-14T17:00Z')));
+    const thursday = { ...live, status: 'upcoming', round: 1, start: live.rounds[0].first };
+    const rsm = upcomingGolf(withSeries(parseLeaderboard(JSON.parse(readFileSync(new URL('./fixtures/golf/leaderboard-rsm-2026-before.json', import.meta.url), 'utf8')))), { round: 1, rounds: [1, 2, 3, 4].map((n) => ({ n, day: `2026-11-${18 + n}` })), field: [], tees: {} });
+    const real = JSON.parse(readFileSync(`${docs}/data/events.json`, 'utf8'));
+    const fav = live.field.find((n) => live.tees[n]?.[0] > '2026-11-12T14:00Z');
+    const golfRequests = [];
+    const golfPage = async (now, card) => {
+      const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+      page.errors = [];
+      page.on('pageerror', (e) => page.errors.push(e.message));
+      page.on('request', (r) => /golf\/leaderboard|sports\/golf|golf\.json/.test(r.url()) && golfRequests.push(r.url()));
+      await page.clock.install({ time: Date.parse(now) });
+      await page.route('**/data/events.json', (r) => r.fulfill({ json: { ...real, upcoming: [card, rsm, ...real.upcoming.filter((e) => e.sport !== 'golf')], golfers: live.field } }));
+      await page.goto(base);
+      await page.evaluate((name) => localStorage.setItem('pt-prefs', JSON.stringify({ view: 'upcoming', sport: 'golf', favs: { teams: [], players: [name], f1: false, winter: [] } })), fav);
+      await page.reload();
+      await page.waitForSelector(`.card[data-id="${card.id}"]`);
+      return page;
+    };
+    let page = await golfPage('2026-11-11T18:00:00Z', thursday);
+    const card = page.locator(`.card[data-id="${live.id}"]`);
+    assert.equal(await card.locator('.title').textContent(), 'Austin Championship');
+    assert.match(await card.locator('.sub:not(.chances)').first().textContent(), /^Round 1 · Thu \d\d:\d\d–\d\d:\d\d$/);
+    assert.match(await card.locator('.golf-fav').textContent(), new RegExp(`★ ${fav} tees off \\d\\d:\\d\\d`));
+    assert.ok(await card.locator('.bell').isVisible(), 'a bell before the round starts');
+    assert.match(await page.locator(`.card[data-id="${rsm.id}"] .sub`).first().textContent(), /Round 1 · Thu · tee times not out yet/);
+    assert.ok(await page.locator(`.card[data-id="${rsm.id}"] .bell`).isHidden(), 'no bell while the tee times are not out');
+    assert.ok((await page.$$eval('.card .sport', (els) => els.map((e) => e.textContent))).every((x) => x === 'Golf'), 'the Golf tab shows only golf');
+    await page.screenshot({ path: `${shots}/golf-schedule.png` });
+    // Favorites search finds golfers.
+    await page.click('#favs-toggle');
+    await page.fill('#fav-q', live.field[1].slice(0, 5));
+    assert.ok(await page.locator(`#fav-hits .chip:has-text("${live.field[1]}")`).count(), 'a golfer in the search');
+    assert.deepEqual(page.errors, []);
+    await page.close();
+    page = await golfPage('2026-11-14T19:00:00Z', live);
+    const liveCard = page.locator(`.card.live[data-id="${live.id}"]`);
+    assert.equal(await liveCard.locator('.time').textContent(), 'LIVE');
+    assert.equal(await liveCard.locator('.sub:not(.chances)').first().textContent(), 'Round 3 · the last group is on the back nine');
+    assert.match(await liveCard.locator('.golf-fav').textContent(), new RegExp(`★ ${fav} in the field`), 'no weekend tee time at level 0');
+    const text = await liveCard.innerText();
+    assert.doesNotMatch(text, /\b(T?\d+(st|nd|rd|th)|[-+]\d+|thru|cut|leader|contention)\b/i, 'a position or a score on the card');
+    await liveCard.screenshot({ path: `${shots}/golf-live.png` });
+    assert.deepEqual(page.errors, []);
+    await page.close();
+    assert.deepEqual(golfRequests, [], 'nothing about golf asked from ESPN or golf.json at this level');
   }
 
   // "🔔 Notify me when it starts": a bell on Coming up cards that haven't started. Our own dialog

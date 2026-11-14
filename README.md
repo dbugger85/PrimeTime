@@ -32,6 +32,8 @@ PrimeTime rates finished football matches, tennis matches (Grand Slams, ATP Mast
 
 **Football competitions:** the Premier League, La Liga, Bundesliga, Serie A, Ligue 1, Eliteserien and the Championship; the Champions League, Europa League and Conference League; and for national teams the Nations League, the EURO and World Cup qualifiers, the EURO and the World Cup.
 
+**Golf (PGA Tour and the majors):** one card per tournament all week under Coming up/ongoing, always about today's round: when it starts, when the last group tees off and when it reaches the back nine (the exciting part), and the tee times of the golfers you follow. No scores or positions.
+
 **Team view (football):** tap a team's name on any card to see all its matches in every league and cup, coming up and replays, on one page. Its league tables (the full table of each league or group it plays in, its own row highlighted) are behind a spoiler warning, since points and wins give recent results away. The tables refresh within minutes of a match ending.
 
 Tap the services you have to see only what you can watch. Under Filters and settings → **My competitions** you pick the football competitions you follow; the others are hidden everywhere, except your favorite teams' matches. Tennis player names are hidden by default, because just seeing who reached a later round spoils earlier matches.

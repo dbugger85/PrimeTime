@@ -274,6 +274,20 @@
       ],
       "validTo": "2031-06-30",
       "source": "https://www.viaplaygroup.com/en/newsroom/press-releases/viaplay-group-show-uefa-club-competitions-denmark-norway-and-finland-until"
+    },
+    "golf": {
+      "services": [
+        "hbomax"
+      ],
+      "validTo": "2030-12-31",
+      "note": "The owner's decision (2026-11-14, PLAN.md): the PGA Tour on HBO Max to 2030; the Masters and the US Open on Viaplay; the PGA Championship and The Open are unconfirmed, so both HBO Max and Viaplay are shown until checked (like Austrian alpine races). `series` is set by seriesOf() in src/sources/espn-golf.mjs.",
+      "rules": [
+        { "series": "masters", "services": ["viaplay"] },
+        { "series": "us-open", "services": ["viaplay"] },
+        { "series": "pga-championship", "services": ["hbomax", "viaplay"] },
+        { "series": "the-open", "services": ["hbomax", "viaplay"] }
+      ],
+      "source": "PLAN.md, Golf plan (2026-11-14)"
     }
   }
 }

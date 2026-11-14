@@ -1,6 +1,6 @@
 // Pure helpers for the page (no DOM), so they can be unit-tested with node --test.
 
-export const SPORTS = { football: 'Football', tennis: 'Tennis', f1: 'F1', winter: 'Winter' };
+export const SPORTS = { football: 'Football', tennis: 'Tennis', f1: 'F1', winter: 'Winter', golf: 'Golf' };
 
 export function tierOf(score) {
   if (score == null) return { key: 'unrated', label: 'Not rated' }; // F1 qualifying
@@ -113,6 +113,9 @@ export function isFavorite(e, favs, view) {
   if (e.sport === 'football') return e.teams.some((t) => favs.teams.includes(t));
   if (e.sport === 'winter') return (favs.winter ?? []).some((k) => k === winterKey(e) || (e.gender === 'mixed' && k.startsWith(`${e.comp}:`)));
   if (e.sport === 'tennis') return view === 'upcoming' && e.players.some((p) => favs.players.includes(p));
+  // Golf: a tournament whose field has a golfer you follow. The field is public and frozen at the first
+  // tee shot, so this says nothing about the scores. Replays have no names, so never there.
+  if (e.sport === 'golf') return view === 'upcoming' && (e.field ?? []).some((p) => favs.players.includes(p));
   return e.sport === 'f1' && favs.f1;
 }
 
@@ -137,6 +140,7 @@ export function favNames(lists) {
   for (const e of lists.flat()) {
     for (const t of e.teams ?? []) teams.add(t);
     for (const p of e.players ?? []) players.add(p);
+    for (const p of e.field ?? []) players.add(p); // golf
     if (e.sport === 'winter' && e.gender !== 'mixed') winter.add(winterKey(e));
   }
   return [
@@ -283,6 +287,7 @@ export function titleOf(event) {
   if (event.sport === 'football') return event.teams.join(' – ');
   if (event.sport === 'tennis') return event.players.join(' vs ');
   if (event.sport === 'winter') return event.race;
+  if (event.sport === 'golf') return event.compName;
   return event.session ? `${event.compName} ${f1SessionName(event).toLowerCase()}` : event.compName;
 }
 
@@ -290,6 +295,7 @@ export function subtitleOf(event) {
   if (event.sport === 'football') return event.compName;
   if (event.sport === 'tennis') return `${event.compName} · ${event.draw} · ${event.round}`;
   if (event.sport === 'winter') return `${event.series} · ${event.place}`; // the sport is on the line above
+  if (event.sport === 'golf') return [event.comp === 'golf.major' ? 'Major' : 'PGA Tour', 'Final round', event.course].filter(Boolean).join(' · ');
   return `Formula 1 · ${f1SessionName(event)} · ${event.circuit}`;
 }
 
