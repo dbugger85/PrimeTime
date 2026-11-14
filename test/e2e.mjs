@@ -13,9 +13,10 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
 import { liveWeightsFrom } from '../docs/live.js';
 import * as WEIGHTS from '../src/scoring/weights.mjs';
-import { parseLeaderboard, HEAT_TEXT } from '../docs/golf.js';
-import { golfCard, withSeries } from '../src/sources/espn-golf.mjs';
-import { upcomingGolf } from '../src/publish.mjs';
+import { parseLeaderboard, HEAT_TEXT, roundsOf } from '../docs/golf.js';
+import { golfCard, withSeries, holesFromScoreboard } from '../src/sources/espn-golf.mjs';
+import { upcomingGolf, publishGolf } from '../src/publish.mjs';
+import { scoreGolf, golfFacts } from '../src/scoring/golf.mjs';
 
 // Services and custom scoring live inside "Filters and settings": open it first when it's closed.
 const openSettings = async (page) => { if (!(await page.$eval('#filters', (d) => d.open))) await page.click('#filters summary'); };
@@ -837,6 +838,40 @@ try {
     await page.waitForFunction(() => /tied for the lead/.test(document.querySelector('.card[data-id^="gf-"] .golf-favs')?.textContent ?? ''));
     assert.deepEqual(page.errors, []);
     await page.close();
+
+    // A replay: the final round rated (the Masters 2025, a playoff), the same for every level, no names.
+    const mt = withSeries(parseLeaderboard(JSON.parse(readFileSync(new URL('./fixtures/golf/leaderboard-masters-2025.json', import.meta.url), 'utf8'))));
+    const mHoles = holesFromScoreboard(JSON.parse(readFileSync(new URL('./fixtures/golf/holes-masters-2025.json', import.meta.url), 'utf8')).events[0]);
+    const mScored = scoreGolf(golfFacts(mHoles, { winner: mt.players.find((p) => p.pos === '1')?.name, major: mt.major, purse: mt.purse }));
+    const replay = publishGolf({ ...mt, rounds: roundsOf(mt) }, mScored);
+    const rp = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+    rp.errors = [];
+    rp.on('pageerror', (e) => rp.errors.push(e.message));
+    await rp.clock.install({ time: Date.parse('2025-04-20T12:00:00Z') }); // inside "Last year"
+    await rp.route('**/data/events.json', (r) => r.fulfill({ json: { ...real, events: [replay, ...real.events.filter((e) => e.sport !== 'golf')] } }));
+    await rp.route('**/data/reasons.json', (r) => r.fulfill({ json: { [replay.id]: mScored.reasons } }));
+    await rp.route('**/data/results.json', (r) => r.fulfill({ json: { [replay.id]: mScored.result } }));
+    await rp.goto(base);
+    await rp.evaluate(() => localStorage.setItem('pt-prefs', JSON.stringify({ view: 'replays', sport: 'golf', days: 400, golfSpoilers: 3 })));
+    await rp.reload();
+    const rc = rp.locator(`.card[data-id="${replay.id}"]`);
+    await rc.waitFor();
+    assert.equal(await rc.locator('.num').textContent(), mScored.score.toFixed(1));
+    assert.equal(await rc.locator('.strip i').count(), 6, 'six blocks');
+    assert.match(await rc.locator('.sub').textContent(), /^Major · Final round · Augusta National/);
+    const rtext = await rc.innerText();
+    for (const p of mHoles.slice(0, 6)) assert.ok(!rtext.includes(p.name.split(' ').at(-1)), `${p.name} on a replay card, even at level 3`);
+    await rc.locator('.why-btn').click();
+    await rp.click('#spoiler-dlg button[value="ok"]');
+    await rc.locator('.why li').first().waitFor();
+    assert.match(await rc.locator('.why').innerText(), /playoff/);
+    await rc.locator('.why .result-btn').click();
+    await rp.click('#spoiler-dlg button[value="ok"]');
+    await rc.locator('.result-text').waitFor();
+    assert.match(await rc.locator('.result-text').textContent(), /^Rory McIlroy won at -11, beating Justin Rose in a playoff/);
+    await rc.screenshot({ path: `${shots}/golf-replay.png` });
+    assert.deepEqual(rp.errors, []);
+    await rp.close();
   }
 
   // "🔔 Notify me when it starts": a bell on Coming up cards that haven't started. Our own dialog

@@ -28,7 +28,7 @@ const ALLOWED = {
   tennis: ['players', 'draw', 'round'],
   f1: ['circuit', 'session'],
   winter: ['race', 'place', 'series', 'gender'],
-  golf: ['course'], // replays: the final round, no names (upcoming cards have more, see checkGolf)
+  golf: ['course', 'limited'], // replays: the final round, no names (upcoming cards have more, see checkGolf)
 };
 // Golf words that would give a result away on a card (on top of BANNED_WORDS).
 const GOLF_WORDS = /\b(playoff|leader|leads?|cut line|missed|contention|eagle|birdie|bogey|shots? back|under par|over par|holed)\b/i;
@@ -111,6 +111,8 @@ export function checkEvent(e) {
     if (e.advice.unit === 'stage') assert.ok(e.advice.ranges.every(([, b]) => b <= e.segments.length - 2), `${e.id}: skips the last shooting or the finish`);
     if (e.advice.unit === 'leg') assert.ok(e.advice.ranges.every(([, b]) => b <= e.segments.length - 1), `${e.id}: skips the last leg`);
     if (e.advice.unit === 'run') assert.deepEqual(e.advice.ranges, [[1, 1]], `${e.id}: only run 1 can be skipped`);
+    if (e.advice.unit === 'hole') assert.ok(e.advice.ranges.length === 1 && [[1, 6], [1, 9], [1, 12]].some((r) => r.join() === e.advice.ranges[0].join()), `${e.id}: golf only starts at hole 7, 10 or 13`);
+    if (e.advice.unit === 'hole') assert.equal(e.sport, 'golf');
   }
   assert.ok(e.segments.every((s) => Number.isInteger(s) && s >= 0 && s <= 3));
   if (e.sport === 'football') assert.equal(e.segments.length, 6, 'fixed length, so extra time is not revealed');
@@ -121,6 +123,10 @@ export function checkEvent(e) {
     assert.ok(['women', 'men', 'mixed'].includes(e.gender));
   }
   if (e.sport === 'f1' && !quali) assert.equal(e.segments.length, 10, 'fixed length, so a shortened race is not revealed');
+  if (e.sport === 'golf') {
+    assert.equal(e.segments.length, e.limited ? 0 : 6, `${e.id}: always 6 blocks (a playoff isn't one)`);
+    assert.doesNotMatch(JSON.stringify({ ...e, id: '', start: '', links: '' }), GOLF_WORDS, `${e.id}: a golf spoiler word`);
+  }
   if ('session' in e) assert.ok(['qualifying', 'sprint', 'sprint-qualifying'].includes(e.session), `${e.id}: session ${e.session}`);
   const text = JSON.stringify({ ...e, id: '', start: '', lineups: '', links: '' }); // line-ups and links are checked above
   assert.doesNotMatch(text, /\d+\s*[-–:]\s*\d+/, `${e.id}: looks like a score`);
@@ -461,4 +467,27 @@ test('golf schedule cards: when and where, the field by name, nothing about the 
   assert.throws(() => checkUpcoming({ ...e, field: [...e.field].reverse() }));
   assert.throws(() => checkUpcoming({ ...e, tees: { [e.field[0]]: ['2026-11-12T13:00Z', '2026-11-13T13:00Z', '2026-11-14T16:00Z'] } }));
   assert.throws(() => checkUpcoming({ ...e, compName: 'Austin Championship playoff' }));
+});
+
+test('golf replays: the final round rated, no names, 6 blocks, tips only to hole 7, 10 or 13', async () => {
+  const { parseLeaderboard, roundsOf } = await import('../docs/golf.js');
+  const { holesFromScoreboard, withSeries } = await import('../src/sources/espn-golf.mjs');
+  const { scoreGolf, golfFacts } = await import('../src/scoring/golf.mjs');
+  const { publishGolf } = await import('../src/publish.mjs');
+  for (const name of ['masters-2025', 'travelers-2026', 'pga-2025', 'open-2025']) {
+    const t = withSeries(parseLeaderboard(fixture(`golf/leaderboard-${name}.json`)));
+    const holes = holesFromScoreboard(fixture(`golf/holes-${name}.json`).events[0]);
+    const scored = scoreGolf(golfFacts(holes, { winner: t.players.find((p) => p.pos === '1')?.name, major: t.major, purse: t.purse }));
+    const e = publishGolf({ ...t, rounds: roundsOf(t) }, scored);
+    checkEvent(e);
+    assert.equal(e.start, roundsOf(t)[3].first, `${name}: starts at the final round's first tee time, not ESPN's end date`);
+    for (const p of holes.slice(0, 8)) assert.ok(!JSON.stringify(e).includes(p.name.split(' ').at(-1)), `${name}: ${p.name} on the card`);
+    if (name === 'masters-2025') assert.deepEqual(e.services, ['viaplay']);
+    // No hole-by-hole scores: rated from the totals, no strip, "limited".
+    const limited = publishGolf({ ...t, rounds: roundsOf(t) }, scoreGolf(golfFacts(holes.map((p) => ({ ...p, holes: p.holes.map(() => null) })), {})));
+    checkEvent(limited);
+    assert.deepEqual([limited.limited, limited.segments], [true, []]);
+  }
+  assert.throws(() => checkEvent({ ...publishGolf({ id: '1', name: 'X', course: '', rounds: [], end: '2026-01-01T00:00Z' }, { score: 5, segments: [1, 1, 1, 1, 1, 1, 1], advice: { code: 'full' }, reasons: [] }), segments: [1, 1, 1, 1, 1, 1, 1] }), 'a seventh block (a playoff) is refused');
+  assert.throws(() => checkEvent(publishGolf({ id: '1', name: 'X', course: '', rounds: [], end: '2026-01-01T00:00Z' }, { score: 5, segments: [1, 1, 1, 1, 1, 1], advice: { code: 'skip', unit: 'hole', ranges: [[1, 15]] }, reasons: [] })), 'a tip into the last six holes is refused');
 });

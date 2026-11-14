@@ -440,9 +440,10 @@ function card(e) {
     li.classList.add('custom');
     li.dataset.std = e.std;
   }
-  if (e.limited) { // football scored from shot counts only: FotMob had no xG for it
-    const tag = Object.assign(document.createElement('span'), { className: 'limited', textContent: ' · limited info: no xG' });
-    tag.title = 'No chance-quality (xG) data for this match, so the score is based on shot counts only.';
+  if (e.limited) { // football scored from shot counts only (FotMob had no xG); golf from round totals (no hole-by-hole scores)
+    const golfLimited = e.sport === 'golf';
+    const tag = Object.assign(document.createElement('span'), { className: 'limited', textContent: golfLimited ? ' · limited info: no hole-by-hole scores' : ' · limited info: no xG' });
+    tag.title = golfLimited ? 'ESPN had no hole-by-hole scores for this round, so the score is based on the round totals only.' : 'No chance-quality (xG) data for this match, so the score is based on shot counts only.';
     li.querySelector('.meta').append(tag);
   }
 

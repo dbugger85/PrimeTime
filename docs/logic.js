@@ -31,6 +31,7 @@ export function adviceText(a) {
   if (a.unit === 'stage') return `Start after shooting ${r[0][1]}`; // biathlon: never the last shooting or the finish
   if (a.unit === 'leg') return `Start at leg ${r[0][1] + 1}`; // relays: never the last leg
   if (a.unit === 'run') return 'Skip run 1'; // alpine: run 2 decides it
+  if (a.unit === 'hole') return `Start at hole ${r[0][1] + 1}`; // golf: hole 7, 10 or 13, never later
   if (a.unit === 'lap') {
     return `Watch the start, then skip laps ${joinAnd(r.map(([x, y]) => `${x}–${y}`))}`;
   }

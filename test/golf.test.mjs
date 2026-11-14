@@ -7,7 +7,8 @@ import { parseLeaderboard, roundsOf, currentRound, roundLine, favoriteLines, bac
 import { GOLF_LIVE } from '../src/scoring/weights.mjs';
 import { golfCard, readyToScore, shownTournament, seriesOf, withSeries, noteGolfers, holesFromScoreboard } from '../src/sources/espn-golf.mjs';
 import { upcomingGolf, servicesFor } from '../src/publish.mjs';
-import { isFavorite, favNames, titleOf } from '../docs/logic.js';
+import { isFavorite, favNames, titleOf, adviceText } from '../docs/logic.js';
+import { scoreGolf, golfFacts, blockValues, golfAdvice } from '../src/scoring/golf.mjs';
 
 export const golfFixture = (name) => JSON.parse(readFileSync(new URL(`./fixtures/golf/${name}.json`, import.meta.url)));
 const austin = () => withSeries(parseLeaderboard(golfFixture('leaderboard-austin-2026-round3')));
@@ -286,4 +287,79 @@ test('level 3: positions, shots back and the leaderboard', () => {
   assert.ok(rows.find((r) => r.name === 'Zac Blair').fav);
   assert.equal(rows.at(-1).pos, 'WD');
   assert.deepEqual(leaderboardRows(null), []);
+});
+
+// ── Piece 4: the final round's replay rating ──────────────────────────────────
+export function finalRoundFacts(name, change = (p) => p) {
+  const holes = holesFromScoreboard(golfFixture(`holes-${name}`).events[0]).map(change);
+  const lb = parseLeaderboard(golfFixture(`leaderboard-${name}`));
+  return golfFacts(holes, { winner: lb.players.find((p) => p.pos === '1')?.name, major: lb.major, purse: lb.purse });
+}
+
+test('replay rating: playoffs score high, a runaway low', () => {
+  const masters = scoreGolf(finalRoundFacts('masters-2025'));
+  const travelers = scoreGolf(finalRoundFacts('travelers-2026'));
+  const pga = scoreGolf(finalRoundFacts('pga-2025'));
+  const open = scoreGolf(finalRoundFacts('open-2025'));
+  assert.ok(masters.score >= 8.5, `Masters 2025 (McIlroy–Rose playoff): ${masters.score}`);
+  assert.ok(travelers.score >= 7.5, `Travelers 2026 (Hovland–Scheffler playoff): ${travelers.score}`);
+  assert.ok(open.score <= 3.5, `The Open 2025 (Scheffler by 4): ${open.score}`);
+  assert.ok(pga.score < 6 && pga.score < travelers.score, `PGA Championship 2025 (Scheffler by 5 after a brief chase): ${pga.score}`);
+  assert.ok(masters.score < 10 && travelers.score < 10, 'a 10 stays out of reach');
+  assert.equal(open.advice.code, 'highlights');
+  // The margin comes from the 72 holes, never ESPN's `score` (which counts the playoff holes too).
+  assert.match(travelers.result, /^Viktor Hovland won at -21, beating Scottie Scheffler in a playoff\. Next: Collin Morikawa -20/);
+  assert.match(open.result, /^Scottie Scheffler won at -17, by 4 shots/);
+  assert.ok(masters.reasons.some(([, label]) => /playoff/.test(label)));
+  assert.ok(masters.reasons.some(([, label]) => /Justin Rose started the day 7 shots back/.test(label)), 'a comeback by someone level at the end');
+});
+
+test('the strip: always 6 blocks, the same with or without the playoff; the tip the same whoever won', () => {
+  for (const name of ['masters-2025', 'travelers-2026', 'pga-2025', 'open-2025']) {
+    const s = scoreGolf(finalRoundFacts(name));
+    assert.equal(s.segments.length, 6, name);
+    assert.ok(s.segments.every((x) => [0, 1, 2, 3].includes(x)));
+    // Without the playoff holes (or with a different playoff winner) nothing on the card moves but the score.
+    const noPlayoff = scoreGolf(finalRoundFacts(name, (p) => ({ ...p, playoff: [] })));
+    assert.deepEqual([noPlayoff.segments, noPlayoff.advice], [s.segments, s.advice], `${name}: the playoff shows on the strip or tip`);
+    const facts = finalRoundFacts(name);
+    const other = scoreGolf({ ...facts, winner: facts.players.find((p) => p.name !== facts.winner).name });
+    assert.deepEqual([other.segments, other.advice], [s.segments, s.advice], `${name}: the strip or tip depends on who won`);
+  }
+});
+
+test('skip tips: only "start at hole 7, 10 or 13", from holes 1–12 alone', () => {
+  const pars = (upTo) => (p) => ({ ...p, holes: p.holes.map((h, i) => (i < upTo ? 0 : h)), rounds: [...p.rounds.slice(0, 3), p.holes.reduce((a, h, i) => a + (i < upTo ? 0 : h), 0)] });
+  const quiet6 = scoreGolf(finalRoundFacts('masters-2025', pars(6)));
+  assert.deepEqual(quiet6.advice, { code: 'skip', unit: 'hole', ranges: [[1, 9]] }, 'holes 1–6 all pars, and 7–9 quiet too in the real round');
+  assert.equal(adviceText(quiet6.advice), 'Start at hole 10');
+  const busy7 = scoreGolf(finalRoundFacts('masters-2025', (p, i) => {
+    const q = pars(6)(p);
+    const holes = q.holes.map((h, k) => (k >= 6 && k < 9 && i < 4 ? (k % 2 ? -1 : 1) : h)); // birdies and bogeys at the top on 7–9
+    return { ...q, holes, rounds: [...q.rounds.slice(0, 3), holes.reduce((x, y) => x + y, 0)] };
+  }));
+  assert.equal(adviceText(busy7.advice), 'Start at hole 7');
+  const quiet12 = scoreGolf(finalRoundFacts('masters-2025', pars(15)));
+  assert.deepEqual(quiet12.advice.ranges, [[1, 12]], 'never later than hole 13, however quiet');
+  assert.equal(adviceText(quiet12.advice), 'Start at hole 13');
+  // Whatever happens on the last six holes (here: everyone's scores there shuffled), the tip stays: it
+  // only looks at holes 1–12. (Only "Highlights are enough" follows the score, like every sport.)
+  const base = finalRoundFacts('masters-2025', pars(6));
+  const shuffled = finalRoundFacts('masters-2025', (p, i) => {
+    const q = pars(6)(p);
+    const holes = q.holes.map((h, k) => (k >= 12 ? [-1, 1, 0, 2, -2, 0][(k + i) % 6] : h));
+    return { ...q, holes, rounds: [...q.rounds.slice(0, 3), holes.reduce((a, b) => a + b, 0)] };
+  });
+  assert.deepEqual(blockValues(shuffled).slice(0, 4), blockValues(base).slice(0, 4));
+  assert.deepEqual(golfAdvice(6, blockValues(shuffled)), golfAdvice(6, blockValues(base)), 'the tip depends on the last six holes');
+});
+
+test('limited: no hole-by-hole scores, rated from the round totals, no strip', () => {
+  const f = finalRoundFacts('open-2025', (p) => ({ ...p, holes: p.holes.map((h, i) => (i === 15 ? h : null)) }));
+  assert.equal(f.limited, true);
+  const s = scoreGolf(f);
+  assert.equal(s.limited, true);
+  assert.deepEqual(s.segments, []);
+  assert.ok(['full', 'highlights'].includes(s.advice.code));
+  assert.match(s.result, /^Scottie Scheffler won at -17, by 4 shots/);
 });

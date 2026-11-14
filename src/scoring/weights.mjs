@@ -214,3 +214,29 @@ export const GOLF_LIVE = {
   heat3: 0.55, //         …and "Red hot" from this much,
   hotFrom: 0.55, //       but only once the leaders are this far into the round (0.55: about the 10th hole)
 };
+
+// Golf: the final round's score on a replay card (src/scoring/golf.mjs). Points added for what
+// happened on the last day, judged from the leaderboard after every hole. A runaway gets little more
+// than the base; a playoff after a back-nine chase gets close to 10.
+export const GOLF = {
+  base: 1.0, //               every final round starts with this
+  playoff: 2.0, //            level after 72 holes, so a playoff (on top of "less than a shot")
+  oneShot: 2.0, //            won by one shot (or a playoff)
+  twoShots: 1.2, //           won by two shots
+  threeShots: 0.5, //         won by three shots (four or more: nothing)
+  inItAtTurn: 0.5, //         each player within 2 shots of the lead after the 9th hole, besides the leader…
+  inItAtTurnMax: 1.5, //      …at most this much
+  leadChange: 0.4, //         each time a new name reached the top of the leaderboard (alone or level)…
+  leadChangesMax: 1.6, //     …at most this much
+  tightBackNine: 1.5, //      the lead was a shot or less after every back-nine hole (less for fewer holes)
+  comeback: 1.0, //           someone level for the lead at the end started the day 3 shots back…
+  comebackPerShot: 0.25, //   …plus this for every shot more…
+  comebackMax: 2.0, //        …at most this much
+  lateEagle: 0.6, //          each eagle on the last six holes by a player within 3 shots of the lead…
+  lateEaglesMax: 1.2, //      …at most this much
+  major: 1.0, //              one of the four majors
+  bigPurse: 0.5, //           one of the richest events ($20 million or more)
+  curveFrom: 6, //            above this, each point counts a bit less ("Higher scores are harder to reach"; from 0 to 9)
+  stripLeadChange: 1.5, //    heat strip: a lead change in a block counts like this many birdies
+  stripTight: 1.0, //         heat strip: a lead of a shot or less at the end of a block
+};

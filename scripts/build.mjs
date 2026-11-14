@@ -12,6 +12,8 @@ import { SCORING_VERSIONS } from '../src/scoring/common.mjs';
 import { scoreFootball } from '../src/scoring/football.mjs';
 import { scoreTennis } from '../src/scoring/tennis.mjs';
 import { scoreF1, scoreQuali } from '../src/scoring/f1.mjs';
+import { scoreGolf, golfFacts } from '../src/scoring/golf.mjs';
+import { roundsOf } from '../docs/golf.js';
 import * as football from '../src/sources/espn-football.mjs';
 import { LINEUP_MINUTES } from '../src/sources/espn-football.mjs';
 import * as tennis from '../src/sources/espn-tennis.mjs';
@@ -23,7 +25,7 @@ import * as fotmob from '../src/sources/fotmob.mjs';
 import { updateRatings, strengthOf } from '../src/sources/ratings.mjs';
 import { updateLinks } from '../src/sources/links.mjs';
 import { forecastOf, outlookOf, stakesFor, STAKES_COMPS } from '../src/prematch.mjs';
-import { chancesOf, publishFootball, publishTennis, publishF1, publishWinter, upcomingFootball, upcomingTennis, upcomingF1, upcomingWinter, upcomingGolf, expiringRights, trimFacts } from '../src/publish.mjs';
+import { chancesOf, publishFootball, publishTennis, publishF1, publishWinter, upcomingFootball, upcomingTennis, upcomingF1, upcomingWinter, upcomingGolf, publishGolf, expiringRights, trimFacts } from '../src/publish.mjs';
 import { loadData, saveData, warn, saver } from '../src/store.mjs';
 import { TABLE_COMPS, noteFinished, refreshStandings } from '../src/standings.mjs';
 import { FOOTBALL as FOOTBALL_W } from '../src/scoring/weights.mjs';
@@ -280,23 +282,44 @@ async function buildWinter() {
 // The season's calendar costs two small requests; each tournament on now or within a week, one more.
 async function buildGolf() {
   const year = now.getUTCFullYear();
-  const years = now.getUTCMonth() === 11 ? [year, year + 1] : [year]; // December: next season's first events
+  // Last season too, for a year of replays; in December also next season's first events.
+  const years = [year - 1, year, ...(now.getUTCMonth() === 11 ? [year + 1] : [])];
   const calendar = [];
   for (const y of years) calendar.push(...await golf.fetchCalendar(y));
+  state.golfSkip ??= []; // ids that turned out not to be stroke play, or never finished: not asked again
+  calendar.sort((a, b) => b.start.localeCompare(a.start)); // newest first, in case time runs out
   for (const c of calendar) {
     const id = `gf-${c.id}`;
     const start = Date.parse(c.start), end = Date.parse(c.end);
-    // On now, or starting within a week (a Monday finish or a late score: up to 3 days after the end).
-    if (start - now > UPCOMING_DAYS.golf * 864e5 || now - end > 3 * 864e5 || events.has(id)) continue;
-    const t = await golf.fetchTournament(c.id);
-    if (!t || !t.stroke) continue;
-    golf.noteGolfers(state, t, now);
-    if (golf.readyToScore(t, now)) continue; // over: scored as a replay (piece 4)
-    state.golfHeat ??= {};
-    const card = golf.golfCard(t, previous.get(id), now, state.golfHeat[id]);
-    if (card.held) state.golfHeat[id] = card.held; else delete state.golfHeat[id];
-    upcoming.push(upcomingGolf(t, card));
-    console.log(`golf: ${t.name} (round ${card.round}, ${t.state}${card.heat != null ? `, heat ${card.heat}` : ''}${card.outlook ? `, ${card.outlook}` : ''})`);
+    if (start - now > UPCOMING_DAYS.golf * 864e5 || now - start > KEEP_DAYS.golf * 864e5) continue;
+    if (isCurrent(id) || state.golfSkip.includes(c.id)) continue;
+    const recent = now - end < 3 * 864e5; // on now or just over (a Monday finish): a card
+    if (!recent && outOfTime()) continue;
+    try {
+      const t = await golf.fetchTournament(c.id);
+      if (!t || !t.stroke) { if (t && !t.stroke) state.golfSkip.push(c.id); continue; }
+      if (recent) golf.noteGolfers(state, t, now);
+      if (golf.readyToScore(t, now)) { // over, and the playoff (if any) long done: the final round's replay
+        const facts = golfFacts(golf.holesFromScoreboard(await golf.fetchHoles(t)), {
+          winner: t.players.find((p) => p.pos === '1')?.name ?? null, major: t.major, purse: t.purse,
+        });
+        const scored = scoreGolf(facts);
+        save(publishGolf({ ...t, rounds: roundsOf(t) }, scored), scored);
+        console.log(`golf: ${t.name} ${t.start.slice(0, 4)} scored`);
+        continue;
+      }
+      if (!recent) { // long over but never final (cancelled): stop asking
+        if (now - end > 14 * 864e5) state.golfSkip.push(c.id);
+        continue;
+      }
+      state.golfHeat ??= {};
+      const card = golf.golfCard(t, previous.get(id), now, state.golfHeat[id]);
+      if (card.held) state.golfHeat[id] = card.held; else delete state.golfHeat[id];
+      upcoming.push(upcomingGolf(t, card));
+      console.log(`golf: ${t.name} (round ${card.round}, ${t.state}${card.heat != null ? `, heat ${card.heat}` : ''}${card.outlook ? `, ${card.outlook}` : ''})`);
+    } catch (err) {
+      warn(`golf ${c.name} ${c.start.slice(0, 4)}: ${err.message}`);
+    }
   }
   for (const id of Object.keys(state.golfHeat ?? {})) if (!upcoming.some((e) => e.id === id)) delete state.golfHeat[id];
 }

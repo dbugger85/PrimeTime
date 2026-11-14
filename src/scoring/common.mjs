@@ -18,12 +18,14 @@ import * as WEIGHTS from './weights.mjs';
 //   Also "end to end" (shots per team), late goals that change the result, and a stricter curve.
 // Football 18: the match facts are published (docs/data/facts.json) for custom scoring on the page; scores unchanged.
 // F1 11: qualifying unrated; lead changes count like other top-3 passes, and not at the start.
-const FORMULA_VERSIONS = { football: 21, tennis: 9, f1: 11, winter: 3 };
+// Golf 1: the final round (2026-11-14).
+const FORMULA_VERSIONS = { football: 21, tennis: 9, f1: 11, winter: 3, golf: 1 };
 const SPORT_WEIGHTS = {
   football: WEIGHTS.FOOTBALL,
   tennis: WEIGHTS.TENNIS,
   f1: WEIGHTS.F1,
   winter: { biathlon: WEIGHTS.BIATHLON, alpine: WEIGHTS.ALPINE, crossCountry: WEIGHTS.CROSS_COUNTRY },
+  golf: WEIGHTS.GOLF, // GOLF_LIVE (the live heat) isn't here: editing it re-scores nothing
 };
 export const fingerprint = (x) => createHash('sha1').update(JSON.stringify(x)).digest('hex').slice(0, 8);
 export const SCORING_VERSIONS = Object.fromEntries(

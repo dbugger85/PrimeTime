@@ -218,7 +218,7 @@ test('weights.mjs: every weight is a number from 0 to 5', () => {
   }
   for (const v of Object.values(SCORING_VERSIONS)) assert.match(v, /^\d+\.[0-9a-f]{8}$/, 'each version includes a fingerprint of its weights');
   assert.notEqual(fingerprint({ ...WEIGHTS.FOOTBALL, goal: 9 }), fingerprint(WEIGHTS.FOOTBALL), 'changing a weight changes the version');
-  assert.deepEqual(Object.keys(SCORING_VERSIONS).sort(), ['f1', 'football', 'tennis', 'winter']);
+  assert.deepEqual(Object.keys(SCORING_VERSIONS).sort(), ['f1', 'football', 'golf', 'tennis', 'winter']);
 });
 
 test('weights.mjs: team strength can be switched off', () => {

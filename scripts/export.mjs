@@ -36,11 +36,12 @@ const SRC = {
   openf1: 'OpenF1 API (api.openf1.org/v1): sessions, results, overtakes, race control, positions, laps, pit, weather',
   ibu: 'IBU results API (biathlonresults.com/modules/sportapi/api)',
   fis: 'FIS results web pages (fis-ski.com/DB/general)',
+  espnGolf: 'ESPN golf leaderboard and scoreboard APIs (site.web.api.espn.com/.../golf/leaderboard, site.api.espn.com/.../golf/pga/scoreboard)',
   primetime: 'Computed by PrimeTime (src/scoring/*.mjs, weights in src/scoring/weights.mjs)',
   rights: 'PrimeTime streaming rights list (src/rights/norway.json)',
 };
 
-const SPORT_SRC = { football: SRC.espnScoreboard, tennis: SRC.espnTennis, f1: SRC.openf1 };
+const SPORT_SRC = { football: SRC.espnScoreboard, tennis: SRC.espnTennis, f1: SRC.openf1, golf: SRC.espnGolf };
 const winterSrc = (comp) => (comp === 'biathlon' ? SRC.ibu : SRC.fis);
 
 const TIMELINE = {
@@ -48,6 +49,7 @@ const TIMELINE = {
   tennis: 'one value per set',
   f1: 'equal chunks of the race laps',
   winter: 'one value per run, leg or shooting stage',
+  golf: 'six blocks of three holes of the final round',
 };
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 256 << 20, stdio: ['ignore', 'pipe', 'ignore'] });
@@ -158,6 +160,10 @@ function record({ ev, commit, reasons, result, facts, elo }) {
     r.session = ev.session ?? 'race';
     r.result = result ? { text: result } : null;
     sources['circuit, session, result.*'] = SRC.openf1;
+  } else if (ev.sport === 'golf') {
+    r.course = ev.course;
+    r.result = result ? { text: result } : null;
+    sources['course, result.*'] = SRC.espnGolf;
   } else {
     Object.assign(r, { race: ev.race, place: ev.place, series: ev.series, gender: ev.gender });
     r.result = result ? { text: result } : null;
@@ -224,7 +230,7 @@ const cols = Object.keys(rows[0] ?? {});
 writeFileSync(`${OUT}/football.csv`, [cols.join(','), ...rows.map((row) => cols.map((c) => csvCell(row[c])).join(','))].join('\n') + '\n');
 
 const count = (pred) => records.filter(pred).length;
-const sports = ['football', 'tennis', 'f1', 'winter'].map((s) => `${s} ${count((r) => r.sport === s)}`).join(', ');
+const sports = ['football', 'tennis', 'f1', 'winter', 'golf'].map((s) => `${s} ${count((r) => r.sport === s)}`).join(', ');
 const template = readFileSync('scripts/export-readme.md', 'utf8');
 writeFileSync(`${OUT}/README.md`, template
   .replace('{{generated}}', new Date().toISOString())

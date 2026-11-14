@@ -103,12 +103,23 @@ The field (who's playing) is shown by name, never in the order of the leaderboar
 
 For these, your phone fetches the live leaderboard from ESPN once a minute while a golf card is on screen. At the lower levels it never does, and a "⚠⚠ Leaderboard" button lets you peek at one tournament after a warning.
 
+### Golf replays: the final round
+
+When a tournament is over, its card moves to Replays and gets a score for **the final round**, with no names. It's worked out from every player's hole-by-hole scores, rebuilding the leaderboard after each hole:
+- **The finish:** a playoff scores most, then a one-shot win, then two or three shots. Four or more: nothing.
+- **A chase:** players within 2 shots of the lead at the turn, new names reaching the top of the leaderboard, and a back nine where the lead stayed at a shot or less.
+- **A comeback** by someone who started the day 3 or more shots back and finished level for the lead, and **late eagles** (holes 13–18) by players in contention.
+- **The occasion:** a major, or one of the richest events.
+- Above 6, each point counts a bit less, so a 10 is practically never given.
+
+The **heat strip** always has six blocks of three holes: birdies, bogeys and lead changes among the players near the top. A playoff never adds a block, so the strip can't give one away. **Skip tips** only ever say "Start at hole 7", "10" or "13", based on holes 1–12 alone, so they never cover the last six holes and don't depend on who won. Replays are only added a few hours after the last group has teed off, so a playoff doesn't make the card appear later than usual.
+
 ## Never a spoiler
 
 The rules above all serve one idea: **nothing on a card may tell you how it ended**.
 - Results, scores and winners never reach the page's main data. They're kept in separate files that are only downloaded after you accept a warning.
 - An automatic test checks every update. It fails on anything that looks like a score ("2–1"), on words like "winner", "comeback" or "late", and on any field that isn't allowed.
-- Heat strips have fixed lengths, so they don't show extra time, a short race or the number of sets.
+- Heat strips have fixed lengths, so they don't show extra time, a short race, the number of sets or a golf playoff.
 - Skip tips never cover the last 15 minutes of a football match, the deciding set or the end of a race.
 - Team names can be hidden too, and tennis names are hidden by default.
 - League tables (in a football team's Team view) are spoilers too: points, wins and goal difference follow every result. They're in their own file, only downloaded after a warning, and hidden again when you tap ✕ or reload.

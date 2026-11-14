@@ -9,7 +9,7 @@ import { FORECASTS, OUTLOOKS, STAKES } from './prematch.mjs';
 const rights = JSON.parse(readFileSync(new URL('./rights/norway.json', import.meta.url)));
 
 export const ADVICE_CODES = ['full', 'highlights', 'skip', 'watch'];
-const UNITS = ['min', 'lap', 'set', 'stage', 'leg', 'run', 'bib']; // stage, leg: biathlon; run: alpine; bib: winter
+const UNITS = ['min', 'lap', 'set', 'stage', 'leg', 'run', 'bib', 'hole']; // stage, leg: biathlon; run: alpine; bib: winter; hole: golf
 
 // ctx { country, series, start } is used by entries with rules (winter sports):
 // the first rule whose conditions all match decides, otherwise `services`.
@@ -282,6 +282,17 @@ export const upcomingGolf = (t, { round, rounds, field, tees, live, heat, outloo
     tees: golfTees(tees, f),
     ...(live && [0, 1, 2, 3].includes(heat) ? { heat } : {}),
     ...(!live && GOLF_OUTLOOKS.includes(outlook) ? { outlook } : {}),
+  };
+};
+
+// Golf replays: the final round, rated, with no names. `start` is the final round's first tee time
+// (not ESPN's end date, which a Monday playoff moves). Strip: always 6 blocks of 3 holes.
+export const publishGolf = (t, scored) => {
+  const r4 = golfRounds(t.rounds)[3];
+  return {
+    ...base(`gf-${t.id}`, 'golf', golfComp(t), t.name, r4?.first ?? t.end, { ...scored, segments: scored.limited ? [] : Array.from({ length: 6 }, (_, i) => scored.segments[i] ?? 0) }, 'golf', golfCtx(t)),
+    course: String(t.course ?? '').slice(0, 80),
+    ...(scored.limited ? { limited: true } : {}), // ESPN had no hole-by-hole scores: no strip, "limited info"
   };
 };
 

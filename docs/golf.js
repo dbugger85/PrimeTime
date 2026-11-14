@@ -62,7 +62,7 @@ export function parseLeaderboard(json) {
   }).filter((p) => p.name);
   return {
     id: String(e.id),
-    name: e.tournament?.displayName ?? cleanName(e.name ?? ''),
+    name: cleanName(e.name ?? e.tournament?.displayName ?? ''), // the event's own name: the tournament's can be an old one ("Careerbuilder Challenge")
     major: e.tournament?.major === true,
     stroke: (e.tournament?.scoringSystem?.name ?? 'Medal') === 'Medal',
     purse: Number(e.purse) || 0,
