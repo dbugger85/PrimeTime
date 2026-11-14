@@ -9,7 +9,11 @@ export const getJson = (url, opts) => fetchPolitely(url, opts, (res) => res.json
 // The same, for web pages (FIS has no API, so its results pages are read as HTML).
 export const getText = (url, opts) => fetchPolitely(url, opts, (res) => res.text());
 
-async function fetchPolitely(url, { gapMs = 300, retries = 4 } = {}, read) {
+// And for files (IBU's PDF result sheets) as a Buffer. With `missingOk`, a 404
+// returns null instead of failing: a sheet that isn't out yet isn't an error.
+export const getBytes = (url, opts) => fetchPolitely(url, opts, async (res) => Buffer.from(await res.arrayBuffer()));
+
+async function fetchPolitely(url, { gapMs = 300, retries = 4, missingOk = false } = {}, read) {
   const host = new URL(url).host;
   for (let attempt = 0; ; attempt++) {
     const wait = (lastCall.get(host) ?? 0) + gapMs - Date.now();
@@ -33,6 +37,7 @@ async function fetchPolitely(url, { gapMs = 300, retries = 4 } = {}, read) {
         continue;
       }
     }
+    if (res.status === 404 && missingOk) return null;
     if ((res.status === 429 || res.status >= 500) && attempt < retries) {
       await sleep(2000 * 2 ** attempt);
       continue;

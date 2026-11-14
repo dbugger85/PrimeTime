@@ -161,7 +161,7 @@ async function liveTennis() {
 // build (every 3 hours), which reads FIS's web pages at a gentle pace.
 function liveWinter() {
   for (const e of upcoming.filter((x) => x.sport === 'winter')) {
-    if (new Date(e.start).getTime() <= now.getTime()) e.status = 'live';
+    if (!e.timeTbc && new Date(e.start).getTime() <= now.getTime()) e.status = 'live'; // timeTbc: the day isn't known yet
   }
 }
 

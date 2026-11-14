@@ -266,7 +266,10 @@ async function buildWinter() {
     if (isCurrent(race.id) || now - new Date(race.start) > KEEP_DAYS.winter * 864e5 || outOfTime()) continue;
     try {
       const scored = await winter.scoreRace(race);
-      if (!scored) continue; // no result yet; try next run
+      if (!scored) { // no result yet; try next run
+        if (winter.noResult(race, state, now) === 'live') upcoming.push(upcomingWinter({ ...race, live: true }, compName));
+        continue;
+      }
       save(publishWinter(race, compName, scored), scored);
       console.log(`winter: ${compName} ${race.name}, ${race.place} ${race.start.slice(0, 10)}`);
     } catch (err) {

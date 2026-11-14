@@ -3,11 +3,18 @@
 //   listRaces(now, state)  -> { races, failed }: every World Cup / World Championship /
 //                             Olympic race of this season and the last, as plain race
 //                             objects, and the sports whose source failed (one broken
-//                             source, like IBU's API since 2026-11-09, mustn't stop the others)
+//                             source mustn't stop the others)
 //   scoreRace(race)        -> the score, or null until the result is out
+//   noResult(race, state, now) -> what to do with a race that should be over but has no result:
+//                             'live' (keep it in "Coming up") or 'gone' (given up on)
+//
+// Biathlon: the race list from Wikipedia (biathlon-calendar.mjs), the results from
+// IBU's PDF result sheets (ibu.mjs). IBU's JSON API has answered 401 since 2026-11-09.
 
 import * as ibu from './ibu.mjs';
+import * as calendar from './biathlon-calendar.mjs';
 import * as fis from './fis.mjs';
+import { timesFor as tvkampenTimes } from './tvkampen.mjs';
 import { scoreBiathlon, scoreAlpine, scoreCrossCountry } from '../scoring/winter.mjs';
 
 export const WINTER = {
@@ -48,16 +55,13 @@ export async function listRaces(now, state, { aheadDays = 14, keepDays = 400, on
   const failed = new Set();
 
   try {
-    const bt = [];
-    for (const season of ibu.seasonIds(now)) {
-      for (const r of await ibu.fetchRaces(season, now)) {
-        bt.push({
-          id: `bt-${r.raceId}`, comp: 'biathlon', name: tidyBiathlon(r.name), place: r.place, country: r.country,
-          series: r.series, gender: r.gender, start: r.start, finished: r.finished, live: r.live, ref: r,
-        });
-      }
+    for (const r of await calendar.listBiathlon(now, state, { aheadDays, keepDays, raceIdOf: ibu.raceIdOf, findRace: ibu.findRace, findStart: ibu.findStart, broadcastTimes: tvkampenTimes })) {
+      races.push({
+        id: `bt-${r.raceId}`, comp: 'biathlon', name: r.name, place: r.place, country: r.country,
+        series: r.series, gender: r.gender, start: r.start, finished: r.finished, live: r.live, ref: r,
+        ...(r.timeTbc ? { timeTbc: true, until: r.until } : {}), // day not known yet (see biathlon-calendar.mjs)
+      });
     }
-    races.push(...bt);
   } catch (err) {
     failed.add('biathlon');
     onError('biathlon', err);
@@ -101,19 +105,28 @@ export async function listRaces(now, state, { aheadDays = 14, keepDays = 400, on
   return { races, failed };
 }
 
-// "Women 7.5 km Sprint" -> "Women's 7.5 km sprint"; relays keep their names.
-function tidyBiathlon(name) {
-  const g = /^women/i.test(name) ? 'women' : /^men/i.test(name) ? 'men' : 'mixed';
-  return raceName(g, name);
-}
-
 export async function scoreRace(race) {
   if (race.comp === 'biathlon') {
     const data = await ibu.fetchRaceData(race.ref);
-    return data ? scoreBiathlon(ibu.factsFromRace(race.ref, data)) : null;
+    if (!data) return null;
+    // Wikipedia's time can be off; the result sheet has the real start (local time).
+    const local = ibu.sheetStart(data.result);
+    if (local) race.start = calendar.utcFromLocal(local, race.country);
+    return scoreBiathlon(ibu.factsFromRace(race.ref, data));
   }
   const html = await fis.fetchResultPage(race.ref.sector, race.ref.raceId);
   const page = fis.resultFromPage(html);
   if (!page.rows.length) return null;
   return race.comp === 'alpine' ? scoreAlpine(fis.alpineFacts(page)) : scoreCrossCountry(fis.crossCountryFacts(page, race.ref.discipline));
+}
+
+// A biathlon race that should be over but has no result sheet: still on (or the sheet is
+// late) for up to two days, then given up on (cancelled or moved), so its sheet isn't
+// looked for every build. FIS races have their "official" mark instead.
+export function noResult(race, state, now) {
+  if (race.comp !== 'biathlon') return null;
+  if (now - Date.parse(race.start) < calendar.GIVE_UP_DAYS * 864e5) return 'live';
+  state.biathlonGone ??= {};
+  state.biathlonGone[race.ref.raceId] = race.start;
+  return 'gone';
 }

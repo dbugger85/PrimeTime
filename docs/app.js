@@ -1,4 +1,4 @@
-import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, followedMatch, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug, leagueGroups, teamHash, teamFromHash, teamMatches, teamTables, TABLE_COMPS } from './logic.js';
+import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, upcomingDay, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, followedMatch, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug, leagueGroups, teamHash, teamFromHash, teamMatches, teamTables, TABLE_COMPS } from './logic.js';
 import { ESPN, clockOf, liveClockText, espnDays, liveFacts, scoreLivePace, LIVE_FROM, elapsedText, PILLAR_KEYS, pillarShares, pillarWeightKey } from './live.js';
 import { scoreFootball, applyTweaks, cleanTweaks, isStandard, DEFAULT_TWEAKS, TWEAK_GROUPS, STAKES, SCALE_MAX, SCALE_STEP, CURVE_STEP, BOOST_STEP, BOOST_MAX, PILLARS, PILLAR_MAX, PILLAR_STEP } from './scoring.js';
 
@@ -628,12 +628,12 @@ function soonCard(e) {
   li.dataset.id = e.id;
   const live = e.status === 'live';
   li.classList.toggle('live', live);
-  li.querySelector('.time').textContent = finished.has(e.id) ? 'ENDED' : live ? 'LIVE' : timeFmt.format(new Date(e.start));
+  li.querySelector('.time').textContent = finished.has(e.id) ? 'ENDED' : live ? 'LIVE' : e.timeTbc ? 'TBC' : timeFmt.format(new Date(e.start));
   li.querySelector('.tier').textContent = live ? liveTier(e) : '';
   li.querySelector('.sport').textContent = e.sport === 'winter' ? e.compName : SPORTS[e.sport];
   const where = e.sport === 'f1' ? `${f1SessionName(e)} · ${e.circuit}` : e.sport === 'winter' ? e.place : e.compName;
   const began = live ? ` · ${e.sport === 'tennis' ? 'listed' : 'started'} ${timeFmt.format(new Date(e.start))}` : '';
-  li.querySelector('.comp').textContent = where + began;
+  li.querySelector('.comp').textContent = where + began + (e.timeTbc ? ' · day and time to come' : ''); // the heading above has the stage's dates
   fillTitle(li.querySelector('.title'), e);
   const now = calibrating && liveScore.get(e.id);
   if (now) Object.assign(li.querySelector('.calib-result'), { hidden: false, textContent: `Now: ${now}` });
@@ -657,7 +657,7 @@ function soonCard(e) {
 function fillBell(li, e) {
   const b = li.querySelector('.bell');
   const on = Boolean(bells[e.id]);
-  b.hidden = !on && !(Date.parse(e.start) > Date.now());
+  b.hidden = !on && (!(Date.parse(e.start) > Date.now()) || e.timeTbc); // no bell before the day is known
   if (b.hidden) return;
   b.setAttribute('aria-pressed', String(on));
   b.disabled = bellBusy.has(e.id);
@@ -955,7 +955,7 @@ function renderUpcoming() {
   const items = [];
   let lastDay = null;
   for (const e of shownList) {
-    const day = e.status === 'live' ? 'Live now' : dayLabel(e.start);
+    const day = upcomingDay(e);
     if (day !== lastDay) {
       items.push(Object.assign(document.createElement('li'), { className: 'day', textContent: day }));
       lastDay = day;

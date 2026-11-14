@@ -1,136 +1,217 @@
-// Biathlon from the IBU's public (unofficial) results API. No key needed.
-//   Events?SeasonId=2526&Level=1   -> World Cup stops, World Championships, Olympics
-//   Competitions?EventId=…         -> the races of one stop
-//   Results?RaceId=…               -> the result, with misses per shooting
-//   AnalyticResults?RaceId=…&TypeId=CRS1 / RNG1 … -> each lap's course time and each range time
+// Biathlon results from IBU's official result sheets: the PDF files IBU publishes
+// for every race at ibu.blob.core.windows.net (the same files Wikipedia links to
+// as its sources). No key, no login, no robots.txt rules. IBU's JSON API at
+// biathlonresults.com answers 401 since 2026-11-09 and is not used any more.
+//
+//   docs/2526/BT/SWRL/CP03/SWMS/C73E_v1.pdf   the result: bib, misses per shooting, time, behind
+//   docs/2526/BT/SWRL/CP03/SWMS/C77D_v1.pdf   "Competition analysis" (pursuit, mass start): each
+//                                             athlete's place after every loop, so after every shooting
+//
+// 2526 is the season; CP03 the third World Cup stage (CH__ World Championships, OG__ Olympics);
+// SW/SM/MX women/men/mixed; SP/PU/MS/IN/SI/RL/SR the race type. A corrected sheet gets a new
+// version (_v2); a few were first published as _v0. Which races exist, and when, comes from
+// Wikipedia (src/sources/biathlon-calendar.mjs).
 
-import { getJson } from '../http.mjs';
+import { getBytes } from '../http.mjs';
+import { pdfRows } from '../pdf.mjs';
 
-const BASE = 'https://biathlonresults.com/modules/sportapi/api';
-const get = (path) => getJson(`${BASE}/${path}`, { gapMs: 300 });
+const BASE = 'https://ibu.blob.core.windows.net/docs';
+const VERSIONS = [1, 2, 0];
 
-// A penalty loop takes about 25 seconds. Lap and range times leave it out.
-const PENALTY_LOOP_S = 25;
-
-// Race types. Individual and short individual use penalty minutes, not loops.
+// Race types. Head-to-head races are pursuit, mass start and relays.
 const FORMATS = {
-  SP: { name: 'sprint', h2h: false },
-  IN: { name: 'individual', h2h: false },
-  SI: { name: 'short individual', h2h: false },
-  PU: { name: 'pursuit', h2h: true },
-  MS: { name: 'mass start', h2h: true },
-  RL: { name: 'relay', h2h: true, relay: true },
-  MX: { name: 'mixed relay', h2h: true, relay: true },
-  SR: { name: 'single mixed relay', h2h: true, relay: true },
+  SP: { name: 'sprint', h2h: false, sheet: 'C73B' },
+  IN: { name: 'individual', h2h: false, sheet: 'C73A' },
+  SI: { name: 'short individual', h2h: false, sheet: 'C73A' },
+  PU: { name: 'pursuit', h2h: true, sheet: 'C73D', analysis: 'C77D' },
+  MS: { name: 'mass start', h2h: true, sheet: 'C73E', analysis: 'C77D' },
+  RL: { name: 'relay', h2h: true, relay: true, sheet: 'C73C' },
+  SR: { name: 'single mixed relay', h2h: true, relay: true, sheet: 'C73C' },
 };
-export const formatOf = (disciplineId) => FORMATS[disciplineId] ?? null;
+export const formatOf = (discipline) => FORMATS[discipline] ?? null;
 
-// "2526" is the 2025/26 season. From July, the coming season is the current one.
-export function seasonIds(now = new Date()) {
-  const y = now.getUTCFullYear() % 100;
-  const cur = now.getUTCMonth() >= 6 ? y : y - 1;
-  const id = (a) => `${String(a).padStart(2, '0')}${String(a + 1).padStart(2, '0')}`;
-  return [id(cur - 1), id(cur)];
-}
+// IBU's race id, the same as the old API used ("BT2526SWRLCP03SWMS"), so ids stay the same.
+export const raceIdOf = (season, code, cat, disc) => `BT${season}SWRL${code}${cat}${disc}`;
+export const sheetUrl = (raceId, sheet, version) => `${BASE}/${raceId.slice(2, 6)}/BT/SWRL/${raceId.slice(10, 14)}/${raceId.slice(14)}/${sheet}_v${version}.pdf`;
 
-const seriesOf = (description) => (/olympic/i.test(description) ? 'Olympics' : /world championships/i.test(description) ? 'World Championships' : 'World Cup');
-const genderOf = (catId) => ({ SW: 'women', SM: 'men', MX: 'mixed' })[catId] ?? 'mixed';
-const tidy = (s) => s.replace(/\s+/g, ' ').replace(/(\d)\s*km/gi, '$1 km').trim();
-
-// All World Cup, World Championship and Olympic races of a season, oldest first.
-export async function fetchRaces(seasonId, now = new Date()) {
-  const races = [];
-  for (const ev of await get(`Events?SeasonId=${seasonId}&Level=1`)) {
-    for (const c of await get(`Competitions?EventId=${ev.EventId}`)) {
-      const format = formatOf(c.DisciplineId ?? c.RaceId.slice(-2));
-      if (!format) continue;
-      const start = c.StartTime;
-      const final = c.StatusText === 'Final' || c.StatusId === 11;
-      races.push({
-        raceId: c.RaceId,
-        start,
-        discipline: c.DisciplineId ?? c.RaceId.slice(-2),
-        name: tidy(c.ShortDescription ?? c.Description ?? format.name),
-        gender: genderOf(c.catId ?? c.RaceId.slice(-4, -2)),
-        place: tidy(ev.ShortDescription ?? ''),
-        country: ev.Nat ?? null,
-        series: seriesOf(ev.Description ?? ''),
-        finished: final,
-        live: !final && Date.parse(start) <= now.getTime(),
-      });
+// The first sheet found of _v1, _v2 and _v0, or null while there's none. Sheets found are
+// kept for the rest of the run (listing a stage from its sheets, then scoring, reads each once).
+const found = new Map();
+async function fetchSheet(raceId, sheet) {
+  const key = `${raceId}/${sheet}`;
+  if (found.has(key)) return found.get(key);
+  for (const v of VERSIONS) {
+    const bytes = await getBytes(sheetUrl(raceId, sheet, v), { gapMs: 1000, missingOk: true });
+    if (bytes) {
+      const out = { url: sheetUrl(raceId, sheet, v), rows: pdfRows(bytes) };
+      found.set(key, out);
+      return out;
     }
   }
-  return races.sort((a, b) => a.start.localeCompare(b.start));
+  return null;
 }
 
-// Everything the scorer needs. Returns null until the result is final.
-export async function fetchRaceData(race) {
-  const res = await get(`Results?RaceId=${race.raceId}`);
-  if (!res?.IsResult || !res.Results?.length) return null;
-  const format = formatOf(race.discipline);
-  const data = { results: res.Results, laps: {} };
-  if (format.h2h && !format.relay) {
-    // Pursuit and mass start: lap and range times, to rebuild the order after each shooting.
-    const stages = stagesOf(res.Results.find((r) => r.Shootings)?.Shootings);
-    for (let i = 1; i <= stages + 1; i++) data.laps[`CRS${i}`] = (await get(`AnalyticResults?RaceId=${race.raceId}&TypeId=CRS${i}`)).Results ?? [];
-    for (let i = 1; i <= stages; i++) data.laps[`RNG${i}`] = (await get(`AnalyticResults?RaceId=${race.raceId}&TypeId=RNG${i}`)).Results ?? [];
+// Start lists ("C51"), usually out about a day before (a pursuit's only after its sprint):
+//   docs/2526/BT/SWRL/CP04/SMSP/C51A_v1.pdf -> "MEN 10km SPRINT / … \ THU 8 JAN 2026 \ START TIME: 11:30"
+const START_SHEETS = { SP: 'C51A', IN: 'C51A', SI: 'C51A', PU: 'C51C', MS: 'C51D2', RL: 'C51B2', SR: 'C51B2' };
+
+// When a race starts, from its start list: { start (local), title }, or null while there's none.
+// Only the header is read. The start order (bibs, names) is never kept: in a pursuit it's the
+// sprint result.
+export async function findStart(raceId, discipline) {
+  for (const v of VERSIONS) {
+    const bytes = await getBytes(sheetUrl(raceId, START_SHEETS[discipline], v), { gapMs: 1000, missingOk: true });
+    if (!bytes) continue;
+    return startFromRows(pdfRows(bytes));
   }
-  return data;
+  return null;
+}
+
+// A start list's header -> { start (local), title }. Nothing below the header is looked at.
+export function startFromRows(rows) {
+  const head = rows.slice(0, 8);
+  const start = sheetStart(head);
+  const title = head.find((r) => /\b(SPRINT|PURSUIT|MASS START|INDIVIDUAL|RELAY)\b/.test(r.join(' ')))?.join(' ') ?? null;
+  return start ? { start, title } : null;
+}
+
+// For a stage Wikipedia has no schedule for: does this race have a result sheet? Its title
+// ("WOMEN 12.5km MASS START") and local start, or null.
+export async function findRace(raceId, discipline) {
+  const sheet = await fetchSheet(raceId, formatOf(discipline).sheet);
+  if (!sheet) return null;
+  const start = sheetStart(sheet.rows);
+  const title = sheet.rows.find((r) => /\b(SPRINT|PURSUIT|MASS START|INDIVIDUAL|RELAY)\b/.test(r.join(' ')))?.join(' ');
+  return start ? { start, title } : null;
+}
+
+// Everything the scorer needs, or null while the result sheet isn't out.
+export async function fetchRaceData(race) {
+  const format = formatOf(race.discipline);
+  const result = await fetchSheet(race.raceId, format.sheet);
+  if (!result || !resultRows(result.rows).length && !relayTeams(result.rows).length) return null;
+  const analysis = format.analysis ? await fetchSheet(race.raceId, format.analysis) : null;
+  return { result: result.rows, analysis: analysis?.rows ?? null, urls: [result.url, analysis?.url].filter(Boolean) };
 }
 
 // "1:02:03.4", "25:31.8", "+12.6" -> seconds.
 export function seconds(s) {
   if (s == null || s === '') return null;
-  const parts = String(s).replace('+', '').split(':').map(Number);
-  if (parts.some((p) => Number.isNaN(p))) return null;
-  return parts.reduce((a, p) => a * 60 + p, 0);
+  const t = String(s).replace('+', '').trim();
+  if (!/^\d+(:\d{1,2})*(\.\d+)?$/.test(t)) return null;
+  return t.split(':').map(Number).reduce((a, p) => a * 60 + p, 0);
 }
 
-// "0+1+0+2" (individual races) or "0+1 0+3" (relays: penalty loops + spare rounds per shooting).
-const stagesOf = (shootings) => (shootings ? shootings.trim().split(/\s+|\+/).length / (/\s/.test(shootings.trim()) ? 2 : 1) : 0);
-const missesOf = (shootings) => (shootings ?? '').trim().split('+').map(Number).filter((n) => !Number.isNaN(n));
+const isTime = (s) => /^\d{1,2}(:\d{2}){1,2}\.\d$/.test(s ?? ''); // 32:53.2, 1:07:06.2
+const isGap = (s) => /^\+\d/.test(s ?? '') || s === '0.0';
+const rankOf = (s) => (/^=?\d+$/.test(s ?? '') ? Number(String(s).replace('=', '')) : null);
 
-const ordinalName = (r) => `${r.Name.split(' ').map((w, i) => (i === 0 && w === w.toUpperCase() ? w[0] + w.slice(1).toLowerCase() : w)).join(' ')} (${r.Nat})`;
+// When the race started, from the sheet's header ("SUN 21 DEC 2025 \ START TIME: 12:15"), local time.
+export function sheetStart(rows) {
+  for (const r of rows) {
+    const m = /(\d{1,2}) ([A-Z]{3}) (\d{4}).*START TIME: (\d{1,2}):(\d{2})/.exec(r.join(' '));
+    if (m) return { day: Number(m[1]), month: 'JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC'.indexOf(m[2]) / 3, year: Number(m[3]), hour: Number(m[4]), minute: Number(m[5]) };
+  }
+  return null;
+}
 
-// Turns the IBU data into the plain facts the scorer needs.
-export function factsFromRace(race, d) {
-  const format = formatOf(race.discipline);
-  const finished = (r) => /^\d+$/.test(r.Rank ?? '') && seconds(r.TotalTime) != null;
+// Individual results (sprint, individual, pursuit, mass start), in finishing order:
+// [{ rank, bib, name, nat, misses: [per shooting], startBehind (pursuit), behind }].
+// A row: rank, bib, name, nation, (pursuit: start behind), misses per shooting, total misses,
+// the time or "+gap", then points and the like. Athletes who didn't finish have no rank.
+export function resultRows(rows) {
+  const out = [];
+  for (const r of rows) {
+    const rank = rankOf(r[0]);
+    if (rank == null || !/^\d+$/.test(r[1] ?? '') || !/^[A-Z]{3}$/.test(r[3] ?? '')) continue;
+    let k = 4;
+    const startBehind = /^\d+:\d{2}$/.test(r[k] ?? '') ? seconds(r[k++]) : null;
+    const counts = [];
+    while (k < r.length && /^\d{1,2}$/.test(r[k])) counts.push(Number(r[k++]));
+    const total = counts.pop();
+    const misses = counts.reduce((a, m) => a + m, 0) === total ? counts : [];
+    const timeAt = r.findIndex((c, i) => i >= k && (isTime(c) || isGap(c)));
+    if (timeAt < 0) continue; // lapped or no time
+    const gapAt = r.findIndex((c, i) => i >= timeAt && isGap(c));
+    out.push({ rank, bib: Number(r[1]), name: r[2], nat: r[3], misses, startBehind, behind: gapAt >= 0 ? seconds(r[gapAt]) : rank === 1 ? 0 : null });
+  }
+  return out.filter((x) => x.behind != null);
+}
 
-  if (format.relay) return relayFacts(race, format, d, finished);
-
-  const rows = d.results.filter((r) => !r.IsTeam && finished(r)).sort((a, b) => Number(a.Rank) - Number(b.Rank));
-  const behind = (r) => seconds(r.Behind) ?? 0;
-  const stages = missesOf(rows[0]?.Shootings).length;
-  const top10 = rows.slice(0, 10);
-  const missesByStage = Array.from({ length: stages }, (_, i) => top10.reduce((a, r) => a + (missesOf(r.Shootings)[i] ?? 0), 0));
-
-  // Pursuit and mass start: who led after each shooting (lap + range times, plus penalty loops).
-  const leaders = [];
-  let winnerWorst = 1;
-  if (format.h2h) {
-    const lap = (k, r) => seconds(d.laps[k]?.find((x) => x.IBUId === r.IBUId)?.TotalTime);
-    const startOffset = (r) => (race.discipline === 'PU' ? seconds(r.StartInfo) ?? 0 : 0);
-    for (let s = 1; s <= stages; s++) {
-      const times = rows.map((r) => {
-        let t = startOffset(r);
-        for (let i = 1; i <= s; i++) {
-          const c = lap(`CRS${i}`, r), g = lap(`RNG${i}`, r);
-          if (c == null || g == null) return null;
-          t += c + g;
-        }
-        const misses = missesOf(r.Shootings).slice(0, s).reduce((a, m) => a + m, 0);
-        return { r, t: t + misses * PENALTY_LOOP_S };
-      }).filter((x) => x && x.t != null);
-      if (!times.length) break;
-      times.sort((a, b) => a.t - b.t);
-      leaders.push(times[0].r.IBUId);
-      const pos = times.findIndex((x) => x.r.IBUId === rows[0].IBUId) + 1;
-      if (pos > winnerWorst) winnerWorst = pos;
+// Relays: [{ rank, bib, nat, name, behind, legs: [{ leg, after, behind, loops }] }].
+// Team row: rank, bib, NOR, -, NORWAY, misses ("0+9"), time, behind, points. Leg rows under it:
+// "3 - 1", colour, name, (single mixed relay: gender, rank), prone "0+0", standing "0+2", total,
+// leg time, leg rank, team time, team rank after the leg, team behind after the leg.
+export function relayTeams(rows) {
+  const teams = [];
+  let team = null;
+  for (const r of rows) {
+    if (/^\d+\s*-\s*\d+$/.test(r[0] ?? '') && team) {
+      const shots = r.filter((c) => /^\d\+\d$/.test(c));
+      const n = r.length;
+      team.legs.push({
+        leg: team.legs.length + 1, // the single mixed relay lists "2-1, 2-2, 2-1, 2-2": count the rows
+        after: rankOf(r[n - 2]),
+        behind: seconds(r[n - 1]),
+        loops: shots.slice(0, 2).reduce((a, s) => a + Number(s.split('+')[0]), 0),
+      });
+      continue;
+    }
+    const rank = rankOf(r[0]);
+    if (rank != null && /^\d+$/.test(r[1] ?? '') && /^[A-Z]{3}$/.test(r[2] ?? '') && r[3] === '-') {
+      const timeAt = r.findIndex(isTime);
+      team = { rank, bib: Number(r[1]), nat: r[2], name: r[4], behind: timeAt >= 0 ? seconds(r[timeAt + 1]) ?? (rank === 1 ? 0 : null) : null, legs: [] };
+      if (timeAt >= 0) teams.push(team);
+      continue;
     }
   }
+  return teams.filter((t) => t.behind != null);
+}
+
+// The competition analysis: bib -> place after each loop (the last loop is the finish).
+// Each athlete has a row "rank, bib, name, nation, …" followed by
+// "Cumulative Tim | 7:21.1 +30.0 23 | 14:09.4 +33.1 18 | …" (time, behind, place per loop).
+export function analysisPlaces(rows) {
+  const places = new Map();
+  let bib = null;
+  for (const r of rows) {
+    if (rankOf(r[0]) != null && /^\d+$/.test(r[1] ?? '') && /^[A-Z]{3}$/.test(r[3] ?? '')) { bib = Number(r[1]); continue; }
+    if (bib == null || !/^Cumulative/i.test(r[0] ?? '')) continue;
+    const cells = r.slice(1);
+    const list = [];
+    for (let k = 0; k + 2 < cells.length && isTime(cells[k]); k += 3) list.push(rankOf(cells[k + 2]));
+    places.set(bib, list);
+    bib = null;
+  }
+  return places;
+}
+
+// Turns the result sheets into the plain facts the scorer needs.
+export function factsFromRace(race, d) {
+  const format = formatOf(race.discipline);
+  if (format.relay) return relayFacts(race, d);
+
+  const rows = resultRows(d.result).sort((a, b) => a.rank - b.rank);
+  const stages = Math.max(0, ...rows.slice(0, 10).map((r) => r.misses.length));
+  const top10 = rows.slice(0, 10);
+  const missesByStage = Array.from({ length: stages }, (_, i) => top10.reduce((a, r) => a + (r.misses[i] ?? 0), 0));
   const winner = rows[0];
-  const route = [...leaders, winner?.IBUId];
+
+  // Pursuit and mass start: who led after each shooting, from the competition analysis.
+  // Without it (not published yet, or not understood) the race is scored on the finish alone.
+  const leaders = [];
+  let winnerWorst = null;
+  if (format.h2h && d.analysis) {
+    const places = analysisPlaces(d.analysis);
+    for (let s = 0; s < stages; s++) {
+      const first = [...places].find(([, p]) => p[s] === 1)?.[0];
+      if (first == null) { leaders.length = 0; break; }
+      leaders.push(first);
+    }
+    const mine = places.get(winner?.bib);
+    if (leaders.length && mine) winnerWorst = Math.max(...mine.slice(0, stages).filter(Number.isInteger));
+  }
+  const route = leaders.length ? [...leaders, winner?.bib] : [];
   const leadChanges = route.filter((id, i) => i && id !== route[i - 1]).length;
 
   return {
@@ -138,64 +219,50 @@ export function factsFromRace(race, d) {
     h2h: format.h2h,
     relay: false,
     stages,
-    gapP2: rows[1] ? behind(rows[1]) : null,
-    gapP3: rows[2] ? behind(rows[2]) : null,
-    within10: rows.filter((r) => behind(r) <= 10).length,
-    within30: rows.filter((r) => behind(r) <= 30).length,
-    topBibs: rows.slice(0, 3).map((r) => r.StartOrder).filter(Number.isInteger), // sprint and individual go in this order
+    gapP2: rows[1]?.behind ?? null,
+    gapP3: rows[2]?.behind ?? null,
+    within10: rows.filter((r) => r.behind <= 10).length,
+    within30: rows.filter((r) => r.behind <= 30).length,
+    topBibs: rows.slice(0, 3).map((r) => r.bib).filter(Number.isInteger), // sprint and individual go in bib order
     missesByStage,
-    leaders, // IBU ids, after each shooting (pursuit and mass start only)
+    leaders, // bibs, after each shooting (pursuit and mass start, when the analysis is out)
     leadChanges,
-    lastShootingLeaderWon: leaders.at(-1) ? leaders.at(-1) === winner?.IBUId : null,
-    winnerStart: race.discipline === 'PU' ? Number(winner?.StartOrder) || null : null,
-    winnerWorst,
-    result: podiumText(rows),
+    lastShootingLeaderWon: leaders.length ? leaders.at(-1) === winner?.bib : null,
+    winnerStart: race.discipline === 'PU' ? winner?.bib ?? null : null, // pursuit bibs are the start order
+    winnerWorst: winnerWorst ?? 1,
+    result: rows.slice(0, 3).map((r, i) => `${i + 1}. ${displayName(r.name)} (${r.nat})${i ? ` +${r.behind.toFixed(1)} s` : ''} (${r.misses.join('+')})`).join(', '),
   };
 }
 
-function relayFacts(race, format, d, finished) {
-  const teams = d.results.filter((r) => r.IsTeam && finished(r)).sort((a, b) => Number(a.Rank) - Number(b.Rank));
-  const legs = Math.max(0, ...d.results.filter((r) => !r.IsTeam).map((r) => Number(r.Leg) || 0));
-  // Team order after each leg: the leg rows follow their team's row.
-  const legRows = [];
-  let team = null;
-  for (const r of d.results) {
-    if (r.IsTeam) { team = r; continue; }
-    if (team) legRows.push({ team: team.Name, leg: Number(r.Leg), after: Number(r.TeamRankAfterLeg), behind: seconds(r.Behind) ?? 0, shootings: r.Shootings });
-  }
-  const leaderAfter = Array.from({ length: legs }, (_, i) => legRows.find((x) => x.leg === i + 1 && x.after === 1)?.team ?? null);
+function relayFacts(race, d) {
+  const teams = relayTeams(d.result).sort((a, b) => a.rank - b.rank);
+  const legs = Math.max(0, ...teams.map((t) => t.legs.length));
+  const leaderAfter = Array.from({ length: legs }, (_, i) => teams.find((t) => t.legs[i]?.after === 1)?.nat ?? null);
   const route = leaderAfter.filter(Boolean);
   const leadChanges = route.filter((t, i) => i && t !== route[i - 1]).length;
-  // Penalty loops per leg for the top 5 teams ("0+1 0+3": loops+spares for prone, then standing).
-  const top5 = new Set(teams.slice(0, 5).map((t) => t.Name));
-  const loopsByLeg = Array.from({ length: legs }, (_, i) => legRows
-    .filter((x) => x.leg === i + 1 && top5.has(x.team))
-    .reduce((a, x) => a + (x.shootings ?? '').trim().split(/\s+/).reduce((b, p) => b + (Number(p.split('+')[0]) || 0), 0), 0));
+  // Penalty loops per leg for the top 5 teams.
+  const loopsByLeg = Array.from({ length: legs }, (_, i) => teams.slice(0, 5).reduce((a, t) => a + (t.legs[i]?.loops ?? 0), 0));
   // How close the top 3 were at each handover.
-  const closeAt = Array.from({ length: legs }, (_, i) => {
-    const third = legRows.find((x) => x.leg === i + 1 && x.after === 3);
-    return third ? third.behind : null;
-  });
-  const behind = (r) => seconds(r.Behind) ?? 0;
+  const closeAt = Array.from({ length: legs }, (_, i) => teams.flatMap((t) => (t.legs[i]?.after === 3 ? [t.legs[i].behind] : []))[0] ?? null);
   return {
     format: race.discipline,
     h2h: true,
     relay: true,
     stages: legs,
-    gapP2: teams[1] ? behind(teams[1]) : null,
-    gapP3: teams[2] ? behind(teams[2]) : null,
-    within10: teams.filter((r) => behind(r) <= 10).length,
-    within30: teams.filter((r) => behind(r) <= 30).length,
+    gapP2: teams[1]?.behind ?? null,
+    gapP3: teams[2]?.behind ?? null,
+    within10: teams.filter((t) => t.behind <= 10).length,
+    within30: teams.filter((t) => t.behind <= 30).length,
     leaders: leaderAfter,
     leadChanges,
-    lastShootingLeaderWon: leaderAfter.at(-2) ? leaderAfter.at(-2) === teams[0]?.Name : null, // leader at the last handover (null: unknown)
+    lastShootingLeaderWon: leaderAfter.at(-2) ? leaderAfter.at(-2) === teams[0]?.nat : null, // leader at the last handover (null: unknown)
     loopsByLeg,
     closeAt,
     missesByStage: loopsByLeg,
-    result: teams.slice(0, 3).map((t, i) => `${i + 1}. ${t.Name}${i ? ` +${behind(t).toFixed(1)} s` : ''}`).join(', '),
+    result: teams.slice(0, 3).map((t, i) => `${i + 1}. ${titleCase(t.name)}${i ? ` +${t.behind.toFixed(1)} s` : ''}`).join(', '),
   };
 }
 
-function podiumText(rows) {
-  return rows.slice(0, 3).map((r, i) => `${i + 1}. ${ordinalName(r)}${i ? ` +${(seconds(r.Behind) ?? 0).toFixed(1)} s` : ''} (${r.Shootings})`).join(', ');
-}
+// "OEBERG Hanna" -> "Oeberg Hanna"; "NORWAY" -> "Norway". Only for the result spoiler.
+const titleCase = (s) => s.toLowerCase().replace(/(^|[\s-])\p{L}/gu, (c) => c.toUpperCase());
+const displayName = (name) => name.split(' ').map((w) => (w === w.toUpperCase() ? titleCase(w) : w)).join(' ');

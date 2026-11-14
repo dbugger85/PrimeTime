@@ -236,14 +236,18 @@ function checkLive(e) {
 }
 
 export function checkUpcoming(e) {
-  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', 'links', ...ALLOWED[e.sport], ...(e.sport === 'football' ? ['forecast', 'outlook', 'chances', ...LIVE_FIELDS] : [])];
+  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', 'links', ...ALLOWED[e.sport], ...(e.sport === 'football' ? ['forecast', 'outlook', 'chances', ...LIVE_FIELDS] : []),
+    ...(e.sport === 'winter' ? ['timeTbc', 'until'] : [])]; // a biathlon race whose day isn't known yet
+  if ('timeTbc' in e || 'until' in e) {
+    assert.ok(e.timeTbc === true && /^\d{4}-\d{2}-\d{2}$/.test(e.until) && e.status === 'upcoming', `${e.id}: timeTbc is true with a YYYY-MM-DD "until", never live`);
+  }
   for (const key of Object.keys(e)) assert.ok(allowed.includes(key), `${e.id}: unexpected field "${key}" on an upcoming event`);
   assert.ok(['upcoming', 'live'].includes(e.status));
   checkLineups(e);
   checkLinks(e);
   checkHints(e);
   checkLive(e);
-  const text = JSON.stringify({ ...e, id: '', start: '', lineups: '', links: '', clock: '' });
+  const text = JSON.stringify({ ...e, id: '', start: '', lineups: '', links: '', clock: '', until: '' });
   assert.doesNotMatch(text, /\d+\s*[-–:]\s*\d+/, `${e.id}: looks like a score`);
 }
 
@@ -302,11 +306,16 @@ test('the real docs/data/events.json is spoiler-free', { skip: !existsSync(new U
 
 test('winter races: no athlete names, only safe fields, strips of fixed length', () => {
   const race = (comp, name, extra = {}) => ({ id: `x-${name}`, comp, name, place: 'Oberhof', country: 'GER', series: 'World Cup', gender: 'women', start: '2026-01-08T13:30:00Z', ...extra });
-  for (const f of ['biathlon-annecy-2025-women-mass-start', 'biathlon-oberhof-2026-women-sprint', 'biathlon-ruhpolding-2026-women-relay']) {
-    const { r, d } = fixture(`winter/${f}.json`);
-    const e = publishWinter(race('biathlon', r.name), 'Biathlon', scoreBiathlon(biathlonFacts(r, d)));
+  for (const f of ['biathlon-annecy-2025-women-mass-start', 'biathlon-annecy-2025-women-pursuit', 'biathlon-oberhof-2026-women-sprint', 'biathlon-ruhpolding-2026-women-relay', 'biathlon-oestersund-2025-single-mixed-relay']) {
+    const { race: r, result, analysis } = fixture(`winter/${f}.json`);
+    const e = publishWinter(race('biathlon', r.name), 'Biathlon', scoreBiathlon(biathlonFacts(r, { result, analysis })));
     checkEvent(e);
-    for (const row of d.results.slice(0, 5)) assert.doesNotMatch(JSON.stringify(e), new RegExp(row.Name.split(' ')[0], 'i'), 'no athlete names');
+    // Athletes' surnames (in capitals on the sheet) and relay nations never reach the card.
+    const names = result.slice(0, 40).flatMap((row) => (/^\d+$/.test(row[0]) && row[3] === '-' ? [row[4]] // relay team: NORWAY
+      : /^\d+$/.test(row[0]) && /^\d+$/.test(row[1]) ? [row[2]] : /^\d+\s*-\s*\d+$/.test(row[0]) ? [row[2]] : []) // athlete: KIRKEEIDE Maren
+      .map((n) => n.split(' ')[0]).filter((n) => n.length > 3));
+    assert.ok(names.length >= 5, `found names to check in ${f}`);
+    for (const n of names) assert.doesNotMatch(JSON.stringify(e), new RegExp(`\\b${n}\\b`, 'i'), `no athlete or team names (${n})`);
   }
   for (const f of ['alpine-gurgl-2025-men-slalom', 'alpine-levi-2025-women-slalom', 'alpine-val-di-fassa-2026-women-downhill']) {
     const { race: r, html } = fixture(`winter/${f}.json`);
@@ -318,6 +327,11 @@ test('winter races: no athlete names, only safe fields, strips of fixed length',
   const { race: cc, html } = fixture('winter/cross-country-oslo-2026-men-50km.json');
   checkEvent(publishWinter(race('cross-country', "Men's 50 km mass start free"), 'Cross-country', scoreCrossCountry(fis.crossCountryFacts(fis.resultFromPage(html), cc.discipline))));
   checkUpcoming(upcomingWinter({ ...race('biathlon', "Women's 10 km pursuit"), live: false }, 'Biathlon'));
+  // A race whose day isn't known yet: only the flag and the stage's last day, never live.
+  const tbc = upcomingWinter({ ...race('biathlon', "Women's sprint"), start: '2026-11-24T00:00:00.000Z', live: true, timeTbc: true, until: '2026-11-29' }, 'Biathlon');
+  checkUpcoming(tbc);
+  assert.deepEqual([tbc.timeTbc, tbc.until, tbc.status], [true, '2026-11-29', 'upcoming']);
+  assert.throws(() => checkEvent({ ...publishWinter(race('biathlon', "Women's sprint"), 'Biathlon', { score: 5, segments: [1, 1, 1], advice: { code: 'full' }, reasons: [] }), timeTbc: true }), 'never on a replay');
 });
 
 test('winter streaming rights depend on the venue, the season and the series', () => {

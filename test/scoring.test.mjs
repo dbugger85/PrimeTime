@@ -284,7 +284,8 @@ test('F1 sprints: a third of the distance, so overtakes count three times', () =
 
 // Winter sports: real races from the 2025/26 season (test/fixtures/winter).
 const winter = (name) => fixture(`winter/${name}.json`);
-const biathlon = (name) => { const { r, d } = winter(name); return scoreBiathlon(biathlonFacts(r, d)); };
+const biathlonOf = (name) => { const { race: r, result, analysis } = winter(name); return biathlonFacts(r, { result, analysis }); };
+const biathlon = (name) => scoreBiathlon(biathlonOf(name));
 const fisPage = (name) => fis.resultFromPage(winter(name).html);
 
 test('ATP events: own names, best of three, men\'s singles only, on TV 2 Play', () => {
@@ -311,12 +312,13 @@ test('biathlon: a mass start decided by 0.3 s beats a runaway sprint', () => {
   assert.ok(ms.reasons.some(([, l]) => /last shooting/.test(l)));
 });
 
-test('biathlon: facts from the IBU data', () => {
-  const { r, d } = winter('biathlon-annecy-2025-women-mass-start');
-  const f = biathlonFacts(r, d);
+test('biathlon: facts from the IBU result sheets', () => {
+  const f = biathlonOf('biathlon-annecy-2025-women-mass-start');
   assert.equal(f.gapP2.toFixed(1), '0.3');
-  assert.equal(f.leaders.length, 4, 'a leader after each of the four shootings');
+  assert.equal(f.leaders.length, 4, 'a leader after each of the four shootings (from the competition analysis)');
   assert.equal(f.lastShootingLeaderWon, false);
+  assert.equal(f.winnerWorst, 23, 'the winner was 23rd after the first shooting');
+  assert.deepEqual(f.missesByStage, [2, 2, 6, 2], 'misses by the top 10 at each shooting');
   assert.equal(seconds('1:02:03.4'), 3723.4);
   assert.equal(seconds('+12.6'), 12.6);
 });
@@ -460,10 +462,10 @@ test('alpine: "Skip run 1" never depends on who won', () => {
 });
 
 test('biathlon relay: an unknown leader at the last handover is not a twist', () => {
-  const { r, d } = fixture('winter/biathlon-ruhpolding-2026-women-relay.json');
-  const stripped = structuredClone(d);
-  for (const row of stripped.results) delete row.TeamRankAfterLeg;
-  const f = biathlonFacts(r, stripped);
+  const { race: r, result } = fixture('winter/biathlon-ruhpolding-2026-women-relay.json');
+  // Blank the "team rank after the leg" column (second to last) of every leg row.
+  const stripped = result.map((row) => (/^\d+\s*-\s*\d+$/.test(row[0]) ? [...row.slice(0, -2), '', row.at(-1)] : row));
+  const f = biathlonFacts(r, { result: stripped });
   assert.equal(f.lastShootingLeaderWon, null);
   assert.ok(!scoreBiathlon(f).reasons.some(([, l]) => /didn't win/.test(l)));
 });

@@ -68,7 +68,7 @@ async function handle(req, env) {
     // The start time comes from the site, not from the page, and only "Coming up" events can be belled.
     const data = await siteData(env);
     const e = (data.upcoming ?? []).find((x) => x.id === id);
-    if (!e || !(Date.parse(e.start) > Date.now())) return json({ error: 'not coming up' }, 409);
+    if (!e || e.timeTbc || !(Date.parse(e.start) > Date.now())) return json({ error: 'not coming up' }, 409); // timeTbc: no day yet
     const { n } = await env.DB.prepare('SELECT COUNT(*) AS n FROM alerts WHERE endpoint = ?').bind(sub.endpoint).first();
     if (n >= MAX_PER_PHONE) return json({ error: 'too many' }, 429);
     await env.DB.prepare(`INSERT INTO alerts (endpoint, p256dh, auth, event, start, title, body) VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -94,6 +94,7 @@ export async function sendDue(env, now = Date.now()) {
   for (const a of due) {
     const e = upcoming.get(a.event);
     const start = e ? Date.parse(e.start) : a.start;
+    if (e?.timeTbc) continue; // its day isn't known any more: wait for it
     if (e && start > now + EARLY) { // moved to later
       await env.DB.prepare('UPDATE alerts SET start = ? WHERE endpoint = ? AND event = ?').bind(start, a.endpoint, a.event).run();
       continue;
