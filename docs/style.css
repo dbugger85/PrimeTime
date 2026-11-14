@@ -81,12 +81,12 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .soon.live .badge { border: 0; background: var(--live); color: #fff; }
 .soon.live .tier { font-size: 13px; text-transform: none; letter-spacing: 0; font-variant-numeric: tabular-nums; }
 .sports {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
   margin: 14px 0; padding: 4px; border-radius: 12px; background: var(--chip);
 }
 .sports button {
   min-height: 44px; border: 0; border-radius: 9px; background: transparent;
-  font-weight: 600; cursor: pointer;
+  font-weight: 600; cursor: pointer; padding: 0 2px; font-size: clamp(12.5px, 3.5vw, 15px);
 }
 .sports button[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow); color: var(--accent); }
 
@@ -278,6 +278,15 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
   padding: 6px 10px; min-height: 36px; cursor: pointer; color: var(--muted); font-size: 14px; font-weight: 500;
 }
 .sub { font-size: 13.5px; color: var(--muted); }
+/* Golf: favorite golfers in the field, one line each ("★ Viktor Hovland tees off 14:10"). */
+.golf-favs { margin-top: 4px; }
+.golf-fav { margin: 2px 0; font-size: 13.5px; }
+.golf-fav .star { margin-left: -6px; }
+.golf-board { position: relative; margin-top: 8px; }
+.golf-board:has(.why-close) { padding-top: 34px; }
+.golf-board .why-close { z-index: 1; }
+.golf-table .team { font-weight: 500; }
+.golf-table td:last-child { font-weight: 500; }
 .strip { position: relative; display: flex; gap: 3px; margin-top: 6px; }
 .strip .skip {
   position: absolute; top: -3px; bottom: -3px; border-radius: 3px;
@@ -315,7 +324,7 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
   justify-self: start; margin-top: 4px; border: 0; background: none; padding: 6px 0; min-height: 36px;
   color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer;
 }
-.lineup-btn, .pace-btn {
+.lineup-btn, .pace-btn, .golf-board-btn {
   justify-self: start; margin-top: 4px; border: 0; background: none; padding: 6px 0; min-height: 36px;
   color: var(--ink); font-size: 13.5px; font-weight: 600; cursor: pointer;
 }
@@ -359,7 +368,7 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .why .pts { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
 .why .neg .pts { color: var(--muted); }
 .why .small { margin-top: 6px; }
-.why .result-btn { margin-top: 6px; color: var(--live); }
+.why .result-btn, .golf-board-btn.result-btn { margin-top: 6px; color: var(--live); }
 .why .result {
   margin-top: 10px; padding: 10px; border-radius: 8px; border: 2px solid var(--live);
   background: var(--surface); font-size: 15px;

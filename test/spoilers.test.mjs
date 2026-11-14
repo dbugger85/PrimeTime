@@ -28,7 +28,10 @@ const ALLOWED = {
   tennis: ['players', 'draw', 'round'],
   f1: ['circuit', 'session'],
   winter: ['race', 'place', 'series', 'gender'],
+  golf: ['course', 'limited'], // replays: the final round, no names (upcoming cards have more, see checkGolf)
 };
+// Golf words that would give a result away on a card (on top of BANNED_WORDS).
+const GOLF_WORDS = /\b(playoff|leader|leads?|cut line|missed|contention|eagle|birdie|bogey|shots? back|under par|over par|holed)\b/i;
 const BANNED_WORDS = /\b(won|win|winner|beat|lost|loses?|comeback|equali[sz]|decider|deciding|upset|late|drama|red flag|safety car|penalt|shootout|extra time|retire|walkover|thriller|collapse|goals?)\b/i;
 
 // Line-ups: two teams, each a formation, exactly 11 [shirt, name, position] starters
@@ -108,6 +111,8 @@ export function checkEvent(e) {
     if (e.advice.unit === 'stage') assert.ok(e.advice.ranges.every(([, b]) => b <= e.segments.length - 2), `${e.id}: skips the last shooting or the finish`);
     if (e.advice.unit === 'leg') assert.ok(e.advice.ranges.every(([, b]) => b <= e.segments.length - 1), `${e.id}: skips the last leg`);
     if (e.advice.unit === 'run') assert.deepEqual(e.advice.ranges, [[1, 1]], `${e.id}: only run 1 can be skipped`);
+    if (e.advice.unit === 'hole') assert.ok(e.advice.ranges.length === 1 && [[1, 6], [1, 9], [1, 12]].some((r) => r.join() === e.advice.ranges[0].join()), `${e.id}: golf only starts at hole 7, 10 or 13`);
+    if (e.advice.unit === 'hole') assert.equal(e.sport, 'golf');
   }
   assert.ok(e.segments.every((s) => Number.isInteger(s) && s >= 0 && s <= 3));
   if (e.sport === 'football') assert.equal(e.segments.length, 6, 'fixed length, so extra time is not revealed');
@@ -118,6 +123,10 @@ export function checkEvent(e) {
     assert.ok(['women', 'men', 'mixed'].includes(e.gender));
   }
   if (e.sport === 'f1' && !quali) assert.equal(e.segments.length, 10, 'fixed length, so a shortened race is not revealed');
+  if (e.sport === 'golf') {
+    assert.equal(e.segments.length, e.limited ? 0 : 6, `${e.id}: always 6 blocks (a playoff isn't one)`);
+    assert.doesNotMatch(JSON.stringify({ ...e, id: '', start: '', links: '' }), GOLF_WORDS, `${e.id}: a golf spoiler word`);
+  }
   if ('session' in e) assert.ok(['qualifying', 'sprint', 'sprint-qualifying'].includes(e.session), `${e.id}: session ${e.session}`);
   const text = JSON.stringify({ ...e, id: '', start: '', lineups: '', links: '' }); // line-ups and links are checked above
   assert.doesNotMatch(text, /\d+\s*[-–:]\s*\d+/, `${e.id}: looks like a score`);
@@ -235,8 +244,34 @@ function checkLive(e) {
   if ('factor' in e) assert.ok(Number.isFinite(e.factor) && e.factor >= 0.5 && e.factor <= 1.5, `${e.id}: factor ${e.factor}`);
 }
 
+// Golf's upcoming card: the round, round days and tee windows, the field (sorted by name, so its
+// order says nothing) and the round 1–2 tee times. How tense it is (level 1): `heat` 0–3 on a live
+// card, `outlook` (a code) between rounds, never a name or a number of shots.
+export const GOLF_UPCOMING = ['round', 'rounds', 'field', 'tees', 'heat', 'outlook'];
+const ISO_MIN = /^\d{4}-\d\d-\d\dT\d\d:\d\dZ$/;
+function checkGolf(e) {
+  assert.ok(Number.isInteger(e.round) && e.round >= 1 && e.round <= 4, `${e.id}: round`);
+  if ('heat' in e) assert.ok(e.status === 'live' && [0, 1, 2, 3].includes(e.heat), `${e.id}: heat ${e.heat} (live cards only)`);
+  if ('outlook' in e) assert.ok(e.status !== 'live' && ['tight', 'open', 'few', 'clear'].includes(e.outlook), `${e.id}: outlook ${e.outlook} (between rounds only)`);
+  assert.equal(e.rounds.length, 4, `${e.id}: four rounds`);
+  for (const r of e.rounds) {
+    assert.deepEqual(Object.keys(r).filter((k) => !['n', 'day', 'first', 'last'].includes(k)), [], `${e.id}: round fields`);
+    assert.match(r.day, /^\d{4}-\d\d-\d\d$/);
+    assert.ok(('first' in r) === ('last' in r) && (!r.first || (ISO_MIN.test(r.first) && ISO_MIN.test(r.last) && r.first <= r.last)), `${e.id}: tee window`);
+  }
+  assert.ok(Array.isArray(e.field) && e.field.every((n) => typeof n === 'string'), `${e.id}: field`);
+  assert.deepEqual(e.field, [...e.field].sort((a, b) => a.localeCompare(b)), `${e.id}: the field is sorted by name, not by position`);
+  for (const [name, t] of Object.entries(e.tees)) {
+    assert.ok(e.field.includes(name), `${e.id}: a tee time for someone not in the field`);
+    assert.ok(t.length === 2 && t.every((x) => x === null || ISO_MIN.test(x)), `${e.id}: only round 1 and 2 tee times`);
+  }
+  const text = JSON.stringify({ ...e, id: '', start: '', field: '', tees: '', rounds: '' });
+  assert.doesNotMatch(text, GOLF_WORDS, `${e.id}: a golf spoiler word`);
+  assert.doesNotMatch(text, BANNED_WORDS, `${e.id}: spoiler word`);
+}
+
 export function checkUpcoming(e) {
-  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', 'links', ...ALLOWED[e.sport], ...(e.sport === 'football' ? ['forecast', 'outlook', 'chances', ...LIVE_FIELDS] : []),
+  const allowed = ['id', 'sport', 'comp', 'compName', 'start', 'status', 'services', 'links', ...ALLOWED[e.sport], ...(e.sport === 'football' ? ['forecast', 'outlook', 'chances', ...LIVE_FIELDS] : []), ...(e.sport === 'golf' ? GOLF_UPCOMING : []),
     ...(e.sport === 'winter' ? ['timeTbc', 'until'] : [])]; // a biathlon race whose day isn't known yet
   if ('timeTbc' in e || 'until' in e) {
     assert.ok(e.timeTbc === true && /^\d{4}-\d{2}-\d{2}$/.test(e.until) && e.status === 'upcoming', `${e.id}: timeTbc is true with a YYYY-MM-DD "until", never live`);
@@ -247,7 +282,8 @@ export function checkUpcoming(e) {
   checkLinks(e);
   checkHints(e);
   checkLive(e);
-  const text = JSON.stringify({ ...e, id: '', start: '', lineups: '', links: '', clock: '', until: '' });
+  if (e.sport === 'golf') checkGolf(e);
+  const text = JSON.stringify({ ...e, id: '', start: '', lineups: '', links: '', clock: '', until: '', field: '', tees: '', rounds: '' });
   assert.doesNotMatch(text, /\d+\s*[-–:]\s*\d+/, `${e.id}: looks like a score`);
 }
 
@@ -279,7 +315,12 @@ test('upcoming events carry no score, only when and where', () => {
 
 test('the real docs/data/events.json is spoiler-free', { skip: !existsSync(new URL('../docs/data/events.json', import.meta.url)) }, () => {
   const data = JSON.parse(readFileSync(new URL('../docs/data/events.json', import.meta.url)));
-  assert.deepEqual(Object.keys(data).filter((k) => !['elo', 'liveWeights', 'footballWeights', 'sliderScale'].includes(k)).sort(), ['events', 'generated', 'upcoming']); // elo: since football 16; liveWeights: since 2026-10-10; footballWeights: since football 18
+  assert.deepEqual(Object.keys(data).filter((k) => !['elo', 'liveWeights', 'footballWeights', 'sliderScale', 'golfers'].includes(k)).sort(), ['events', 'generated', 'upcoming']); // elo: since football 16; liveWeights: since 2026-10-10; footballWeights: since football 18; golfers: since golf
+  // Golfers for the favorites search: names only, sorted by name (never by position).
+  if (data.golfers) {
+    assert.ok(data.golfers.every((n) => typeof n === 'string'));
+    assert.deepEqual(data.golfers, [...data.golfers].sort((a, b) => a.localeCompare(b)));
+  }
   // All the football weights, for custom scoring: exactly weights.mjs's keys, numbers only.
   if (data.footballWeights) {
     assert.deepEqual(Object.keys(data.footballWeights).sort(), Object.keys(WEIGHTS.FOOTBALL).sort());
@@ -418,4 +459,78 @@ test('the real docs/data/facts.json is football replays only, names-free', { ski
     assert.ok(ids.has(id), `${id} in facts.json is not a football replay`);
     checkFacts(id, f);
   }
+});
+
+test('golf schedule cards: when and where, the field by name, nothing about the scores', async () => {
+  const { parseLeaderboard } = await import('../docs/golf.js');
+  const { golfCard, withSeries } = await import('../src/sources/espn-golf.mjs');
+  const { upcomingGolf } = await import('../src/publish.mjs');
+  const t = withSeries(parseLeaderboard(fixture('golf/leaderboard-austin-2026-round3.json')));
+  const e = upcomingGolf(t, golfCard(t, null, new Date('2026-11-14T17:00Z')));
+  checkUpcoming(e);
+  // Nothing about positions, scores or the cut: compare with what ESPN had.
+  const text = JSON.stringify(e);
+  assert.doesNotMatch(text, /T\d{1,3}"|"-\d+"|scoreToPar|CUT|thru/i);
+  assert.ok([0, 1, 2, 3].includes(e.heat) && !('outlook' in e), 'live: a heat code, no outlook');
+  assert.throws(() => checkUpcoming({ ...e, heat: 2.5 }));
+  assert.throws(() => checkUpcoming({ ...e, outlook: 'tight' }), 'an outlook on a live card');
+  assert.throws(() => checkUpcoming({ ...e, status: 'upcoming' }), 'a heat on a card that isn\'t live');
+  // A weekend tee time would follow the scores (the leaders go out last): never in the card.
+  for (const p of t.players) if (p.tees[2]) assert.ok(!text.includes(p.tees[2]) || e.rounds.some((r) => r.first === p.tees[2] || r.last === p.tees[2]), `${p.name}: a weekend tee time`);
+  // A field in ESPN's order (by position) would be refused.
+  assert.throws(() => checkUpcoming({ ...e, field: [...e.field].reverse() }));
+  assert.throws(() => checkUpcoming({ ...e, tees: { [e.field[0]]: ['2026-11-12T13:00Z', '2026-11-13T13:00Z', '2026-11-14T16:00Z'] } }));
+  assert.throws(() => checkUpcoming({ ...e, compName: 'Austin Championship playoff' }));
+});
+
+test('golf replays: the final round rated, no names, 6 blocks, tips only to hole 7, 10 or 13', async () => {
+  const { parseLeaderboard, roundsOf } = await import('../docs/golf.js');
+  const { holesFromScoreboard, withSeries } = await import('../src/sources/espn-golf.mjs');
+  const { scoreGolf, golfFacts } = await import('../src/scoring/golf.mjs');
+  const { publishGolf } = await import('../src/publish.mjs');
+  for (const name of ['masters-2025', 'travelers-2026', 'pga-2025', 'open-2025']) {
+    const t = withSeries(parseLeaderboard(fixture(`golf/leaderboard-${name}.json`)));
+    const holes = holesFromScoreboard(fixture(`golf/holes-${name}.json`).events[0]);
+    const scored = scoreGolf(golfFacts(holes, { winner: t.players.find((p) => p.pos === '1')?.name, major: t.major, purse: t.purse }));
+    const e = publishGolf({ ...t, rounds: roundsOf(t) }, scored);
+    checkEvent(e);
+    assert.equal(e.start, roundsOf(t)[3].first, `${name}: starts at the final round's first tee time, not ESPN's end date`);
+    for (const p of holes.slice(0, 8)) assert.ok(!JSON.stringify(e).includes(p.name.split(' ').at(-1)), `${name}: ${p.name} on the card`);
+    if (name === 'masters-2025') assert.deepEqual(e.services, ['viaplay']);
+    // No hole-by-hole scores: rated from the totals, no strip, "limited".
+    const limited = publishGolf({ ...t, rounds: roundsOf(t) }, scoreGolf(golfFacts(holes.map((p) => ({ ...p, holes: p.holes.map(() => null) })), {})));
+    checkEvent(limited);
+    assert.deepEqual([limited.limited, limited.segments], [true, []]);
+  }
+  assert.throws(() => checkEvent({ ...publishGolf({ id: '1', name: 'X', course: '', rounds: [], end: '2026-01-01T00:00Z' }, { score: 5, segments: [1, 1, 1, 1, 1, 1, 1], advice: { code: 'full' }, reasons: [] }), segments: [1, 1, 1, 1, 1, 1, 1] }), 'a seventh block (a playoff) is refused');
+  assert.throws(() => checkEvent(publishGolf({ id: '1', name: 'X', course: '', rounds: [], end: '2026-01-01T00:00Z' }, { score: 5, segments: [1, 1, 1, 1, 1, 1], advice: { code: 'skip', unit: 'hole', ranges: [[1, 15]] }, reasons: [] })), 'a tip into the last six holes is refused');
+});
+
+// docs/data/golf.json: golf leaderboards (a spoiler file, fetched by the page only at level 2+, and by
+// the push helper). Names, scores to par, holes played, positions, statuses and tee times; nothing else.
+export function checkGolfFile(file, upcomingIds = null) {
+  for (const [id, entry] of Object.entries(file)) {
+    assert.match(id, /^gf-\d+$/);
+    if (upcomingIds) assert.ok(upcomingIds.has(id), `${id} in golf.json has no card`);
+    assert.deepEqual(Object.keys(entry).sort(), ['round', 't', 'updated']);
+    assert.deepEqual(Object.keys(entry.t).sort(), ['cutRound', 'period', 'players', 'state']);
+    for (const p of entry.t.players) {
+      assert.deepEqual(Object.keys(p).sort(), ['name', 'pos', 'sort', 'status', 'tees', 'thru', 'toPar'], `${id}: player fields`);
+      assert.ok(['active', 'done', 'cut', 'wd', 'dq'].includes(p.status), `${id}: status ${p.status}`);
+    }
+  }
+}
+
+test('golf.json: only what levels 2–3 and the push helper need', async () => {
+  const { parseLeaderboard } = await import('../docs/golf.js');
+  const { golfCard, withSeries, golfFileEntry } = await import('../src/sources/espn-golf.mjs');
+  const { upcomingGolf } = await import('../src/publish.mjs');
+  const t = withSeries(parseLeaderboard(fixture('golf/leaderboard-austin-2026-round3.json')));
+  const card = upcomingGolf(t, golfCard(t, null, new Date('2026-11-14T17:00Z')));
+  checkGolfFile({ [card.id]: golfFileEntry(t, card, null, new Date('2026-11-14T17:00Z')) }, new Set([card.id]));
+});
+
+test('the real docs/data/golf.json is golf leaderboards for cards on the page', { skip: !existsSync(new URL('../docs/data/golf.json', import.meta.url)) }, () => {
+  const read = (f) => JSON.parse(readFileSync(new URL(`../docs/data/${f}`, import.meta.url)));
+  checkGolfFile(read('golf.json'), new Set(read('events.json').upcoming.filter((e) => e.sport === 'golf').map((e) => e.id)));
 });

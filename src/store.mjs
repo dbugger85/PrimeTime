@@ -4,6 +4,7 @@
 //   docs/data/results.json  big spoilers: the actual result (loaded only after a second warning)
 //   docs/data/facts.json    spoilers: each football match's facts, for "Custom scoring" (loaded only after a warning)
 //   docs/data/standings.json spoilers: league tables for the Team view (loaded only after a warning; src/standings.mjs)
+//   docs/data/golf.json     spoilers: golf leaderboards for "Golf: how much to reveal" level 2+ and the push helper
 //   docs/cal/<team>.ics     calendar feeds, one per football team (src/calendar.mjs)
 //   data/state.json         bookkeeping: what's complete, when the last full build ran
 
@@ -23,6 +24,7 @@ const REASONS = new URL('docs/data/reasons.json', root);
 const RESULTS = new URL('docs/data/results.json', root);
 const FACTS = new URL('docs/data/facts.json', root);
 const STANDINGS = new URL('docs/data/standings.json', root);
+const GOLF = new URL('docs/data/golf.json', root);
 const STATE = new URL('data/state.json', root);
 const readJson = (url, fallback) => (existsSync(url) ? JSON.parse(readFileSync(url)) : fallback);
 
@@ -47,6 +49,7 @@ export function loadData() {
     results: new Map(Object.entries(readJson(RESULTS, {}))),
     facts: new Map(Object.entries(readJson(FACTS, {}))),
     standings: new Map(Object.entries(readJson(STANDINGS, {}))),
+    golf: new Map(Object.entries(readJson(GOLF, {}))),
     state: readJson(STATE, {}),
   };
   loaded.migrated = unrateQualifying(loaded); // the live check must save these even if nothing else changed
@@ -67,7 +70,7 @@ function unrateQualifying({ events, reasons }) {
 }
 
 // Writes all the files. Returns a one-line summary.
-export function saveData({ events, upcoming, reasons, results, facts, standings, state }, now = new Date()) {
+export function saveData({ events, upcoming, reasons, results, facts, standings, golf, state }, now = new Date()) {
   // Direct links to the match (state.links, see src/sources/links.mjs) go onto every event here,
   // so both the full build and the live check publish them.
   const withLinks = (e, replay) => {
@@ -88,16 +91,20 @@ export function saveData({ events, upcoming, reasons, results, facts, standings,
   const footballWeights = FOOTBALL_W;
   // Where each custom-scoring slider stands with these weights, in points (see sliderScale()).
   const scale = sliderScale(list.filter((e) => e.sport === 'football' && facts?.has(e.id)).map((e) => facts.get(e.id)), FOOTBALL_W);
-  writeFileSync(EVENTS, JSON.stringify({ generated: now.toISOString(), events: list, upcoming: soon, elo, liveWeights, footballWeights, sliderScale: scale }) + '\n');
+  // Golfers for the favorites search box: the fields on the page and of the last few weeks (state.golfers).
+  const golfers = [...new Set([...Object.keys(state.golfers ?? {}), ...soon.flatMap((e) => (e.sport === 'golf' ? e.field : []))])].sort((a, b) => a.localeCompare(b));
+  writeFileSync(EVENTS, JSON.stringify({ generated: now.toISOString(), events: list, upcoming: soon, elo, liveWeights, footballWeights, sliderScale: scale, golfers }) + '\n');
   const pick = (map) => JSON.stringify(Object.fromEntries(list.filter((e) => map.has(e.id)).map((e) => [e.id, map.get(e.id)]))) + '\n';
   writeFileSync(REASONS, pick(reasons));
   writeFileSync(RESULTS, pick(results));
   writeFileSync(FACTS, pick(facts ?? new Map()));
   // Only the competitions that still have a table (one removed from competitions.mjs drops out).
   if (standings) writeFileSync(STANDINGS, JSON.stringify(Object.fromEntries([...standings].filter(([k]) => TABLE_COMPS.has(k)).sort(([a], [b]) => a.localeCompare(b)))) + '\n');
+  // Golf leaderboards: only the tournaments that still have a card.
+  if (golf) writeFileSync(GOLF, JSON.stringify(Object.fromEntries([...golf].filter(([id]) => soon.some((e) => e.id === id)).sort(([a], [b]) => a.localeCompare(b)))) + '\n');
   const feeds = writeCalendars(new URL('docs/cal/', root), list, soon, state, now); // updates state.calTeams
   writeFileSync(STATE, JSON.stringify(state, null, 1) + '\n');
   const count = (s) => list.filter((e) => e.sport === s).length;
   const live = soon.filter((e) => e.status === 'live').length;
-  return `events.json: ${list.length} events (football ${count('football')}, tennis ${count('tennis')}, f1 ${count('f1')}, winter ${count('winter')}), ${soon.length} upcoming (${live} live), ${feeds} calendar feeds`;
+  return `events.json: ${list.length} events (football ${count('football')}, tennis ${count('tennis')}, f1 ${count('f1')}, winter ${count('winter')}, golf ${count('golf')}), ${soon.length} upcoming (${live} live), ${feeds} calendar feeds`;
 }

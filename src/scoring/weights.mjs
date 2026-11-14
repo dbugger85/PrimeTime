@@ -198,3 +198,45 @@ export const FOOTBALL_LIVE = {
   typicalMatch: 6.2, //       early on, each pillar is pulled towards this (a typical match: the pillars average about 6.2; from 0 to 9)
   settleMinutes: 45, //       how many minutes of play the "typical match" counts for at kick-off (it fades to nothing at 90'; from 0 to 90)
 };
+
+// Golf: how tense a live round is (the "heat" 0–3 on the tournament card at "Golf: how much to reveal"
+// level 1 and up; docs/golf.js, heatOf). Worked out by the bot every 5 minutes from ESPN's leaderboard.
+// Tuned on real final rounds replayed hole by hole (test/golf.test.mjs): the Masters 2025 and the
+// Travelers 2026 (both playoffs) get red hot on the back nine; The Open 2025 (won by 4) stays quiet.
+// Nothing here changes a replay score, so editing them doesn't re-score anything.
+export const GOLF_LIVE = {
+  reachEnd: 2.5, //       a chaser this many shots back counts nothing when neither has holes left…
+  reachPerHole: 0.08, //  …and every hole the two of them still have to play adds this many shots of reach
+  nextChaser: 0.5, //     the closest chaser counts fully, the next half, the next a quarter …
+  lateFrom: 0.3, //       how much the chase counts when the leaders tee off (it grows to 1 at their last hole)
+  heat1: 0.2, //          "Something brewing" from this much chase…
+  heat2: 0.45, //         …"Heating up" from this much…
+  heat3: 0.55, //         …and "Red hot" from this much,
+  hotFrom: 0.55, //       but only once the leaders are this far into the round (0.55: about the 10th hole)
+};
+
+// Golf: the final round's score on a replay card (src/scoring/golf.mjs). Points added for what
+// happened on the last day, judged from the leaderboard after every hole. A runaway gets little more
+// than the base; a playoff after a back-nine chase gets close to 10.
+export const GOLF = {
+  base: 1.2, //               every final round starts with this
+  playoff: 2.0, //            level after 72 holes, so a playoff (on top of "less than a shot")
+  oneShot: 2.0, //            won by one shot (or a playoff)
+  twoShots: 1.2, //           won by two shots
+  threeShots: 0.5, //         won by three shots (four or more: nothing)
+  inItAtTurn: 0.5, //         each player within 2 shots of the lead after the 9th hole, besides the leader…
+  inItAtTurnMax: 1.5, //      …at most this much
+  leadChange: 0.4, //         each time a new name reached the top of the leaderboard (alone or level)…
+  leadChangesMax: 1.6, //     …at most this much
+  tightBackNine: 1.5, //      the lead was a shot or less after every back-nine hole (less for fewer holes)
+  comeback: 1.0, //           someone level for the lead at the end started the day 3 shots back…
+  comebackPerShot: 0.25, //   …plus this for every shot more…
+  comebackMax: 2.0, //        …at most this much
+  lateEagle: 0.6, //          each eagle on the last six holes by a player within 3 shots of the lead…
+  lateEaglesMax: 1.2, //      …at most this much
+  major: 1.0, //              one of the four majors
+  bigPurse: 0.5, //           one of the richest events ($20 million or more)
+  curveFrom: 5, //            above this, each point counts a bit less ("Higher scores are harder to reach"; from 0 to 9)
+  stripLeadChange: 1.5, //    heat strip: a lead change in a block counts like this many birdies
+  stripTight: 1.0, //         heat strip: a lead of a shot or less at the end of a block
+};

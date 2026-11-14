@@ -23,14 +23,16 @@
   </tr>
 </table>
 
-PrimeTime rates finished football matches, tennis matches (Grand Slams, ATP Masters 1000 and the ATP Finals), F1 races and winter sports (biathlon, alpine, cross-country) from 0 to 10 for how exciting they were, without ever showing a result. Each event gets:
+PrimeTime rates finished football matches, tennis matches (Grand Slams, ATP Masters 1000 and the ATP Finals), F1 races, winter sports (biathlon, alpine, cross-country) and golf's final rounds (PGA Tour and the majors) from 0 to 10 for how exciting they were, without ever showing a result. Each event gets:
 
 - a **watchability score** and a label (Skip it / Decent / Good / Must-watch),
-- a **skip tip**, like "Skip the first half", "Start from set 3" or "Watch the start, then skip to lap 30",
+- a **skip tip**, like "Skip the first half", "Start from set 3", "Watch the start, then skip to lap 30" or "Start at hole 10",
 - a **heat strip** showing roughly where the action was,
 - the **Norwegian streaming services** that show it (Viaplay, TV 2 Play, HBO Max, NRK TV, F1 TV, VG+ Sport).
 
 **Football competitions:** the Premier League, La Liga, Bundesliga, Serie A, Ligue 1, Eliteserien and the Championship; the Champions League, Europa League and Conference League; and for national teams the Nations League, the EURO and World Cup qualifiers, the EURO and the World Cup.
+
+**Golf (PGA Tour and the majors):** one card per tournament all week under Coming up/ongoing, always about today's round: when it starts, when the last group tees off and when it reaches the back nine (the exciting part), and the tee times of the golfers you follow. You choose how much it may reveal: just the schedule, how tense it is (the default: "Quiet so far", "Heating up", never a name), your favorites in plain words ("in contention"), or everything with a leaderboard. Afterwards the final round gets a score like any other replay.
 
 **Team view (football):** tap a team's name on any card to see all its matches in every league and cup, coming up and replays, on one page. Its league tables (the full table of each league or group it plays in, its own row highlighted) are behind a spoiler warning, since points and wins give recent results away. The tables refresh within minutes of a match ending.
 

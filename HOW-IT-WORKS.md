@@ -84,12 +84,44 @@ The score never shows whether the driver on pole won: a pass for the lead counts
 
 Athlete names are never shown on winter cards, because start lists give earlier results away.
 
+## Golf
+
+Golf is different: a tournament lasts four days, so PrimeTime mostly tells you **when to watch while it's on**. Each tournament has one card under Coming up/ongoing, always about today's round:
+- when the round starts, and when the last group tees off. The last group holds the leaders on the weekend, and it reaches the **back nine** (holes 10–18, where tournaments are usually decided) about 2 hours 10 minutes after it tees off, so the card tells you that time too;
+- the tee times of golfers you follow, for rounds 1 and 2. Those are drawn before the tournament. Weekend tee times are left out: the leaders go out last, so a tee time would tell you how someone is doing.
+
+The field (who's playing) is shown by name, never in the order of the leaderboard, and it's frozen when the first ball is hit, so nobody vanishes from it at the cut.
+
+**How much to reveal** is your choice (Filters and settings → "Golf: how much to reveal"). The default, **"How tense it is"**, never names anyone but tells you whether to tune in:
+- **Before the weekend rounds**, from the leaderboard after the round before: "One player well clear" (2nd place 4 or more shots back), "Tight at the top" (1 shot or level), "Wide open" (six or more players within 3 shots) or "A few players in it".
+- **While a round is on**, a heat level from "Quiet so far" to "Red hot". It looks at every player's gap to the leader against the holes both still have to play: 2 shots back with a whole round left is a real chase, 2 back on the last hole almost over. The closest chaser counts most. A chase counts more the further the leaders are into their round, and "Red hot" only comes once they've reached the back nine. Thursday and Friday can only reach "Something brewing" (those days are about making the cut), Saturday "Heating up". The level never drops within 15 minutes, so it doesn't flicker.
+- It was tuned by replaying real final rounds hole by hole: the 2025 Masters and the 2026 Travelers Championship (both decided in a playoff) turn red hot on the back nine; the 2025 Open, which Scottie Scheffler won by four, stays quiet all day.
+
+"Schedule only" leaves even that out. Two more levels are there if you want them, each behind a warning:
+- **"Also my favorites, in words"**: how the golfers you follow are doing, without positions: "in contention" (within 3 shots of the lead, or top 5), "playing the weekend", "near the cut line", "missed the cut", and their weekend tee times.
+- **"Everything"**: positions ("T3, 2 shots back, through 12") and a leaderboard with the top 10 and your favorites.
+
+For these, your phone fetches the live leaderboard from ESPN once a minute while a golf card is on screen. At the lower levels it never does, and a "⚠⚠ Leaderboard" button lets you peek at one tournament after a warning.
+
+**🔔 The bell on a golf card** follows the whole tournament: a notification when each round starts and when the last group reaches the back nine on the weekend. From "How tense it is" up, also once if Sunday gets tight at the top; at "My favorites" and up, when a golfer you follow is in contention. Never a score.
+
+### Golf replays: the final round
+
+When a tournament is over, its card moves to Replays and gets a score for **the final round**, with no names. It's worked out from every player's hole-by-hole scores, rebuilding the leaderboard after each hole:
+- **The finish:** a playoff scores most, then a one-shot win, then two or three shots. Four or more: nothing.
+- **A chase:** players within 2 shots of the lead at the turn, new names reaching the top of the leaderboard, and a back nine where the lead stayed at a shot or less.
+- **A comeback** by someone who started the day 3 or more shots back and finished level for the lead, and **late eagles** (holes 13–18) by players in contention.
+- **The occasion:** a major, or one of the richest events.
+- Above 5, each point counts a bit less, so a 10 is practically never given. About one tournament in nine scores 8 or more, the same share as football matches.
+
+The **heat strip** always has six blocks of three holes: birdies, bogeys and lead changes among the players near the top. A playoff never adds a block, so the strip can't give one away. **Skip tips** only ever say "Start at hole 7", "10" or "13", based on holes 1–12 alone, so they never cover the last six holes and don't depend on who won. Replays are only added a few hours after the last group has teed off, so a playoff doesn't make the card appear later than usual.
+
 ## Never a spoiler
 
 The rules above all serve one idea: **nothing on a card may tell you how it ended**.
 - Results, scores and winners never reach the page's main data. They're kept in separate files that are only downloaded after you accept a warning.
 - An automatic test checks every update. It fails on anything that looks like a score ("2–1"), on words like "winner", "comeback" or "late", and on any field that isn't allowed.
-- Heat strips have fixed lengths, so they don't show extra time, a short race or the number of sets.
+- Heat strips have fixed lengths, so they don't show extra time, a short race, the number of sets or a golf playoff.
 - Skip tips never cover the last 15 minutes of a football match, the deciding set or the end of a race.
 - Team names can be hidden too, and tennis names are hidden by default.
 - League tables (in a football team's Team view) are spoilers too: points, wins and goal difference follow every result. They're in their own file, only downloaded after a warning, and hidden again when you tap ✕ or reload.

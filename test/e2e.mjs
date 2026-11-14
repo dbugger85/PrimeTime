@@ -13,6 +13,10 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
 import { liveWeightsFrom } from '../docs/live.js';
 import * as WEIGHTS from '../src/scoring/weights.mjs';
+import { parseLeaderboard, HEAT_TEXT, roundsOf } from '../docs/golf.js';
+import { golfCard, withSeries, holesFromScoreboard } from '../src/sources/espn-golf.mjs';
+import { upcomingGolf, publishGolf } from '../src/publish.mjs';
+import { scoreGolf, golfFacts } from '../src/scoring/golf.mjs';
 
 // Services and custom scoring live inside "Filters and settings": open it first when it's closed.
 const openSettings = async (page) => { if (!(await page.$eval('#filters', (d) => d.open))) await page.click('#filters summary'); };
@@ -465,6 +469,9 @@ try {
     const one = await ctx.newPage();
     await one.goto(base);
     await one.waitForSelector('.card');
+    await one.evaluate(() => { const p = JSON.parse(localStorage.getItem('pt-prefs') ?? '{}'); p.golfSpoilers = 3; localStorage.setItem('pt-prefs', JSON.stringify(p)); });
+    await one.reload();
+    await one.waitForSelector('.card');
     await one.click('#sports [data-sport="football"]');
     const team = await one.$eval('.card .title .name', (e) => e.dataset.name);
     await follow(one, team);
@@ -485,6 +492,7 @@ try {
     assert.equal(await other.$eval('#sports [aria-pressed="true"]', (e) => e.dataset.sport), 'football');
     assert.equal(new URL(other.url()).hash, '', 'the address bar is tidied');
     assert.equal(await other.$$eval('.card.is-watched', (els) => els.length), 1);
+    assert.equal(await other.evaluate(() => JSON.parse(localStorage.getItem('pt-prefs')).golfSpoilers), 1, 'golf arrives at level 1 at most: its warning comes first');
     await other.goto(base + '#s=abc');
     await other.waitForSelector('#import-dlg[open]');
     assert.match(await other.$eval('#import-dlg h2', (e) => e.textContent), /broken/);
@@ -693,9 +701,12 @@ try {
     await card.locator('.pace-btn').click();
     const pace = await paceOf(page);
     assert.doesNotMatch(pace, /few minutes old/, 'worked out from ESPN, not the bot\'s number');
-    const text = await page.$eval('#cards', (e) => e.innerText);
-    assert.doesNotMatch(text, /\b\d+\s*[-–]\s*\d+\b/, 'a score-like text on the page');
-    for (const leak of ['Kane', 'Mbapp', 'France', 'England']) assert.ok(!text.includes(leak), `"${leak}" from the summary on the page`);
+    // Only the fake match's card: the real data can have France or England matches coming up.
+    const text = await card.innerText();
+    assert.doesNotMatch(text, /\b\d+\s*[-–]\s*\d+\b/, 'a score-like text on the card');
+    for (const leak of ['Kane', 'Mbapp', 'France', 'England']) assert.ok(!text.includes(leak), `"${leak}" from the summary on the card`);
+    const pageText = await page.$eval('#cards', (e) => e.innerText);
+    for (const leak of ['Kane', 'Mbapp']) assert.ok(!pageText.includes(leak), `"${leak}" from the summary on the page`);
     await card.screenshot({ path: `${shots}/live-card.png` });
     // Custom scoring changes the live number too (Goals doubled, a boost for the Premier League).
     await page.evaluate(() => {
@@ -726,6 +737,179 @@ try {
     await off.close();
   }
 
+  // Golf: one tournament card about today's round, made from a real ESPN leaderboard (the Austin
+  // Championship, round 3), at two moments. Nothing golf-related is asked from ESPN or golf.json.
+  {
+    const t = withSeries(parseLeaderboard(JSON.parse(readFileSync(new URL('./fixtures/golf/leaderboard-austin-2026-round3.json', import.meta.url), 'utf8'))));
+    const live = upcomingGolf(t, golfCard(t, null, new Date('2026-11-14T17:00Z')));
+    const thursday = { ...live, status: 'upcoming', round: 1, start: live.rounds[0].first };
+    const rsm = upcomingGolf(withSeries(parseLeaderboard(JSON.parse(readFileSync(new URL('./fixtures/golf/leaderboard-rsm-2026-before.json', import.meta.url), 'utf8')))), { round: 1, rounds: [1, 2, 3, 4].map((n) => ({ n, day: `2026-11-${18 + n}` })), field: [], tees: {} });
+    const real = JSON.parse(readFileSync(`${docs}/data/events.json`, 'utf8'));
+    const fav = live.field.find((n) => live.tees[n]?.[0] > '2026-11-12T14:00Z');
+    const golfRequests = [];
+    const board = JSON.parse(readFileSync(new URL('./fixtures/golf/leaderboard-austin-2026-round3.json', import.meta.url), 'utf8'));
+    const cutName = t.players.find((p) => p.status === 'cut').name;
+    const golfPage = async (now, card, favs = [fav]) => {
+      const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+      page.errors = [];
+      page.on('pageerror', (e) => page.errors.push(e.message));
+      page.on('request', (r) => /golf\/leaderboard|sports\/golf|golf\.json/.test(r.url()) && golfRequests.push(r.url()));
+      await page.route('https://site.web.api.espn.com/**', (r) => r.fulfill({ json: board, headers: { 'access-control-allow-origin': '*' } }));
+      await page.clock.install({ time: Date.parse(now) });
+      await page.route('**/data/events.json', (r) => r.fulfill({ json: { ...real, upcoming: [card, rsm, ...real.upcoming.filter((e) => e.sport !== 'golf')], golfers: live.field } }));
+      await page.goto(base);
+      await page.evaluate((names) => localStorage.setItem('pt-prefs', JSON.stringify({ view: 'upcoming', sport: 'golf', favs: { teams: [], players: names, f1: false, winter: [] } })), favs);
+      await page.reload();
+      await page.waitForSelector(`.card[data-id="${card.id}"]`);
+      return page;
+    };
+    let page = await golfPage('2026-11-11T18:00:00Z', thursday);
+    const card = page.locator(`.card[data-id="${live.id}"]`);
+    assert.equal(await card.locator('.title').textContent(), 'Austin Championship');
+    assert.match(await card.locator('.sub:not(.chances)').first().textContent(), /^Round 1 · Thu \d\d:\d\d–\d\d:\d\d$/);
+    assert.match(await card.locator('.golf-fav').textContent(), new RegExp(`★ ${fav} tees off \\d\\d:\\d\\d`));
+    assert.ok(await card.locator('.bell').isVisible(), 'a bell before the round starts');
+    assert.match(await page.locator(`.card[data-id="${rsm.id}"] .sub`).first().textContent(), /Round 1 · Thu · tee times not out yet/);
+    assert.ok(await page.locator(`.card[data-id="${rsm.id}"] .bell`).isVisible(), 'a golf bell follows the tournament, tee times or not');
+    assert.ok((await page.$$eval('.card .sport', (els) => els.map((e) => e.textContent))).every((x) => x === 'Golf'), 'the Golf tab shows only golf');
+    await page.screenshot({ path: `${shots}/golf-schedule.png` });
+    // Favorites search finds golfers.
+    await page.click('#favs-toggle');
+    await page.fill('#fav-q', live.field[1].slice(0, 5));
+    assert.ok(await page.locator(`#fav-hits .chip:has-text("${live.field[1]}")`).count(), 'a golfer in the search');
+    assert.deepEqual(page.errors, []);
+    await page.close();
+    page = await golfPage('2026-11-14T19:00:00Z', live, [fav, 'Chad Ramey', cutName]);
+    const liveCard = page.locator(`.card.live[data-id="${live.id}"]`);
+    assert.equal(await liveCard.locator('.time').textContent(), 'LIVE');
+    // Level 1 (the default): how tense it is, from the bot's code.
+    assert.equal(await liveCard.locator('.sub:not(.chances)').first().textContent(), `Round 3 · ${HEAT_TEXT[live.heat]}`);
+    await liveCard.screenshot({ path: `${shots}/golf-live-level1.png` });
+    await openSettings(page);
+    await page.selectOption('#f-golf', '0');
+    assert.equal(await liveCard.locator('.sub:not(.chances)').first().textContent(), 'Round 3 · the last group is on the back nine', 'level 0: the schedule only');
+    assert.match(await liveCard.locator(`.golf-fav:has-text("${fav}")`).textContent(), new RegExp(`★ ${fav} in the field`), 'no weekend tee time at level 0');
+    const text = await liveCard.innerText();
+    assert.doesNotMatch(text.replace(/Leaderboard/, ''), /\b(T?\d+(st|nd|rd|th)|[-+]\d+|thru|cut|leader|contention)\b/i, 'a position or a score on the card');
+    await liveCard.screenshot({ path: `${shots}/golf-live.png` });
+    // Below level 2 the page never asks ESPN or golf.json about golf, even with a live card on screen for minutes.
+    await page.selectOption('#f-golf', '1');
+    await page.clock.fastForward(130e3);
+    assert.deepEqual(golfRequests, [], 'nothing about golf asked from ESPN or golf.json below level 2');
+    // "⚠⚠ Leaderboard": a warning first (keeping it secret asks nothing), then the top 10 plus favorites.
+    const boardBtn = liveCard.locator('.golf-board-btn');
+    assert.equal(await boardBtn.textContent(), '⚠⚠ Leaderboard');
+    await boardBtn.click();
+    await page.waitForSelector('#spoiler-dlg[open]');
+    assert.match(await page.textContent('#spoiler-dlg h2'), /Leaderboard/);
+    await page.click('#spoiler-dlg button[value="cancel"]');
+    assert.deepEqual(golfRequests, [], 'asked before the warning was accepted');
+    await boardBtn.click();
+    await page.click('#spoiler-dlg button[value="ok"]');
+    await liveCard.locator('.golf-board table').waitFor();
+    assert.equal(golfRequests.length, 1, 'one leaderboard request after the warning');
+    assert.ok(await liveCard.locator('.golf-board tbody tr').count() >= 10, 'the top 10');
+    assert.ok(await liveCard.locator('.golf-board tr.me:has-text("Chad Ramey")').count(), 'a favorite highlighted');
+    await liveCard.screenshot({ path: `${shots}/golf-leaderboard.png` });
+    await liveCard.locator('.golf-board .why-close').click();
+    assert.ok(await liveCard.locator('.golf-board').isHidden(), '✕ hides it');
+    assert.match(await liveCard.locator(`.golf-fav:has-text("${fav}")`).textContent(), /in the field/, 'still level 1 on the card');
+    // Level 2: a warning, then the favorites in plain words, never a position.
+    await page.selectOption('#f-golf', '2');
+    await page.waitForSelector('#spoiler-dlg[open]');
+    assert.match(await page.textContent('#spoiler-dlg h2'), /favorites/);
+    await page.click('#spoiler-dlg button[value="ok"]');
+    await page.waitForFunction(() => /in contention/.test(document.querySelector('.card[data-id^="gf-"] .golf-favs')?.textContent ?? ''));
+    const words = await liveCard.locator('.golf-favs').innerText();
+    assert.match(words, /Chad Ramey is in contention: watch now/);
+    assert.match(words, new RegExp(`${cutName} missed the cut`));
+    assert.doesNotMatch(words, /\bT?\d+(st|nd|rd|th)?\b,|shots? back|through \d|leads by/, 'a position at level 2');
+    await liveCard.screenshot({ path: `${shots}/golf-level2.png` });
+    assert.equal(await page.$eval('#f-golf', (s) => s.value), '2');
+    // Level 3: positions and the leaderboard without a further warning on the card.
+    await page.selectOption('#f-golf', '3');
+    await page.click('#spoiler-dlg button[value="ok"]');
+    await page.waitForFunction(() => /Chad Ramey T1, tied for the lead, through 14/.test(document.querySelector('.card[data-id^="gf-"] .golf-favs')?.textContent ?? ''));
+    await liveCard.locator('.golf-board-btn').click();
+    await liveCard.locator('.golf-board table').waitFor();
+    await liveCard.screenshot({ path: `${shots}/golf-level3.png` });
+    // Remembered after a reload.
+    await page.reload();
+    await page.waitForFunction(() => /tied for the lead/.test(document.querySelector('.card[data-id^="gf-"] .golf-favs')?.textContent ?? ''));
+    assert.deepEqual(page.errors, []);
+    await page.close();
+
+    // 🔔 on a golf card: one bell for the whole tournament; the helper gets this phone's level and, at
+    // level 2+, the followed golfers in the field (never at level 1).
+    {
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      await ctx.addInitScript(() => {
+        const fake = { endpoint: 'https://fcm.googleapis.com/fcm/send/golf', toJSON() { return { endpoint: this.endpoint, keys: { p256dh: 'BPub', auth: 'sec' } }; } };
+        PushManager.prototype.getSubscription = async () => null;
+        PushManager.prototype.subscribe = async () => fake;
+      });
+      await ctx.grantPermissions(['notifications']);
+      const calls = [];
+      await ctx.route('https://primetime-push.dbugger85.workers.dev/**', async (r) => {
+        calls.push(JSON.parse(r.request().postData() || '{}'));
+        await r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '{"ok":true}' });
+      });
+      await ctx.route('**/data/events.json', (r) => r.fulfill({ json: { ...real, upcoming: [live, ...real.upcoming.filter((e) => e.sport !== 'golf')] } }));
+      await ctx.route('https://site.web.api.espn.com/**', (r) => r.fulfill({ json: board, headers: { 'access-control-allow-origin': '*' } }));
+      const bp = await ctx.newPage();
+      await bp.goto(base);
+      await bp.evaluate(() => localStorage.setItem('pt-prefs', JSON.stringify({ view: 'upcoming', sport: 'golf', golfSpoilers: 1, favs: { teams: [], players: ['Chad Ramey'], f1: false, winter: [] } })));
+      await bp.reload();
+      const bell = bp.locator(`.card[data-id="${live.id}"] .bell`);
+      await bell.click();
+      await bp.waitForFunction((id) => document.querySelector(`.card[data-id="${id}"] .bell`)?.getAttribute('aria-pressed') === 'true', live.id);
+      assert.deepEqual([calls[0].title, calls[0].level, calls[0].players], ['Austin Championship', 1, []], 'level 1: no golfer names to the helper');
+      // Going up to level 2 sends the bell again, now with the followed golfer.
+      await openSettings(bp);
+      await bp.selectOption('#f-golf', '2');
+      await bp.click('#spoiler-dlg button[value="ok"]');
+      await bp.waitForFunction(() => document.querySelectorAll('.card .golf-fav').length);
+      for (let i = 0; i < 50 && calls.length < 2; i++) await bp.waitForTimeout(100);
+      assert.deepEqual([calls[1].level, calls[1].players], [2, ['Chad Ramey']]);
+      await bp.close();
+      await ctx.close();
+    }
+
+    // A replay: the final round rated (the Masters 2025, a playoff), the same for every level, no names.
+    const mt = withSeries(parseLeaderboard(JSON.parse(readFileSync(new URL('./fixtures/golf/leaderboard-masters-2025.json', import.meta.url), 'utf8'))));
+    const mHoles = holesFromScoreboard(JSON.parse(readFileSync(new URL('./fixtures/golf/holes-masters-2025.json', import.meta.url), 'utf8')).events[0]);
+    const mScored = scoreGolf(golfFacts(mHoles, { winner: mt.players.find((p) => p.pos === '1')?.name, major: mt.major, purse: mt.purse }));
+    const replay = publishGolf({ ...mt, rounds: roundsOf(mt) }, mScored);
+    const rp = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+    rp.errors = [];
+    rp.on('pageerror', (e) => rp.errors.push(e.message));
+    await rp.clock.install({ time: Date.parse('2025-04-20T12:00:00Z') }); // inside "Last year"
+    await rp.route('**/data/events.json', (r) => r.fulfill({ json: { ...real, events: [replay, ...real.events.filter((e) => e.sport !== 'golf')] } }));
+    await rp.route('**/data/reasons.json', (r) => r.fulfill({ json: { [replay.id]: mScored.reasons } }));
+    await rp.route('**/data/results.json', (r) => r.fulfill({ json: { [replay.id]: mScored.result } }));
+    await rp.goto(base);
+    await rp.evaluate(() => localStorage.setItem('pt-prefs', JSON.stringify({ view: 'replays', sport: 'golf', days: 400, golfSpoilers: 3 })));
+    await rp.reload();
+    const rc = rp.locator(`.card[data-id="${replay.id}"]`);
+    await rc.waitFor();
+    assert.equal(await rc.locator('.num').textContent(), mScored.score.toFixed(1));
+    assert.equal(await rc.locator('.strip i').count(), 6, 'six blocks');
+    assert.match(await rc.locator('.sub').textContent(), /^Major · Final round · Augusta National/);
+    const rtext = await rc.innerText();
+    for (const p of mHoles.slice(0, 6)) assert.ok(!rtext.includes(p.name.split(' ').at(-1)), `${p.name} on a replay card, even at level 3`);
+    await rc.locator('.why-btn').click();
+    await rp.click('#spoiler-dlg button[value="ok"]');
+    await rc.locator('.why li').first().waitFor();
+    assert.match(await rc.locator('.why').innerText(), /playoff/);
+    await rc.locator('.why .result-btn').click();
+    await rp.click('#spoiler-dlg button[value="ok"]');
+    await rc.locator('.result-text').waitFor();
+    assert.match(await rc.locator('.result-text').textContent(), /^Rory McIlroy won at -11, beating Justin Rose in a playoff/);
+    await rc.screenshot({ path: `${shots}/golf-replay.png` });
+    assert.deepEqual(rp.errors, []);
+    await rp.close();
+  }
+
   // "🔔 Notify me when it starts": a bell on Coming up cards that haven't started. Our own dialog
   // comes before the browser's question; the push service and the helper are stubbed here.
   {
@@ -748,7 +932,7 @@ try {
     await page.click('#views [data-view="upcoming"]');
     const later = page.locator('.card.soon:not(.live) .bell:not([hidden])').first();
     if (await later.count()) {
-      assert.equal(await page.locator('.card.soon.live .bell:not([hidden])').count(), 0, 'a bell on a live event');
+      assert.equal(await page.locator('.card.soon.live:not([data-id^="gf-"]) .bell:not([hidden])').count(), 0, 'a bell on a live event (golf bells follow a whole tournament)');
       const id = await later.evaluate((b) => b.closest('.card').dataset.id);
       const bell = page.locator(`.card[data-id="${id}"] .bell`);
       await bell.click();

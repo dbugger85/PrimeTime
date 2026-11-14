@@ -15,7 +15,8 @@ import * as football from '../src/sources/espn-football.mjs';
 import * as tennis from '../src/sources/espn-tennis.mjs';
 import * as f1 from '../src/sources/openf1.mjs';
 import * as fotmob from '../src/sources/fotmob.mjs';
-import { chancesOf, publishFootball, publishTennis, publishF1, upcomingFootball, upcomingTennis, lineupFields, trimFacts } from '../src/publish.mjs';
+import * as golf from '../src/sources/espn-golf.mjs';
+import { chancesOf, publishFootball, publishTennis, publishF1, upcomingFootball, upcomingTennis, upcomingGolf, lineupFields, trimFacts } from '../src/publish.mjs';
 import { loadData, saveData, warn, saver } from '../src/store.mjs';
 import { noteFinished, refreshStandings } from '../src/standings.mjs';
 import { fetchStandings } from '../src/sources/espn-standings.mjs';
@@ -24,9 +25,9 @@ import { liveFacts, scoreLivePace, liveWeightsFrom, bigMatchFactor, espnDays } f
 
 const now = process.env.NOW ? new Date(process.env.NOW) : new Date(); // NOW=... pretends it's another time (for testing)
 const data = loadData();
-const { events, reasons, results, facts, standings } = data;
+const { events, reasons, results, facts, standings, golf: golfFile } = data;
 let upcoming = data.upcoming;
-const before = JSON.stringify([upcoming, [...events.keys()]]);
+const before = JSON.stringify([upcoming, [...events.keys()], [...golfFile]]);
 const save = saver(data);
 
 // "In play" window: from `minutesBefore` the start until `hours` after it.
@@ -165,7 +166,30 @@ function liveWinter() {
   }
 }
 
-for (const [sport, run] of Object.entries({ football: liveFootball, f1: liveF1, tennis: liveTennis, winter: liveWinter })) {
+// Golf: while a round is (or could be) in play, the leaderboard once a run (about 21 KB): the
+// LIVE badge and, between rounds, the next round's tee times. Never scored here: the full build
+// scores a finished tournament some hours later (golfCard), so a playoff can't show as a late change.
+async function liveGolf() {
+  for (const e of upcoming.filter((x) => x.sport === 'golf')) {
+    const r = e.rounds.find((x) => x.n === e.round) ?? {};
+    const from = Date.parse(r.first ?? `${r.day}T10:00:00Z`) - 10 * 60e3;
+    const to = Date.parse(r.last ?? `${r.day}T23:00:00Z`) + (e.status === 'live' ? 10 : 6) * 3600e3;
+    if (!(now >= from && now <= to)) continue;
+    const t = await golf.fetchTournament(e.id.slice(3));
+    if (!t) continue;
+    data.state.golfHeat ??= {};
+    const raw = golf.golfCard(t, e, now, data.state.golfHeat[e.id]);
+    if (raw.held) data.state.golfHeat[e.id] = raw.held; else delete data.state.golfHeat[e.id];
+    // Saved only when the card changed (a new heat level, a new round …), like everything here.
+    const card = upcomingGolf(t, raw);
+    upcoming = upcoming.map((x) => (x.id === e.id ? card : x));
+    // golf.json (level 2+ and pushes): rewritten when a status changes, or every 15 minutes at most.
+    const entry = golf.golfFileEntry(t, card, golfFile.get(e.id), now);
+    if (entry) golfFile.set(e.id, entry); else golfFile.delete(e.id);
+  }
+}
+
+for (const [sport, run] of Object.entries({ football: liveFootball, f1: liveF1, tennis: liveTennis, winter: liveWinter, golf: liveGolf })) {
   try {
     await run();
   } catch (err) {
@@ -187,8 +211,8 @@ try {
 // A table that changed, or a match that stopped waiting, is saved (so the next run doesn't ask again).
 const pendingChanged = JSON.stringify(data.state.tablesPending ?? {}) !== pendingBefore;
 
-if (JSON.stringify([upcoming, [...events.keys()]]) === before && !data.migrated && !tablesChanged && !pendingChanged) {
+if (JSON.stringify([upcoming, [...events.keys()], [...golfFile]]) === before && !data.migrated && !tablesChanged && !pendingChanged) {
   console.log('live: nothing changed');
 } else {
-  console.log(saveData({ events, upcoming, reasons, results, facts, standings, state: data.state }, now));
+  console.log(saveData({ events, upcoming, reasons, results, facts, standings, golf: golfFile, state: data.state }, now));
 }

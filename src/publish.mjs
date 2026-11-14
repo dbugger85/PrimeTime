@@ -9,7 +9,7 @@ import { FORECASTS, OUTLOOKS, STAKES } from './prematch.mjs';
 const rights = JSON.parse(readFileSync(new URL('./rights/norway.json', import.meta.url)));
 
 export const ADVICE_CODES = ['full', 'highlights', 'skip', 'watch'];
-const UNITS = ['min', 'lap', 'set', 'stage', 'leg', 'run', 'bib']; // stage, leg: biathlon; run: alpine; bib: winter
+const UNITS = ['min', 'lap', 'set', 'stage', 'leg', 'run', 'bib', 'hole']; // stage, leg: biathlon; run: alpine; bib: winter; hole: golf
 
 // ctx { country, series, start } is used by entries with rules (winter sports):
 // the first rule whose conditions all match decides, otherwise `services`.
@@ -248,6 +248,59 @@ export const upcomingF1 = (race) => ({
   circuit: race.circuit,
   ...f1Session(race),
 });
+
+// Golf: one card per tournament all week, always about today's round (see "Golf" in CLAUDE.md).
+// Schedule only (level 0): the round, the round days and tee windows, the field (frozen at the first
+// tee shot, so no name disappears at the cut, sorted by name, never by position) and the round 1–2
+// tee times (drawn before the tournament). No score, position, cut line or weekend tee time.
+const isoTime = (t) => (typeof t === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\dZ$/.test(t) ? t : null);
+export function golfRounds(rounds) {
+  return (rounds ?? []).slice(0, 4).map((r, i) => {
+    const first = isoTime(r.first), last = isoTime(r.last);
+    return { n: i + 1, day: /^\d{4}-\d\d-\d\d$/.test(r.day) ? r.day : '', ...(first && last ? { first, last } : {}) };
+  });
+}
+export function golfField(names) {
+  return [...new Set((names ?? []).filter((n) => typeof n === 'string' && n.trim()).map((n) => n.trim().slice(0, 60)))].sort((a, b) => a.localeCompare(b));
+}
+export function golfTees(tees, field) {
+  const out = {};
+  for (const name of field) {
+    const t = (tees?.[name] ?? []).slice(0, 2).map(isoTime);
+    if (t.some(Boolean)) out[name] = t;
+  }
+  return out;
+}
+const golfComp = (t) => (t.major ? 'golf.major' : 'golf.pga');
+const golfCtx = (t) => ({ series: t.series });
+// How tense it is (level 1, codes only): `heat` 0–3 on a live card, `outlook` before rounds 3–4.
+export const GOLF_OUTLOOKS = ['tight', 'open', 'few', 'clear'];
+export const upcomingGolf = (t, { round, rounds, field, tees, live, heat, outlook }) => {
+  const r = golfRounds(rounds);
+  const f = golfField(field);
+  const current = r.find((x) => x.n === round) ?? r[0];
+  return {
+    ...upcomingBase(`gf-${t.id}`, 'golf', golfComp(t), t.name, current.first ?? `${current.day}T12:00:00Z`, live, 'golf', golfCtx(t)),
+    course: String(t.course ?? '').slice(0, 80),
+    round: current.n,
+    rounds: r,
+    field: f,
+    tees: golfTees(tees, f),
+    ...(live && [0, 1, 2, 3].includes(heat) ? { heat } : {}),
+    ...(!live && GOLF_OUTLOOKS.includes(outlook) ? { outlook } : {}),
+  };
+};
+
+// Golf replays: the final round, rated, with no names. `start` is the final round's first tee time
+// (not ESPN's end date, which a Monday playoff moves). Strip: always 6 blocks of 3 holes.
+export const publishGolf = (t, scored) => {
+  const r4 = golfRounds(t.rounds)[3];
+  return {
+    ...base(`gf-${t.id}`, 'golf', golfComp(t), t.name, r4?.first ?? t.end, { ...scored, segments: scored.limited ? [] : Array.from({ length: 6 }, (_, i) => scored.segments[i] ?? 0) }, 'golf', golfCtx(t)),
+    course: String(t.course ?? '').slice(0, 80),
+    ...(scored.limited ? { limited: true } : {}), // ESPN had no hole-by-hole scores: no strip, "limited info"
+  };
+};
 
 // League tables for the Team view (docs/data/standings.json, loaded only after a warning,
 // since points and wins follow every result). Numbers and names only: no "9-0-1" record

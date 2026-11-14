@@ -4,7 +4,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createECDH, createHmac, createDecipheriv, createPublicKey, verify } from 'node:crypto';
 import { encrypt, vapidHeader, b64u } from '../worker/src/webpush.js';
-import { sendDue } from '../worker/src/index.js';
+import { sendDue, resyncStarts } from '../worker/src/index.js';
+import { golfDue, pastKeys } from '../worker/src/golf.js';
 
 const hmac = (key, data) => createHmac('sha256', key).update(data).digest();
 
@@ -70,6 +71,11 @@ test('the VAPID header is a valid ES256 token for the push service', async () =>
 function fakeDb(rows) {
   const run = (sql, args) => {
     if (sql.startsWith('SELECT * FROM alerts WHERE start <=')) return { results: rows.filter((r) => r.start <= args[0]) };
+    if (sql.startsWith("SELECT DISTINCT event, start FROM alerts WHERE kind = 'start' AND start > ? AND start <= ?")) {
+      return { results: [...new Map(rows.filter((r) => (r.kind ?? 'start') === 'start' && r.start > args[0] && r.start <= args[1]).map((r) => [`${r.event}|${r.start}`, { event: r.event, start: r.start }])).values()] };
+    }
+    if (sql === 'UPDATE alerts SET start = ?, sent = ? WHERE endpoint = ? AND event = ?') { const r = rows.find((x) => x.endpoint === args[2] && x.event === args[3]); r.start = args[0]; r.sent = args[1]; return {}; }
+    if (sql === 'UPDATE alerts SET start = ? WHERE event = ? AND start = ?') { for (const r of rows) if (r.event === args[1] && r.start === args[2]) r.start = args[0]; return {}; }
     if (sql.startsWith('UPDATE alerts SET start')) { const r = rows.find((x) => x.endpoint === args[1] && x.event === args[2]); r.start = args[0]; return {}; }
     if (sql === 'DELETE FROM alerts WHERE endpoint = ? AND event = ?') { rows.splice(0, rows.length, ...rows.filter((x) => !(x.endpoint === args[0] && x.event === args[1]))); return {}; }
     if (sql === 'DELETE FROM alerts WHERE endpoint = ?') { rows.splice(0, rows.length, ...rows.filter((x) => x.endpoint !== args[0])); return {}; }
@@ -112,5 +118,97 @@ test('every minute: sends what has started, waits for moved events, drops cancel
     assert.match(sent[0].auth, /^vapid t=/);
     assert.deepEqual(rows.map((x) => x.event).sort(), ['gone-recent', 'later', 'moved']);
     assert.equal(rows.find((x) => x.event === 'moved').start, Date.parse('2026-11-07T21:00Z'));
+  } finally { globalThis.fetch = realFetch; }
+});
+
+test('every 15 minutes: an event moved earlier (golf tee times brought forward) is caught up', async () => {
+  const now = Date.parse('2026-11-22T10:00Z');
+  const row = (event, start, endpoint) => ({ endpoint, p256dh: 'x', auth: 'y', event, start: Date.parse(start), title: 'T', body: 'B' });
+  const rows = [
+    row('gf-1', '2026-11-22T16:00Z', 'https://fcm.googleapis.com/a'), // the round now starts at 13:00 (storms coming)
+    row('gf-1', '2026-11-22T16:00Z', 'https://fcm.googleapis.com/b'),
+    row('fb-2', '2026-11-22T18:00Z', 'https://fcm.googleapis.com/a'), // moved later: left to sendDue
+    row('fb-3', '2026-11-29T18:00Z', 'https://fcm.googleapis.com/a'), // a week away: not looked at
+  ];
+  const site = { upcoming: [{ id: 'gf-1', start: '2026-11-22T13:00Z' }, { id: 'fb-2', start: '2026-11-22T19:00Z' }, { id: 'fb-3', start: '2026-11-29T12:00Z' }], events: [] };
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify(site));
+  try {
+    const r = await resyncStarts({ DB: fakeDb(rows), SITE: 'https://primetime.re' }, now);
+    assert.equal(r.moved, 1);
+    assert.deepEqual(rows.map((x) => new Date(x.start).toISOString().slice(11, 16)), ['13:00', '13:00', '18:00', '18:00']);
+  } finally { globalThis.fetch = realFetch; }
+});
+
+// ── Golf: one bell follows the whole tournament (worker/src/golf.js) ────────────
+const golfCard = (over = {}) => ({
+  id: 'gf-9', sport: 'golf', compName: 'The RSM Classic', status: 'upcoming', round: 3, field: ['Viktor Hovland', 'Ben Griffin'],
+  rounds: [
+    { n: 1, day: '2026-11-19', first: '2026-11-19T12:00Z', last: '2026-11-19T18:00Z' },
+    { n: 2, day: '2026-11-20', first: '2026-11-20T12:00Z', last: '2026-11-20T18:00Z' },
+    { n: 3, day: '2026-11-21', first: '2026-11-21T14:00Z', last: '2026-11-21T17:30Z' },
+    { n: 4, day: '2026-11-22' },
+  ],
+  ...over,
+});
+const golfRow = (over = {}) => ({ title: 'The RSM Classic', body: 'HBO Max', level: 1, players: [], sent: ['r1', 'r2'], ...over });
+
+test('golf pushes: each round start, the back nine on the weekend, nothing twice', () => {
+  const e = golfCard();
+  let r = golfDue(e, golfRow(), Date.parse('2026-11-21T10:00Z'));
+  assert.deepEqual(r.alerts, []);
+  assert.equal(r.next, Date.parse('2026-11-21T11:00Z'), 'looks again within the hour (new tee times)');
+  r = golfDue(e, golfRow(), Date.parse('2026-11-21T14:00Z'));
+  assert.deepEqual(r.alerts, [{ key: 'r3', title: 'The RSM Classic', body: 'Round 3 is starting · HBO Max' }]);
+  r = golfDue(e, golfRow({ sent: r.sent }), Date.parse('2026-11-21T19:41Z'));
+  assert.deepEqual(r.alerts.map((a) => a.body), ['The last group is reaching the back nine · HBO Max'], '17:30 + 2 h 10');
+  assert.deepEqual(golfDue(e, golfRow({ sent: r.sent }), Date.parse('2026-11-21T19:42Z')).alerts, [], 'not twice');
+  // Belling mid-tournament: what's already past isn't sent.
+  assert.deepEqual(pastKeys(e, Date.parse('2026-11-21T15:00Z')), ['r1', 'r2', 'r3']);
+  // Missed by more than 3 hours (the helper was down): marked, not sent.
+  r = golfDue(e, golfRow(), Date.parse('2026-11-21T18:00Z'));
+  assert.ok(r.sent.includes('r3') && !r.alerts.some((a) => a.key === 'r3'));
+});
+
+test('golf pushes: "tight at the top" once (level 1+), "in contention" only for level 2+ phones', () => {
+  const now = Date.parse('2026-11-22T20:00Z');
+  const live = golfCard({ status: 'live', round: 4, heat: 3, rounds: golfCard().rounds.map((x) => (x.n === 4 ? { ...x, first: '2026-11-22T14:00Z', last: '2026-11-22T17:40Z' } : x)) });
+  const sent = ['r1', 'r2', 'r3', 'b3', 'r4', 'b4'];
+  let r = golfDue(live, golfRow({ sent }), now);
+  assert.deepEqual(r.alerts.map((a) => a.title), ['The RSM Classic: tight at the top, good time to tune in']);
+  assert.equal(r.next, now + 5 * 60e3, 'every 5 minutes while live');
+  assert.deepEqual(golfDue(live, golfRow({ sent: r.sent }), now).alerts, [], 'once');
+  assert.deepEqual(golfDue(live, golfRow({ sent, level: 0 }), now).alerts, [], 'level 0: no tension pushes');
+  const file = { 'gf-9': { t: { state: 'in', period: 4, cutRound: 2, players: [
+    { name: 'Viktor Hovland', toPar: -15, thru: 12, pos: 'T2', status: 'active', sort: 2, tees: [] },
+    { name: 'Ben Griffin', toPar: -9, thru: 14, pos: 'T20', status: 'active', sort: 20, tees: [] },
+    { name: 'Leader', toPar: -16, thru: 12, pos: '1', status: 'active', sort: 1, tees: [] },
+  ] } } };
+  r = golfDue(live, golfRow({ sent: [...sent, 'hot'], level: 2, players: ['Viktor Hovland', 'Ben Griffin'] }), now, file);
+  assert.deepEqual(r.alerts.map((a) => [a.title, a.body]), [['Viktor Hovland is in contention', 'The RSM Classic · round 4 · HBO Max']]);
+  assert.deepEqual(golfDue(live, golfRow({ sent: [...sent, 'hot'], level: 1, players: ['Viktor Hovland'] }), now, file).alerts, [], 'level 1: never a name');
+});
+
+test('every minute: a golf bell sends its round start, stays for the next one, and goes when the tournament is over', async () => {
+  const now = Date.parse('2026-11-21T14:00Z');
+  const k = await vapidKeys();
+  const b = browser();
+  const rows = [{ endpoint: 'https://fcm.googleapis.com/fcm/send/g', ...b.keys, event: 'gf-9', start: now - 60e3, title: 'The RSM Classic', body: 'HBO Max', kind: 'golf', players: '[]', level: 1, sent: '["r1","r2"]' },
+    { endpoint: 'https://fcm.googleapis.com/fcm/send/g', ...b.keys, event: 'gf-8', start: now - 60e3, title: 'Old', body: '', kind: 'golf', players: '[]', level: 1, sent: '[]' }];
+  const site = { upcoming: [golfCard()], events: [{ id: 'gf-8' }] };
+  const sent = [];
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    if (String(url).endsWith('/data/events.json')) return new Response(JSON.stringify(site));
+    sent.push(JSON.parse(b.decrypt(init.body)));
+    return new Response(null, { status: 201 });
+  };
+  try {
+    const r = await sendDue({ DB: fakeDb(rows), SITE: 'https://primetime.re', VAPID_PUBLIC: k.publicKey, VAPID_PRIVATE: JSON.stringify(k.privateJwk) }, now);
+    assert.equal(r.sent, 1);
+    assert.deepEqual(sent, [{ title: 'The RSM Classic', body: 'Round 3 is starting · HBO Max', id: 'gf-9' }]);
+    assert.deepEqual(rows.map((x) => x.event), ['gf-9'], 'the finished tournament\'s bell is dropped, the other stays');
+    assert.deepEqual(JSON.parse(rows[0].sent), ['r1', 'r2', 'r3']);
+    assert.equal(rows[0].start, Date.parse('2026-11-21T15:00Z'), 'next look within the hour (the back nine is at 19:40)');
   } finally { globalThis.fetch = realFetch; }
 });
