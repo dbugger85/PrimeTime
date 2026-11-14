@@ -128,6 +128,8 @@
         <select id="f-golf">
           <option value="0">Schedule only</option>
           <option value="1">How tense it is (no names)</option>
+          <option value="2">Also my favorites, in words</option>
+          <option value="3">Everything: positions</option>
         </select>
       </label>
       <label data-for="f1">Sessions
@@ -147,7 +149,7 @@
       <label class="check replay-only"><input type="checkbox" id="f-watched"> Hide watched</label>
       <label class="check"><input type="checkbox" id="f-glass"> Glass look</label>
     </div>
-    <p class="small" data-for="golf">Golf cards follow today's round. "Schedule only" shows tee times and when the last group reaches the back nine; "How tense it is" also says whether it's quiet or heating up, never who leads.</p>
+    <p class="small" data-for="golf">Golf cards follow today's round. "Schedule only" shows tee times and when the last group reaches the back nine; "How tense it is" also says whether it's quiet or heating up, never who leads. "My favorites" says how the golfers you follow are doing ("in contention", "near the cut line"); "Everything" adds positions and a leaderboard.</p>
     <p class="small" data-for="tennis football all">Why hide names? In a tournament, just seeing who plays a later round tells you who won earlier. Tap a hidden name to reveal it.</p>
     <button type="button" class="reset" id="f-reset" hidden>Reset filters</button>
     <!-- Custom scoring (football): re-scores matches on this device with your own weights (docs/scoring.js). -->
@@ -233,6 +235,8 @@
         <p class="sub"></p>
         <p class="sub chances" hidden></p>
         <div class="golf-favs" hidden></div>
+        <button class="golf-board-btn" type="button" aria-expanded="false" hidden>Leaderboard</button>
+        <div class="golf-board why" hidden></div>
         <div class="row"><div class="svc"></div><button class="bell" type="button" aria-pressed="false" hidden>🔔</button></div>
         <button class="pace-btn" type="button" aria-expanded="false" hidden>Excitement so far</button>
         <p class="pace" aria-live="polite" hidden></p>

@@ -219,3 +219,89 @@ export function holdHeat(prev, heat, now = Date.now()) {
   if (now - prev.at < HOLD_MIN * 60e3) return prev;
   return { heat, at: now };
 }
+
+// ── Your favorites and the leaderboard (levels 2 and 3) ───────────────────────
+// From ESPN's leaderboard (parseLeaderboard), fetched by the page itself, or the bot's golf.json.
+// Level 2 says how a favorite is doing in plain words, never a position; level 3 says everything.
+
+// "In contention": within this many shots of the lead, or in the top CONTENTION_TOP.
+export const CONTENTION_SHOTS = 3;
+export const CONTENTION_TOP = 5;
+// "Near the cut line": within this many shots of the projected cut, either side.
+export const CUT_NEAR = 1;
+
+const rankOf = (pos) => Number(String(pos ?? '').replace(/^T/, '')) || null;
+const outOf = (p) => ['cut', 'wd', 'dq'].includes(p.status);
+
+// The projected (or final) cut: the score of the CUT_PLACES-th player after the cut round (ties make
+// it), from everyone still in. null when the tournament has no cut (signature events) or it's made.
+export const CUT_PLACES = 65;
+export function cutLine(t) {
+  if (!t.cutRound || t.period > t.cutRound || t.players.some((p) => p.status === 'cut')) return null;
+  const scores = t.players.filter((p) => !outOf(p) && Number.isFinite(p.toPar)).map((p) => p.toPar).sort((a, b) => a - b);
+  return scores.length > CUT_PLACES ? scores[CUT_PLACES - 1] : null;
+}
+
+// A player's state, for the card. -> { name, status: 'contention' | 'cutline' | 'weekend' | 'missed' |
+// 'out' | 'playing' | 'notyet', pos ('T3'), behind (shots), thru, tee (their tee time this round), lead
+// (shots ahead of 2nd when leading) } or null when they aren't on the leaderboard.
+export function playerState(t, name, round) {
+  const p = t?.players?.find((x) => x.name === name);
+  if (!p) return null;
+  const base = { name, pos: p.pos, thru: p.thru, tee: p.tees?.[round - 1] ?? null };
+  if (p.status === 'cut') return { ...base, status: 'missed' };
+  if (outOf(p)) return { ...base, status: 'out' };
+  const live = t.players.filter((x) => !outOf(x) && Number.isFinite(x.toPar));
+  const best = Math.min(...live.map((x) => x.toPar));
+  const behind = p.toPar - best;
+  const second = live.filter((x) => x !== p).map((x) => x.toPar).sort((a, b) => a - b)[0];
+  const lead = behind === 0 && Number.isFinite(second) ? second - p.toPar : 0;
+  const st = { ...base, behind, lead };
+  const cut = cutLine(t);
+  if (behind <= CONTENTION_SHOTS || (rankOf(p.pos) ?? 999) <= CONTENTION_TOP) return { ...st, status: 'contention' };
+  if (cut != null && Math.abs(p.toPar - cut) <= CUT_NEAR) return { ...st, status: 'cutline' };
+  if (t.cutRound && (t.period > t.cutRound || t.players.some((x) => x.status === 'cut'))) return { ...st, status: 'weekend' };
+  return { ...st, status: 'playing' };
+}
+
+// The words for level 2 (no positions, no shots): "is in contention", "is near the cut line, on his
+// last holes", "tees off 18:40 · back nine about 20:50" (a weekend tee time, before it's played).
+export function favoriteWords(s, fmt, now = Date.now(), live = false) {
+  if (!s) return 'in the field';
+  if (s.status === 'missed') return 'missed the cut';
+  if (s.status === 'out') return 'is out of the tournament';
+  const notYet = s.thru === 0 && s.tee && Date.parse(s.tee) > now;
+  if (notYet) return `tees off ${fmt.time(s.tee)} · back nine about ${fmt.time(new Date(Date.parse(s.tee) + BACK_NINE_MIN * 60e3).toISOString())}`;
+  if (s.status === 'contention') return live && s.thru < 18 ? 'is in contention: watch now' : 'is in contention';
+  if (s.status === 'cutline') return live && s.thru >= 13 && s.thru < 18 ? 'is near the cut line, on his last holes' : 'is near the cut line';
+  if (s.status === 'weekend') return 'is playing the weekend';
+  return live && s.thru > 0 && s.thru < 18 ? 'is on the course' : 'in the field';
+}
+
+// Level 3: "2nd, 1 shot back, through 12", "T3, 2 shots back, finished", "leads by 2 shots, through 9".
+const ordinal = (n) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
+export function positionText(s, fmt, now = Date.now()) {
+  if (!s || s.status === 'missed' || s.status === 'out') return favoriteWords(s, fmt, now);
+  const tied = /^T/.test(s.pos);
+  const pos = tied ? s.pos : rankOf(s.pos) ? ordinal(rankOf(s.pos)) : s.pos;
+  const shots = (k) => `${k} shot${k === 1 ? '' : 's'}`;
+  const gap = s.behind === 0 ? (s.lead > 0 ? `leads by ${shots(s.lead)}` : 'tied for the lead') : `${shots(s.behind)} back`;
+  const where = s.thru >= 18 ? 'finished' : s.thru > 0 ? `through ${s.thru}` : s.tee && Date.parse(s.tee) > now ? `tees off ${fmt.time(s.tee)}` : 'not started';
+  return [s.behind === 0 && s.lead > 0 ? '' : pos, gap, where].filter(Boolean).join(', ');
+}
+
+// The leaderboard panel: the top `top` (with ties at the edge cut off) plus your favorites below it.
+//   -> [{ pos, name, toPar ('-12', 'E', '+3'), thru ('F', '12', '14:10'), fav }]
+export function leaderboardRows(t, favPlayers = [], { top = 10, fmt = null, now = Date.now() } = {}) {
+  if (!t?.players?.length) return [];
+  const par = (x) => (x === 0 ? 'E' : x > 0 ? `+${x}` : String(x));
+  const row = (p) => ({
+    pos: outOf(p) ? p.status.toUpperCase() : p.pos || '–', name: p.name, toPar: Number.isFinite(p.toPar) ? par(p.toPar) : '',
+    thru: outOf(p) ? '' : p.thru >= 18 ? 'F' : p.thru > 0 ? String(p.thru) : fmt && p.tees?.[t.period - 1] ? fmt.time(p.tees[t.period - 1]) : '',
+    fav: favPlayers.includes(p.name),
+  });
+  const ordered = [...t.players].sort((a, b) => a.sort - b.sort);
+  const head = ordered.slice(0, top);
+  const favs = ordered.filter((p) => favPlayers.includes(p.name) && !head.includes(p));
+  return [...head.map(row), ...favs.map(row)];
+}

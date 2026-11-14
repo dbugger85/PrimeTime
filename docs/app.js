@@ -1,6 +1,6 @@
 import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, followedMatch, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug, leagueGroups, teamHash, teamFromHash, teamMatches, teamTables, TABLE_COMPS } from './logic.js';
 import { ESPN, clockOf, liveClockText, espnDays, liveFacts, scoreLivePace, LIVE_FROM, elapsedText, PILLAR_KEYS, pillarShares, pillarWeightKey } from './live.js';
-import { roundLine, favoriteLines } from './golf.js';
+import { GOLF_LEADERBOARD, parseLeaderboard, roundLine, favoriteLines, playerState, favoriteWords, positionText, leaderboardRows } from './golf.js';
 import { scoreFootball, applyTweaks, cleanTweaks, isStandard, DEFAULT_TWEAKS, TWEAK_GROUPS, STAKES, SCALE_MAX, SCALE_STEP, CURVE_STEP, BOOST_STEP, BOOST_MAX, PILLARS, PILLAR_MAX, PILLAR_STEP } from './scoring.js';
 
 const SERVICES = {
@@ -32,6 +32,7 @@ const store = {
 const prefs = { ...DEFAULTS, ...migratePrefs(store.load('pt-prefs', {})) };
 prefs.favs = { ...DEFAULTS.favs, ...prefs.favs };
 prefs.tweaks = cleanTweaks(prefs.tweaks);
+if (![0, 1, 2, 3].includes(prefs.golfSpoilers)) prefs.golfSpoilers = DEFAULTS.golfSpoilers;
 const watched = new Set(store.load('pt-watched', []));
 const revealed = new Set(); // names revealed this visit only
 const whyShown = new Set(); // "Why this score?" opened this visit only
@@ -74,6 +75,10 @@ let listScroll = 0; // where the list was, to return to it
 const tableShown = new Set(); // slugs whose league tables were revealed this visit only (after a warning)
 let standingsFile = null; // docs/data/standings.json: loaded only after the warning
 let standingsAt = 0;
+// Golf at "how much to reveal" level 2–3, or after "⚠⚠ Leaderboard": ESPN's leaderboard per card.
+const golfBoards = new Map(); // id -> { t (parseLeaderboard), at }
+const golfBoardShown = new Set(); // "⚠⚠ Leaderboard" revealed this visit only (below level 3)
+const golfBoardOpen = new Set(); // "▸ Leaderboard" opened (level 3), this visit only
 const PAGE = 40;
 let limit = PAGE; // cards shown; grows with "Show more"
 
@@ -570,6 +575,11 @@ const SPOILER_LEVELS = {
     text: 'This shows the final result: the score, who won, the podium. There is no going back from this one.',
     ok: 'Show the result', file: './data/results.json', shown: resultShown,
   },
+  golfBoard: { // a golf card's leaderboard below level 3 (fillGolfBoard)
+    title: '⚠⚠ Leaderboard?',
+    text: 'The leaderboard shows who leads, by how much, and how everyone is doing. It stays open on this card until you close it or reload.',
+    ok: 'Show the leaderboard',
+  },
   table: { // the Team view's league tables (askTable)
     title: '⚠⚠ League table?',
     text: 'A league table shows points, wins, draws, losses and goal difference, so it gives recent results away.',
@@ -674,17 +684,122 @@ const GOLF_FMT = {
 // The round's tee times aren't out yet: the card shows the day only.
 const golfTbd = (e) => e.sport === 'golf' && !e.rounds?.find((r) => r.n === e.round)?.first;
 
-// Golfers you follow who are in the field: "★ Viktor Hovland tees off 14:10".
+// Golfers you follow who are in the field. Levels 0–1: "★ Viktor Hovland tees off 14:10" (round 1–2
+// tee times, from events.json). Level 2: how they're doing in plain words ("is in contention"), level 3:
+// positions ("T3, 2 shots back, through 12"), both from ESPN's leaderboard (fetched here, see pollGolf).
 function fillGolf(li, e) {
   if (e.sport !== 'golf') return;
+  const level = prefs.golfSpoilers;
+  const board = golfBoards.get(e.id)?.t;
+  if ((level >= 2 || golfBoardShown.has(e.id) || golfBoardOpen.has(e.id)) && golfStarted(e) && !golfBoards.has(e.id)) golfFetch(e);
   const box = li.querySelector('.golf-favs');
-  const lines = favoriteLines(e, prefs.favs.players, GOLF_FMT);
+  const base = favoriteLines(e, prefs.favs.players, GOLF_FMT);
+  const lines = base.map(({ name, text }) => {
+    if (level < 2 || !board) return { name, text };
+    const s = playerState(board, name, e.round);
+    return { name, text: level >= 3 ? positionText(s, GOLF_FMT) : favoriteWords(s, GOLF_FMT, Date.now(), e.status === 'live') };
+  });
   box.hidden = !lines.length;
   box.replaceChildren(...lines.map(({ name, text }) => {
     const p = Object.assign(document.createElement('p'), { className: 'golf-fav' });
     p.append(star('players', name, name), ` ${name} ${text}`);
     return p;
   }));
+  fillGolfBoard(li, e);
+}
+
+// Has anyone hit a ball yet (so there's a leaderboard to show)?
+const golfStarted = (e) => e.status === 'live' || e.round > 1 || Boolean(e.outlook);
+
+// The leaderboard on a golf card: "▸ Leaderboard" at level 3; below that "⚠⚠ Leaderboard" behind a
+// warning, for this visit and this card only (like the Team view's league tables). Top 10 plus favorites.
+function fillGolfBoard(li, e) {
+  const btn = li.querySelector('.golf-board-btn');
+  const panel = li.querySelector('.golf-board');
+  if (!golfStarted(e)) return;
+  const all = prefs.golfSpoilers >= 3;
+  const open = all ? golfBoardOpen.has(e.id) : golfBoardShown.has(e.id);
+  btn.hidden = open && !all;
+  btn.textContent = all ? (open ? '▾ Leaderboard' : '▸ Leaderboard') : calibrating ? 'Leaderboard' : '⚠⚠ Leaderboard';
+  btn.classList.toggle('result-btn', !all);
+  btn.setAttribute('aria-expanded', String(open));
+  btn.onclick = async () => {
+    if (all) { open ? golfBoardOpen.delete(e.id) : golfBoardOpen.add(e.id); }
+    else {
+      if (!calibrating && !(await confirmSpoiler(SPOILER_LEVELS.golfBoard))) return;
+      golfBoardShown.add(e.id);
+    }
+    if (!golfBoards.has(e.id)) await golfFetch(e);
+    refreshGolf(e.id);
+  };
+  panel.hidden = !open;
+  if (!open) return;
+  const board = golfBoards.get(e.id);
+  const rows = leaderboardRows(board?.t, prefs.favs.players, { fmt: GOLF_FMT });
+  const close = el('button', { type: 'button', className: 'why-close', textContent: '✕' });
+  close.setAttribute('aria-label', 'Hide the leaderboard');
+  close.onclick = () => { golfBoardShown.delete(e.id); golfBoardOpen.delete(e.id); refreshGolf(e.id); };
+  if (!rows.length) {
+    panel.replaceChildren(...(all ? [] : [close]), el('p', { className: 'small', textContent: board ? 'No leaderboard yet.' : 'Loading the leaderboard…' }));
+    return;
+  }
+  const table = el('table', { className: 'standings golf-table' });
+  const head = el('tr');
+  for (const [abbr, full] of [['#', 'Position'], ['Player', ''], ['Par', 'Total to par'], ['Thru', 'Holes played this round']]) {
+    const th = el('th', { scope: 'col', textContent: abbr });
+    if (full) th.title = full;
+    if (abbr === 'Player') th.className = 'team';
+    head.append(th);
+  }
+  const body = el('tbody');
+  rows.forEach((r, i) => {
+    const tr = el('tr', { className: r.fav ? 'me' : '' });
+    if (i > 0 && r.fav && !rows[i - 1].fav && i >= 10) tr.classList.add('line');
+    tr.append(el('td', { textContent: r.pos }), el('th', { scope: 'row', className: 'team', textContent: r.fav ? `★ ${r.name}` : r.name }),
+      el('td', { textContent: r.toPar }), el('td', { textContent: r.thru }));
+    body.append(tr);
+  });
+  table.append(el('thead', {}, head), body);
+  panel.replaceChildren(...(all ? [] : [close]), el('div', { className: 'table-scroll' }, table),
+    el('p', { className: 'small', textContent: `From ESPN, ${timeFmt.format(new Date(board.at))}.` }));
+}
+
+// Redraws just the golf parts of a card (the favorites and the leaderboard), without a full render.
+function refreshGolf(id) {
+  const li = document.querySelector(`#cards .card.soon[data-id="${CSS.escape(id)}"]`);
+  const e = upcoming.find((x) => x.id === id);
+  if (li && e) fillGolf(li, e);
+}
+
+// ESPN's leaderboard for a golf card (CORS is allowed), about 21 KB. Only ever called for level 2 and
+// up, or after the "⚠⚠ Leaderboard" warning. A failure keeps what was there.
+const golfInFlight = new Set();
+async function golfFetch(e) {
+  if (golfInFlight.has(e.id)) return;
+  golfInFlight.add(e.id);
+  try {
+    const res = await fetch(`${GOLF_LEADERBOARD}${e.id.slice(3)}`, { signal: AbortSignal.timeout(20e3) });
+    if (!res.ok) throw new Error(res.status);
+    const t = parseLeaderboard(await res.json());
+    if (t) golfBoards.set(e.id, { t, at: Date.now() });
+  } catch {
+    if (!golfBoards.has(e.id)) golfBoards.set(e.id, { t: null, at: Date.now() }); // "No leaderboard yet"; tried again next minute
+  } finally {
+    golfInFlight.delete(e.id);
+  }
+  refreshGolf(e.id);
+}
+
+// Once a minute, while a golf card is on screen and the tab is visible: the leaderboard again for each
+// golf card that uses it (level 2 and up, or a leaderboard opened behind its warning). Nothing below level 2.
+const GOLF_POLL_MS = 60e3;
+function pollGolf() {
+  if (document.visibilityState !== 'visible') return;
+  for (const li of document.querySelectorAll('#cards > .card.soon[data-id^="gf-"]')) {
+    const e = upcoming.find((x) => x.id === li.dataset.id);
+    if (!e || !golfStarted(e)) continue;
+    if (prefs.golfSpoilers >= 2 || golfBoardShown.has(e.id) || golfBoardOpen.has(e.id)) golfFetch(e);
+  }
 }
 
 // ── "🔔 Notify me when it starts" ─────────────────────────────────────────────
@@ -1211,6 +1326,16 @@ const CONSENT = {
     text: 'To re-score matches, this device downloads the facts behind every football score: goals, cards, chances and the odds before kick-off. They are never shown, but extreme settings can hint at results (with only "Upsets" turned up, a high score means an upset).',
     ok: 'Turn it on',
   },
+  golf2: {
+    title: '⚠ Golf: your favorites',
+    text: 'Golf cards will say how the golfers you follow are doing, in plain words: in contention, near the cut line, missed the cut, and their weekend tee times (the leaders go out last, so those give a lot away). No positions. While a golf card is on screen, this device asks ESPN for the leaderboard once a minute.',
+    ok: 'Show my favorites',
+  },
+  golf3: {
+    title: '⚠⚠ Golf: everything',
+    text: 'Golf cards will show positions and how many shots back your favorites are, plus a leaderboard. Every tournament is spoiled until you choose a lower level.',
+    ok: 'Show everything',
+  },
   calibrate: {
     title: '⚠⚠ Calibration mode',
     text: 'Calibration mode shows every result on every card, live scores included, plus the facts and the full calculation behind each football score. Everything is spoiled until you switch it off. It switches itself off when you reload the page.',
@@ -1632,7 +1757,18 @@ function bind() {
   on('#f-draw', 'draw');
   on('#f-f1session', 'f1Session');
   on('#f-gender', 'gender');
-  on('#f-golf', 'golfSpoilers', Number);
+  // Golf: levels 2 and 3 show a warning first (each time you go up to them), then stay as chosen.
+  $('#f-golf').onchange = async (ev) => {
+    const level = Number(ev.target.value);
+    if (level >= 2 && level > prefs.golfSpoilers) {
+      ev.target.value = String(prefs.golfSpoilers);
+      if (!(await confirmSpoiler(level === 3 ? CONSENT.golf3 : CONSENT.golf2))) return;
+      ev.target.value = String(level);
+    }
+    prefs.golfSpoilers = level;
+    savePrefs({ keepPlace: true });
+    keepScroll(render);
+  };
   on('#f-hide-tn', 'hideTennis');
   on('#f-hide-fb', 'hideFootball');
   $('#f-reset').onclick = () => {
@@ -1790,6 +1926,7 @@ async function importSettings() {
   Object.assign(prefs, { ...DEFAULTS, ...data.prefs, view: prefs.view });
   prefs.favs = { ...DEFAULTS.favs, ...prefs.favs };
   prefs.tweaks = { ...cleanTweaks(prefs.tweaks), on: false }; // sliders travel; switching it on shows its warning here first
+  prefs.golfSpoilers = Math.min(1, [0, 1, 2, 3].includes(prefs.golfSpoilers) ? prefs.golfSpoilers : 1); // golf: at most level 1, the warning comes here first
   recompute();
   for (const id of data.watched) watched.add(id);
   savePrefs();
@@ -1810,6 +1947,7 @@ function load() {
   setInterval(() => document.visibilityState === 'visible' && fetchData({ quiet: true }), REFRESH_MS);
   setInterval(updateClocks, 30e3);
   setInterval(pollLive, LIVE_POLL_MS);
+  setInterval(pollGolf, GOLF_POLL_MS);
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && Date.now() - lastFetch > REFRESH_MS) fetchData({ quiet: true });
     if (document.visibilityState === 'visible') { updateClocks(); pollLive(); } // back to the tab: catch up on the minute

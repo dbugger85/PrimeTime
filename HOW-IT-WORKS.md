@@ -97,7 +97,11 @@ The field (who's playing) is shown by name, never in the order of the leaderboar
 - **While a round is on**, a heat level from "Quiet so far" to "Red hot". It looks at every player's gap to the leader against the holes both still have to play: 2 shots back with a whole round left is a real chase, 2 back on the last hole almost over. The closest chaser counts most. A chase counts more the further the leaders are into their round, and "Red hot" only comes once they've reached the back nine. Thursday and Friday can only reach "Something brewing" (those days are about making the cut), Saturday "Heating up". The level never drops within 15 minutes, so it doesn't flicker.
 - It was tuned by replaying real final rounds hole by hole: the 2025 Masters and the 2026 Travelers Championship (both decided in a playoff) turn red hot on the back nine; the 2025 Open, which Scottie Scheffler won by four, stays quiet all day.
 
-"Schedule only" leaves even that out.
+"Schedule only" leaves even that out. Two more levels are there if you want them, each behind a warning:
+- **"Also my favorites, in words"**: how the golfers you follow are doing, without positions: "in contention" (within 3 shots of the lead, or top 5), "playing the weekend", "near the cut line", "missed the cut", and their weekend tee times.
+- **"Everything"**: positions ("T3, 2 shots back, through 12") and a leaderboard with the top 10 and your favorites.
+
+For these, your phone fetches the live leaderboard from ESPN once a minute while a golf card is on screen. At the lower levels it never does, and a "⚠⚠ Leaderboard" button lets you peek at one tournament after a warning.
 
 ## Never a spoiler
 

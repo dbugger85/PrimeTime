@@ -282,6 +282,11 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .golf-favs { margin-top: 4px; }
 .golf-fav { margin: 2px 0; font-size: 13.5px; }
 .golf-fav .star { margin-left: -6px; }
+.golf-board { position: relative; margin-top: 8px; }
+.golf-board:has(.why-close) { padding-top: 34px; }
+.golf-board .why-close { z-index: 1; }
+.golf-table .team { font-weight: 500; }
+.golf-table td:last-child { font-weight: 500; }
 .strip { position: relative; display: flex; gap: 3px; margin-top: 6px; }
 .strip .skip {
   position: absolute; top: -3px; bottom: -3px; border-radius: 3px;
@@ -319,7 +324,7 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
   justify-self: start; margin-top: 4px; border: 0; background: none; padding: 6px 0; min-height: 36px;
   color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer;
 }
-.lineup-btn, .pace-btn {
+.lineup-btn, .pace-btn, .golf-board-btn {
   justify-self: start; margin-top: 4px; border: 0; background: none; padding: 6px 0; min-height: 36px;
   color: var(--ink); font-size: 13.5px; font-weight: 600; cursor: pointer;
 }
@@ -363,7 +368,7 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .why .pts { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
 .why .neg .pts { color: var(--muted); }
 .why .small { margin-top: 6px; }
-.why .result-btn { margin-top: 6px; color: var(--live); }
+.why .result-btn, .golf-board-btn.result-btn { margin-top: 6px; color: var(--live); }
 .why .result {
   margin-top: 10px; padding: 10px; border-radius: 8px; border: 2px solid var(--live);
   background: var(--surface); font-size: 15px;

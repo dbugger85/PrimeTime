@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { parseLeaderboard, roundsOf, currentRound, roundLine, favoriteLines, backNineAt, cleanName, heatOf, holdHeat, outlookOf, OUTLOOKS } from '../docs/golf.js';
+import { parseLeaderboard, roundsOf, currentRound, roundLine, favoriteLines, backNineAt, cleanName, heatOf, holdHeat, outlookOf, OUTLOOKS, playerState, favoriteWords, positionText, leaderboardRows, cutLine } from '../docs/golf.js';
 import { GOLF_LIVE } from '../src/scoring/weights.mjs';
 import { golfCard, readyToScore, shownTournament, seriesOf, withSeries, noteGolfers, holesFromScoreboard } from '../src/sources/espn-golf.mjs';
 import { upcomingGolf, servicesFor } from '../src/publish.mjs';
@@ -234,4 +234,56 @@ test('level 1 lines: the codes replace the schedule words, never a name', () => 
   assert.equal(card.live, false);
   assert.ok(OUTLOOKS.includes(card.outlook));
   assert.ok(!('heat' in upcomingGolf(between, { ...card, heat: 2 })));
+});
+
+// ── Piece 3: favorites in words (level 2) and positions (level 3) ──────────────
+test('level 2: favorites in plain words, never a position', () => {
+  const t = austin();
+  const now = Date.parse('2026-11-14T17:00Z');
+  const fmt = FMT(now);
+  const words = (name, live = true) => favoriteWords(playerState(t, name, 3), fmt, now, live);
+  assert.equal(words('Chad Ramey'), 'is in contention: watch now', 'tied for the lead');
+  assert.equal(words('Zac Blair'), 'is in contention', '2 back, finished for the day');
+  assert.equal(words('Hayden Springer'), 'is in contention', '3 back counts');
+  const weekend = t.players.find((p) => p.status === 'active' && playerState(t, p.name, 3).status === 'weekend');
+  assert.equal(words(weekend.name), 'is playing the weekend');
+  assert.equal(words(t.players.find((p) => p.status === 'cut').name), 'missed the cut');
+  assert.equal(words(t.players.find((p) => p.status === 'wd').name), 'is out of the tournament');
+  assert.equal(favoriteWords(null, fmt), 'in the field', 'not on the leaderboard (yet)');
+  // A weekend tee time is level 2: before they tee off, with the back nine about 2 h 10 later.
+  const early = Date.parse('2026-11-14T13:00Z');
+  const before = { ...t, players: t.players.map((p) => ({ ...p, thru: 0 })) };
+  assert.equal(favoriteWords(playerState(before, 'Chad Ramey', 3), FMT(early), early, false), 'tees off 15:46 · back nine about 17:56');
+  // No position or number of shots at level 2, for anyone.
+  for (const p of t.players) assert.doesNotMatch(words(p.name), /\d|back|lead|T\d/, `${p.name}: ${words(p.name)}`);
+});
+
+test('level 2: near the cut line on Friday, on his last holes', () => {
+  const t = austin();
+  // Friday afternoon: nobody is cut yet, the projected cut is the 65th place's score.
+  const friday = { ...t, period: 2, players: t.players.map((p) => ({ ...p, status: 'active', thru: 15 })) };
+  const fake = { ...friday, players: [...friday.players, ...Array.from({ length: 60 }, (_, i) => ({ name: `Filler ${i}`, toPar: -8 + Math.floor(i / 6), thru: 15, status: 'active', pos: '', sort: 200 + i, tees: [] }))] };
+  const cut = cutLine(fake);
+  assert.ok(Number.isFinite(cut));
+  const near = fake.players.find((p) => p.toPar === cut && !p.name.startsWith('Filler'));
+  if (near) assert.equal(favoriteWords(playerState(fake, near.name, 2), FMT(0), 0, true), 'is near the cut line, on his last holes');
+  assert.equal(cutLine(t), null, 'the cut is made: no line');
+  assert.equal(cutLine({ ...friday, cutRound: 0 }), null, 'no cut at all (signature events)');
+});
+
+test('level 3: positions, shots back and the leaderboard', () => {
+  const t = austin();
+  const now = Date.parse('2026-11-14T17:00Z');
+  const pos = (name) => positionText(playerState(t, name, 3), FMT(now), now);
+  assert.equal(pos('Chad Ramey'), 'T1, tied for the lead, through 14');
+  assert.equal(pos('Zac Blair'), 'T7, 2 shots back, finished');
+  const solo = { ...t, players: t.players.map((p) => (p.name === 'Trace Crowe' ? { ...p, toPar: -15, pos: '1' } : p.name === 'Chad Ramey' ? { ...p, pos: '2' } : p)) };
+  assert.equal(positionText(playerState(solo, 'Trace Crowe', 3), FMT(now), now), 'leads by 2 shots, through 10');
+  assert.equal(positionText(playerState(solo, 'Chad Ramey', 3), FMT(now), now), '2nd, 2 shots back, through 14');
+  const rows = leaderboardRows(t, ['Zac Blair', t.players.at(-1).name], { fmt: FMT(now) });
+  assert.equal(rows.length, 11, 'the top 10 plus a favorite outside it (one inside it isn\'t repeated)');
+  assert.deepEqual(rows[0], { pos: 'T1', name: 'Chad Ramey', toPar: '-13', thru: '14', fav: false });
+  assert.ok(rows.find((r) => r.name === 'Zac Blair').fav);
+  assert.equal(rows.at(-1).pos, 'WD');
+  assert.deepEqual(leaderboardRows(null), []);
 });
