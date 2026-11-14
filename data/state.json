@@ -3925,5 +3925,19 @@
    "Zimbabwe": 1381
   },
   "nationsDate": "2026-11-08"
+ },
+ "tablesPending": {
+  "fb-401861163": {
+   "comp": "uefa.nations",
+   "teams": [
+    "Kosovo",
+    "Israel"
+   ],
+   "played": [
+    4,
+    4
+   ],
+   "at": "2026-11-14T15:50:36.591Z"
+  }
  }
 }
