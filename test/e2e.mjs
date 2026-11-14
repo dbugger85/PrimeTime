@@ -693,9 +693,12 @@ try {
     await card.locator('.pace-btn').click();
     const pace = await paceOf(page);
     assert.doesNotMatch(pace, /few minutes old/, 'worked out from ESPN, not the bot\'s number');
-    const text = await page.$eval('#cards', (e) => e.innerText);
-    assert.doesNotMatch(text, /\b\d+\s*[-–]\s*\d+\b/, 'a score-like text on the page');
-    for (const leak of ['Kane', 'Mbapp', 'France', 'England']) assert.ok(!text.includes(leak), `"${leak}" from the summary on the page`);
+    // Only the fake match's card: the real data can have France or England matches coming up.
+    const text = await card.innerText();
+    assert.doesNotMatch(text, /\b\d+\s*[-–]\s*\d+\b/, 'a score-like text on the card');
+    for (const leak of ['Kane', 'Mbapp', 'France', 'England']) assert.ok(!text.includes(leak), `"${leak}" from the summary on the card`);
+    const pageText = await page.$eval('#cards', (e) => e.innerText);
+    for (const leak of ['Kane', 'Mbapp']) assert.ok(!pageText.includes(leak), `"${leak}" from the summary on the page`);
     await card.screenshot({ path: `${shots}/live-card.png` });
     // Custom scoring changes the live number too (Goals doubled, a boost for the Premier League).
     await page.evaluate(() => {

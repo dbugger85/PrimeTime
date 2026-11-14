@@ -44,7 +44,6 @@ There's no server and there are no API keys. **Don't commit `docs/data/*.json`, 
 
 ## Known issues (as of 2026-11-14)
 
-- **`npm run e2e` stops at `"France" from the summary on the page`** (the live-football block, about line 680). The test fakes a live France–England match and then checks the whole page for those names, but the real data now has France and England World Cup qualifiers coming up (12 and 15 Nov), so it fails even though nothing leaked. It fails the same way without the Team view. Until it's fixed, the steps after it and the whole dark-mode pass don't run. Fix: check only the fake match's card, or names that aren't in the real data.
 - **Biathlon:** since 2026-11-09 IBU's API answers `401 Unauthorized` for every season (also with a browser User-Agent), so biathlon doesn't update. The build warns `winter biathlon failed` and keeps the rest of winter going. Until 2026-11-14 that failure stopped alpine and cross-country too, and the Levi slalom stayed LIVE for 10 hours. Look for another biathlon source, or check now and then whether the API is back.
 - **`node scripts/readme-shots.mjs` (all shots)** fails on the "Coming up" shot when no day heading says "Today" or "Tomorrow" (just after midnight, or a day with no football). Take single shots by name meanwhile.
 - **ATP rights:** the build warns that `tennis.atp` (TV 2 Play) runs out on 2026-12-31; find the 2027 holder (see "Data sources").
