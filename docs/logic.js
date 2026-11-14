@@ -194,6 +194,17 @@ export function dayLabel(iso, now = new Date()) {
   return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Oslo', weekday: 'short', day: 'numeric', month: 'short' }).format(d);
 }
 
+// A biathlon race whose day isn't known yet (`timeTbc`, see src/publish.mjs): the stage's dates,
+// "24–29 Nov" or "31 Dec–3 Jan", in place of a day heading and on the card.
+export function stageDays(e) {
+  const fmt = (iso, month) => new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', day: 'numeric', ...(month ? { month: 'short' } : {}) }).format(new Date(iso));
+  const first = e.start.slice(0, 10), last = e.until;
+  if (!last || last === first) return fmt(first, true);
+  return first.slice(0, 7) === last.slice(0, 7) ? `${fmt(first)}–${fmt(last, true)}` : `${fmt(first, true)}–${fmt(last, true)}`;
+}
+// The day heading in "Coming up".
+export const upcomingDay = (e, now = new Date()) => (e.status === 'live' ? 'Live now' : e.timeTbc ? `${stageDays(e)} · day not set yet` : dayLabel(e.start, now));
+
 // prefs: { sport, services[], leagues[], comp, days, minScore, sort, round, draw, hideWatched, favsOnly, favs }
 export function filterEvents(events, prefs, watched = new Set(), now = Date.now()) {
   const list = events.filter((e) => {

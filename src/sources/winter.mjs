@@ -14,6 +14,7 @@
 import * as ibu from './ibu.mjs';
 import * as calendar from './biathlon-calendar.mjs';
 import * as fis from './fis.mjs';
+import { timesFor as tvkampenTimes } from './tvkampen.mjs';
 import { scoreBiathlon, scoreAlpine, scoreCrossCountry } from '../scoring/winter.mjs';
 
 export const WINTER = {
@@ -54,10 +55,11 @@ export async function listRaces(now, state, { aheadDays = 14, keepDays = 400, on
   const failed = new Set();
 
   try {
-    for (const r of await calendar.listBiathlon(now, state, { aheadDays, keepDays, raceIdOf: ibu.raceIdOf, findRace: ibu.findRace })) {
+    for (const r of await calendar.listBiathlon(now, state, { aheadDays, keepDays, raceIdOf: ibu.raceIdOf, findRace: ibu.findRace, findStart: ibu.findStart, broadcastTimes: tvkampenTimes })) {
       races.push({
         id: `bt-${r.raceId}`, comp: 'biathlon', name: r.name, place: r.place, country: r.country,
         series: r.series, gender: r.gender, start: r.start, finished: r.finished, live: r.live, ref: r,
+        ...(r.timeTbc ? { timeTbc: true, until: r.until } : {}), // day not known yet (see biathlon-calendar.mjs)
       });
     }
   } catch (err) {

@@ -51,6 +51,30 @@ async function fetchSheet(raceId, sheet) {
   return null;
 }
 
+// Start lists ("C51"), usually out about a day before (a pursuit's only after its sprint):
+//   docs/2526/BT/SWRL/CP04/SMSP/C51A_v1.pdf -> "MEN 10km SPRINT / … \ THU 8 JAN 2026 \ START TIME: 11:30"
+const START_SHEETS = { SP: 'C51A', IN: 'C51A', SI: 'C51A', PU: 'C51C', MS: 'C51D2', RL: 'C51B2', SR: 'C51B2' };
+
+// When a race starts, from its start list: { start (local), title }, or null while there's none.
+// Only the header is read. The start order (bibs, names) is never kept: in a pursuit it's the
+// sprint result.
+export async function findStart(raceId, discipline) {
+  for (const v of VERSIONS) {
+    const bytes = await getBytes(sheetUrl(raceId, START_SHEETS[discipline], v), { gapMs: 1000, missingOk: true });
+    if (!bytes) continue;
+    return startFromRows(pdfRows(bytes));
+  }
+  return null;
+}
+
+// A start list's header -> { start (local), title }. Nothing below the header is looked at.
+export function startFromRows(rows) {
+  const head = rows.slice(0, 8);
+  const start = sheetStart(head);
+  const title = head.find((r) => /\b(SPRINT|PURSUIT|MASS START|INDIVIDUAL|RELAY)\b/.test(r.join(' ')))?.join(' ') ?? null;
+  return start ? { start, title } : null;
+}
+
 // For a stage Wikipedia has no schedule for: does this race have a result sheet? Its title
 // ("WOMEN 12.5km MASS START") and local start, or null.
 export async function findRace(raceId, discipline) {

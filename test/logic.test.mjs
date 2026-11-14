@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { followedMatch, chancesLine, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel, prematchLine, followsLeague, leagueGroups, teamHash, teamFromHash, teamMatches, teamTables } from '../docs/logic.js';
+import { followedMatch, chancesLine, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, upcomingDay, stageDays, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, subtitleOf, isFavorite, favCount, toggleFav, favNames, searchNames, encodeSettings, decodeSettings, winterLabel, prematchLine, followsLeague, leagueGroups, teamHash, teamFromHash, teamMatches, teamTables } from '../docs/logic.js';
 
 const now = Date.parse('2026-09-26T12:00:00Z');
 const ev = (o) => ({ services: [], segments: [], advice: { code: 'full' }, compName: 'X', ...o });
@@ -93,6 +93,11 @@ test('day labels in Norwegian time', () => {
   assert.equal(dayLabel('2026-09-26T21:30:00Z', now), 'Today');
   assert.equal(dayLabel('2026-09-26T22:30:00Z', now), 'Tomorrow'); // 00:30 in Oslo
   assert.equal(dayLabel('2026-10-04T12:00:00Z', now), 'Sun 4 Oct');
+  // A biathlon race whose day isn't known yet: the stage's dates.
+  const tbc = { status: 'upcoming', start: '2026-11-24T00:00:00.000Z', timeTbc: true, until: '2026-11-29' };
+  assert.equal(upcomingDay(tbc, now), '24–29 Nov · day not set yet');
+  assert.equal(stageDays({ start: '2026-12-31T00:00:00.000Z', until: '2027-01-03' }), '31 Dec–3 Jan');
+  assert.equal(upcomingDay({ status: 'upcoming', start: '2026-10-04T12:00:00Z' }, now), 'Sun 4 Oct');
 });
 
 test('dynamic filters: counts per competition, service and rating', () => {

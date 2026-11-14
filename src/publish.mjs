@@ -197,9 +197,15 @@ const upcomingBase = (id, sport, comp, compName, start, live, rightsKey, ctx) =>
   id, sport, comp, compName, start, status: live ? 'live' : 'upcoming', services: servicesFor(rightsKey, ctx),
 });
 
+// A biathlon race whose day isn't known yet (only the stage's dates, from the season calendar):
+// `timeTbc: true` and `until` (the stage's last day, YYYY-MM-DD); `start` is the stage's first day.
+// Upcoming only, and only these two: nothing from a start list (the order is a spoiler in a pursuit).
+const tbcFields = (race) => (race.timeTbc && /^\d{4}-\d{2}-\d{2}$/.test(race.until ?? '') ? { timeTbc: true, until: race.until } : {});
+
 export const upcomingWinter = (race, compName) => ({
-  ...upcomingBase(race.id, 'winter', race.comp, compName, race.start, race.live, race.comp, winterCtx(race)),
+  ...upcomingBase(race.id, 'winter', race.comp, compName, race.start, race.live && !race.timeTbc, race.comp, winterCtx(race)),
   ...winterFields(race),
+  ...tbcFields(race),
 });
 
 // While a match is on: the clock as the bot read it (`at`: when), the "Excitement so far" number

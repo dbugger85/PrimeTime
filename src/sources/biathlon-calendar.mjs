@@ -204,19 +204,30 @@ const RACE_HOURS = 2.5;
 // Give up on a race whose sheet hasn't come out this long after its start (cancelled or moved).
 export const GIVE_UP_DAYS = 2;
 
+// Start lists are looked for from this many days before a stage's first day until it's over.
+const PROBE_DAYS = 3;
+
 // Every World Cup, World Championship and Olympic race of this season and the last, as
-// { raceId, season, code, cat, discipline, name, start, place, country, series, gender, finished, live }.
-// state.biathlonStages caches the schedules of stages that ended over two days ago (they
-// won't change), so a full build only reads the season pages and the current stages.
-// state.biathlonGone lists races given up on (no result sheet two days after the start).
+// { raceId, season, code, cat, discipline, name, start, place, country, series, gender, finished, live,
+//   timeTbc, until }. Where each race's day and time come from, best first:
+//   1. its IBU start list (`findStart`, out about a day before), remembered in state.biathlonStarts;
+//   2. TV-kampen's TV guide (`broadcastTimes(series)`, src/sources/tvkampen.mjs), weeks ahead;
+//   3. the stage's Wikipedia page ("Schedule of events"), when someone has written it;
+//   4. only the season calendar: the stage's dates and race types (●). The race is listed with
+//      `timeTbc: true`, `start` = the stage's first day and `until` = its last day, and is never
+//      LIVE or "over" by the clock until a start list or a schedule gives its time.
+// The calendar's race types match the races held (checked on every 2025/26 stage): men and women
+// for individual (or short individual), sprint, pursuit, mass start and relay; one mixed relay
+// and one single mixed relay.
 //
-// A stage without a schedule on Wikipedia (no stage page, like Oslo 2026) is still found once it's
-// over: the calendar row says which race types it had, and `findRace(raceId, discipline)` looks
-// for each one's result sheet (which also gives the real start). Each sheet is looked for once;
-// the list found is cached like a schedule.
-export async function listBiathlon(now, state, { aheadDays = 14, keepDays = 400, raceIdOf, findRace = null, wikitext = fetchWikitext, log = console.log } = {}) {
+// state.biathlonStages caches the schedules of stages that ended over two days ago (they
+// won't change). state.biathlonGone lists races given up on (no result sheet two days after the
+// start). A finished stage without a schedule is found from its result sheets (`findRace`), each
+// looked for once, and cached like a schedule.
+export async function listBiathlon(now, state, { aheadDays = 14, keepDays = 400, raceIdOf, findRace = null, findStart = null, broadcastTimes = null, wikitext = fetchWikitext, log = console.log } = {}) {
   state.biathlonStages ??= {};
   state.biathlonGone ??= {};
+  state.biathlonStarts ??= {};
   const races = [];
   const day = 864e5;
   for (const season of seasonIdsAround(now)) {
@@ -227,25 +238,46 @@ export async function listBiathlon(now, state, { aheadDays = 14, keepDays = 400,
       if (stage.first - now > aheadDays * day) continue; // too far ahead to list yet
       if (now - stage.last > keepDays * day) continue; // too old to keep
       const key = stage.page ?? `${season} ${stage.code}`;
+      const over = now - stage.last > day; // the day after the last race day
       let list = state.biathlonStages[key]?.races;
       if (!list) {
-        const page = stage.page ? await wikitext(stage.page) : null;
+        // A stage page that fails (Wikipedia once answered 429 "too many requests") is skipped this
+        // run: the calendar, TV-kampen and the start lists still list and time the races.
+        const page = stage.page ? await wikitext(stage.page).catch((err) => { log(`biathlon: Wikipedia page "${stage.page}" failed: ${err.message}`); return null; }) : null;
         list = page ? racesFromSchedule(page, stage, season) : [];
-        const over = now - stage.last > day; // the day after the last race day
         if (!list.length && over && findRace) list = await racesFromSheets(season, stage, raceIdOf, findRace);
-        if (!list.length) { log(`biathlon: no schedule on Wikipedia yet for ${stage.place} (${stage.code})`); continue; }
-        if (now - stage.last > 2 * day) state.biathlonStages[key] = { last: stage.last.toISOString(), races: list };
+        if (!list.length && !over) list = candidatesOf(stage);
+        if (!list.length) { log(`biathlon: no races found for ${stage.place} (${stage.code})`); continue; }
+        if (now - stage.last > 2 * day && !list.some((r) => r.timeTbc)) state.biathlonStages[key] = { last: stage.last.toISOString(), races: list };
       }
-      for (const r of list) {
+      const probe = findStart && !over && stage.first - now <= PROBE_DAYS * day;
+      // The TV guide's races in this stage's days (its last day included).
+      const tv = broadcastTimes && !over
+        ? (await broadcastTimes(stage.series)).filter((t) => Date.parse(t.start) >= stage.first.getTime() && Date.parse(t.start) < stage.last.getTime() + day)
+        : [];
+      for (const listed of list) {
+        let r = listed;
+        const id = raceIdOf(season, stage.code, r.cat, r.disc); // what the start list is remembered by
+        // The TV guide's time (and, for a race from the calendar alone, its name and individual or short individual).
+        const onTv = tv.find((t) => t.cat === r.cat && (t.disc === r.disc || (r.timeTbc && r.disc === 'IN' && t.disc === 'SI')));
+        if (onTv) r = { cat: r.cat, disc: onTv.disc, name: r.timeTbc ? raceName(onTv.title, onTv) : r.name, start: onTv.start };
+        // The start list (official): remembered once found, else looked for (once a build) for races not yet over.
+        let known = state.biathlonStarts[id];
+        if (!known && probe && (r.timeTbc || now - Date.parse(r.start) < RACE_HOURS * 3600e3)) {
+          known = await startOf(season, stage, r, raceIdOf, findStart);
+          if (known) state.biathlonStarts[id] = known;
+        }
+        if (known) r = { cat: r.cat, disc: known.disc, name: known.name ?? r.name, start: known.start };
         const raceId = raceIdOf(season, stage.code, r.cat, r.disc);
         if (state.biathlonGone[raceId]) continue;
         const start = Date.parse(r.start);
-        const finished = now - start > RACE_HOURS * 3600e3;
+        const finished = !r.timeTbc && now - start > RACE_HOURS * 3600e3;
         races.push({
           raceId, season, code: stage.code, cat: r.cat, discipline: r.disc, name: r.name, start: r.start,
           place: stage.place, country: stage.country, series: stage.series,
           gender: r.cat === 'SW' ? 'women' : r.cat === 'SM' ? 'men' : 'mixed',
-          finished, live: !finished && start <= now.getTime(),
+          finished, live: !r.timeTbc && !finished && start <= now.getTime(),
+          ...(r.timeTbc ? { timeTbc: true, until: r.until } : {}),
         });
       }
     }
@@ -253,7 +285,25 @@ export async function listBiathlon(now, state, { aheadDays = 14, keepDays = 400,
   // Forget what's too old to matter.
   for (const [page, s] of Object.entries(state.biathlonStages)) if (now - Date.parse(s.last) > keepDays * day) delete state.biathlonStages[page];
   for (const [id, start] of Object.entries(state.biathlonGone)) if (now - Date.parse(start) > keepDays * day) delete state.biathlonGone[id];
+  for (const [id, s] of Object.entries(state.biathlonStarts)) if (now - Date.parse(s.start) > keepDays * day) delete state.biathlonStarts[id];
   return races.sort((a, b) => a.start.localeCompare(b.start));
+}
+
+// The calendar row's race types as races whose day isn't known yet.
+function candidatesOf(stage) {
+  const until = stage.last.toISOString().slice(0, 10);
+  return stage.types.flatMap((t) => (t === 'MX' ? [['MX', 'RL']] : t === 'SR' ? [['MX', 'SR']] : [['SW', t], ['SM', t]]))
+    .map(([cat, disc]) => ({ cat, disc, name: raceName('', { cat, disc }), start: stage.first.toISOString(), timeTbc: true, until }));
+}
+
+// A race's start list: { start (UTC), disc, name }, or null. The individual column of the calendar
+// can be a short individual: its start list is looked for when the individual's isn't there.
+async function startOf(season, stage, r, raceIdOf, findStart) {
+  for (const disc of r.timeTbc && r.disc === 'IN' ? ['IN', 'SI'] : [r.disc]) {
+    const found = await findStart(raceIdOf(season, stage.code, r.cat, disc), disc);
+    if (found) return { start: utcFromLocal(found.start, stage.country), disc, name: found.title ? raceName(found.title, { cat: r.cat, disc }) : null };
+  }
+  return null;
 }
 
 // The races of a finished stage, from the result sheets of the race types its calendar row lists.

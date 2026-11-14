@@ -204,7 +204,11 @@ test('a stage with no schedule on Wikipedia is found from its result sheets once
   const findRace = async (id) => { looked.push(id); return sheets[id] ?? null; };
   const opts = { aheadDays: 14, keepDays: 400, raceIdOf: ibu.raceIdOf, findRace, log: () => {}, wikitext: fromFixtures({ '2025–26 Biathlon World Cup': season }) };
   const during = await cal.listBiathlon(new Date('2026-01-10T12:00:00Z'), {}, opts);
-  assert.ok(!during.some((r) => r.code === 'CP04') && !looked.some((id) => id.includes('CP04')), 'not while the stage is on');
+  // While it's on, its races are listed from the calendar with no day yet, and no result sheet is looked for.
+  const on = during.filter((r) => r.code === 'CP04');
+  assert.equal(on.length, 6);
+  assert.ok(on.every((r) => r.timeTbc && r.until === '2026-01-11' && !r.finished && !r.live));
+  assert.ok(!looked.some((id) => id.includes('CP04')), 'no result sheets while the stage is on');
   const state = {};
   const races = await cal.listBiathlon(new Date('2026-01-20T12:00:00Z'), state, opts);
   const sprint = races.find((r) => r.raceId === 'BT2526SWRLCP04SWSP');
@@ -220,4 +224,68 @@ test('a misnamed race on Wikipedia keeps its own id (the distance decides)', () 
   const page = "== Schedule ==\n{|\n|-\n| rowspan=2| 25 January\n| 12:00 CET\n| Men's 12.5 km Mass Start\n|-\n| 15:00 CET\n| Men's 15 km Mass Start\n|}";
   const races = cal.racesFromSchedule(page, { country: 'CZE' }, '2526');
   assert.deepEqual(races.map((r) => [r.cat + r.disc, r.name]), [['SWMS', "Women's 12.5 km mass start"], ['SMMS', "Men's 15 km mass start"]]);
+});
+
+// ---- Start times: the season calendar, TV-kampen and IBU's start lists -------------------
+
+import * as tvkampen from '../src/sources/tvkampen.mjs';
+
+test('TV-kampen: biathlon races from the page data, nothing else', () => {
+  const { html } = fixture('tvkampen-skiskyting-2026-11-14');
+  const races = tvkampen.racesFromPage(html, 2199);
+  assert.deepEqual(races.map((r) => [r.start, r.cat + r.disc]), [
+    ['2026-11-26T15:15:00.000Z', 'SMIN'], ['2026-11-27T15:15:00.000Z', 'SWIN'], ['2026-11-28T12:10:00.000Z', 'MXSR'],
+    ['2026-11-28T14:15:00.000Z', 'MXRL'], ['2026-11-29T12:00:00.000Z', 'SMSP'], ['2026-11-29T15:15:00.000Z', 'SWSP'],
+  ], 'the studio show, the alpine and the cross-country sprint are left out, and the repeat counted once');
+  assert.equal(tvkampen.raceOf('Vinterstudion'), null);
+  assert.deepEqual(tvkampen.raceOf('Kort individuell, 15 km (Menn)'), { cat: 'SM', disc: 'SI' });
+  assert.deepEqual(tvkampen.raceOf('Fellesstart, 12,5 km (Kvinner)'), { cat: 'SW', disc: 'MS' });
+  assert.deepEqual(tvkampen.racesFromPage('<html>nothing here</html>', 2199), []);
+});
+
+test('IBU start list: only the header is read, for the time', () => {
+  const { rows } = fixture('biathlon-oberhof-2026-men-sprint-startlist');
+  const s = ibu.startFromRows(rows);
+  assert.deepEqual(s, { start: { day: 8, month: 0, year: 2026, hour: 11, minute: 30 }, title: 'MEN 10km SPRINT' });
+  assert.equal(cal.utcFromLocal(s.start, 'GER'), '2026-01-08T10:30:00.000Z');
+});
+
+test('Kontiolahti 2026: listed from the calendar, timed by TV-kampen, then by IBU\'s start lists', async () => {
+  const pages = { '2026–27 Biathlon World Cup': wiki.season2627, '2025–26 Biathlon World Cup': wiki.season2526 };
+  const tv = tvkampen.racesFromPage(fixture('tvkampen-skiskyting-2026-11-14').html, 2199);
+  const base = { aheadDays: 14, keepDays: 400, raceIdOf: ibu.raceIdOf, log: () => {}, wikitext: fromFixtures(pages) };
+  const kontio = (list) => list.filter((r) => r.raceId.startsWith('BT2627SWRLCP01'));
+  const now = new Date('2026-11-14T20:00:00Z');
+
+  // Only the calendar: six races, day not known yet, never live.
+  const bare = kontio(await cal.listBiathlon(now, {}, base));
+  assert.deepEqual(bare.map((r) => r.raceId.slice(14)).sort(), ['MXRL', 'MXSR', 'SMIN', 'SMSP', 'SWIN', 'SWSP']);
+  assert.ok(bare.every((r) => r.timeTbc && r.until === '2026-11-29' && r.start === '2026-11-24T00:00:00.000Z' && !r.live && !r.finished));
+  assert.equal(bare.find((r) => r.raceId.endsWith('SWSP')).name, "Women's sprint");
+
+  // With the TV guide: exact times and names.
+  const looked = [];
+  const findStart = async (id) => { looked.push(id); return id.endsWith('SMIN') ? { start: { year: 2026, month: 10, day: 26, hour: 17, minute: 10 }, title: 'MEN 20km INDIVIDUAL' } : null; };
+  const state = {};
+  const timed = kontio(await cal.listBiathlon(now, state, { ...base, broadcastTimes: async () => tv, findStart }));
+  assert.ok(timed.every((r) => !r.timeTbc));
+  const sprint = timed.find((r) => r.raceId.endsWith('SWSP'));
+  assert.deepEqual([sprint.start, sprint.name], ['2026-11-29T15:15:00.000Z', "Women's 7.5 km sprint"]);
+  assert.equal(looked.length, 0, 'no start lists looked for 12 days ahead');
+
+  // Two days before: the start list (official) wins over the TV guide; looked for once, then remembered.
+  const soon = new Date('2026-11-24T08:00:00Z');
+  const first = kontio(await cal.listBiathlon(soon, state, { ...base, broadcastTimes: async () => tv, findStart }));
+  assert.equal(first.find((r) => r.raceId.endsWith('SMIN')).start, '2026-11-26T15:10:00.000Z', 'Finland: local 17:10 is 15:10 UTC');
+  assert.equal(first.find((r) => r.raceId.endsWith('SWSP')).start, '2026-11-29T15:15:00.000Z', 'no start list yet: the TV time');
+  assert.equal(looked.length, 6, 'each race looked for once');
+  looked.length = 0;
+  await cal.listBiathlon(soon, state, { ...base, broadcastTimes: async () => tv, findStart });
+  assert.ok(!looked.includes('BT2627SWRLCP01SMIN'), 'a start list found is remembered');
+  assert.equal(looked.length, 5, 'the others are looked for again next build');
+
+  // TV-kampen down: the calendar and the start lists still work.
+  const down = kontio(await cal.listBiathlon(soon, state, { ...base, broadcastTimes: async () => [], findStart: async () => null }));
+  assert.equal(down.find((r) => r.raceId.endsWith('SMIN')).start, '2026-11-26T15:10:00.000Z');
+  assert.ok(down.find((r) => r.raceId.endsWith('SWSP')).timeTbc);
 });
