@@ -302,11 +302,16 @@ test('the real docs/data/events.json is spoiler-free', { skip: !existsSync(new U
 
 test('winter races: no athlete names, only safe fields, strips of fixed length', () => {
   const race = (comp, name, extra = {}) => ({ id: `x-${name}`, comp, name, place: 'Oberhof', country: 'GER', series: 'World Cup', gender: 'women', start: '2026-01-08T13:30:00Z', ...extra });
-  for (const f of ['biathlon-annecy-2025-women-mass-start', 'biathlon-oberhof-2026-women-sprint', 'biathlon-ruhpolding-2026-women-relay']) {
-    const { r, d } = fixture(`winter/${f}.json`);
-    const e = publishWinter(race('biathlon', r.name), 'Biathlon', scoreBiathlon(biathlonFacts(r, d)));
+  for (const f of ['biathlon-annecy-2025-women-mass-start', 'biathlon-annecy-2025-women-pursuit', 'biathlon-oberhof-2026-women-sprint', 'biathlon-ruhpolding-2026-women-relay', 'biathlon-oestersund-2025-single-mixed-relay']) {
+    const { race: r, result, analysis } = fixture(`winter/${f}.json`);
+    const e = publishWinter(race('biathlon', r.name), 'Biathlon', scoreBiathlon(biathlonFacts(r, { result, analysis })));
     checkEvent(e);
-    for (const row of d.results.slice(0, 5)) assert.doesNotMatch(JSON.stringify(e), new RegExp(row.Name.split(' ')[0], 'i'), 'no athlete names');
+    // Athletes' surnames (in capitals on the sheet) and relay nations never reach the card.
+    const names = result.slice(0, 40).flatMap((row) => (/^\d+$/.test(row[0]) && row[3] === '-' ? [row[4]] // relay team: NORWAY
+      : /^\d+$/.test(row[0]) && /^\d+$/.test(row[1]) ? [row[2]] : /^\d+\s*-\s*\d+$/.test(row[0]) ? [row[2]] : []) // athlete: KIRKEEIDE Maren
+      .map((n) => n.split(' ')[0]).filter((n) => n.length > 3));
+    assert.ok(names.length >= 5, `found names to check in ${f}`);
+    for (const n of names) assert.doesNotMatch(JSON.stringify(e), new RegExp(`\\b${n}\\b`, 'i'), `no athlete or team names (${n})`);
   }
   for (const f of ['alpine-gurgl-2025-men-slalom', 'alpine-levi-2025-women-slalom', 'alpine-val-di-fassa-2026-women-downhill']) {
     const { race: r, html } = fixture(`winter/${f}.json`);

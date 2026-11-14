@@ -34,7 +34,7 @@ const SRC = {
   strength: 'PrimeTime (src/sources/ratings.mjs) from Elo plus league table points per game',
   espnTennis: 'ESPN tennis scoreboard API (site.api.espn.com/.../tennis/atp/scoreboard)',
   openf1: 'OpenF1 API (api.openf1.org/v1): sessions, results, overtakes, race control, positions, laps, pit, weather',
-  ibu: 'IBU results API (biathlonresults.com/modules/sportapi/api)',
+  ibu: 'IBU result sheets (PDF, ibu.blob.core.windows.net/docs; before 2026-11 the biathlonresults.com API), race list from en.wikipedia.org',
   fis: 'FIS results web pages (fis-ski.com/DB/general)',
   primetime: 'Computed by PrimeTime (src/scoring/*.mjs, weights in src/scoring/weights.mjs)',
   rights: 'PrimeTime streaming rights list (src/rights/norway.json)',

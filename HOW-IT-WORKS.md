@@ -102,6 +102,6 @@ Under **Filters and settings → Custom scoring (football)** you can weigh the f
 
 The scores were checked against well-known matches: thrillers have to score above dull games, upsets above the same result the expected way round, and so on. Each change to the formula was back-tested on the last month of real matches, roughly 150, to keep the overall level steady. The "Excitement so far" number on live football was checked the same way: by the final whistle it's usually within about one point of the real score.
 
-The data is free and public: ESPN (match events, odds, line-ups), FotMob (xG and match stats), OpenF1, IBU (biathlon) and FIS (alpine and cross-country), plus the Elo ratings. All the weights are in [`src/scoring/weights.mjs`](src/scoring/weights.mjs), each with a plain-language note.
+The data is free and public: ESPN (match events, odds, line-ups), FotMob (xG and match stats), OpenF1, IBU's official result sheets (biathlon; which races are on when comes from Wikipedia) and FIS (alpine and cross-country), plus the Elo ratings. All the weights are in [`src/scoring/weights.mjs`](src/scoring/weights.mjs), each with a plain-language note.
 
 Got an idea to make the scores better? [Suggest it](https://github.com/dbugger85/PrimeTime/issues/new?template=suggestion.yml).
