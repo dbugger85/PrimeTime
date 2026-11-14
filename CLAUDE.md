@@ -42,10 +42,10 @@ Every request has a 30-second time limit and is retried on failure (`src/http.mj
 
 There's no server and there are no API keys. **Don't commit `docs/data/*.json`, `docs/cal/` or `data/state.json` from a local build,** because the bot owns them and a local commit can conflict with its push. Discard local changes with `git checkout docs/data data docs/cal` (and `git clean -fd docs/cal` for new files).
 
-## Known issues (as of 2026-11-10)
+## Known issues (as of 2026-11-14)
 
 - **`npm run e2e` stops at `"France" from the summary on the page`** (the live-football block, about line 680). The test fakes a live France–England match and then checks the whole page for those names, but the real data now has France and England World Cup qualifiers coming up (12 and 15 Nov), so it fails even though nothing leaked. It fails the same way without the Team view. Until it's fixed, the steps after it and the whole dark-mode pass don't run. Fix: check only the fake match's card, or names that aren't in the real data.
-- **Biathlon:** the full build on 2026-11-09 got `401 Unauthorized` from `biathlonresults.com/modules/sportapi/api/Events` ("winter failed"). If it keeps happening, IBU has closed its API to us and biathlon stops updating.
+- **Biathlon:** since 2026-11-09 IBU's API answers `401 Unauthorized` for every season (also with a browser User-Agent), so biathlon doesn't update. The build warns `winter biathlon failed` and keeps the rest of winter going. Until 2026-11-14 that failure stopped alpine and cross-country too, and the Levi slalom stayed LIVE for 10 hours. Look for another biathlon source, or check now and then whether the API is back.
 - **`node scripts/readme-shots.mjs` (all shots)** fails on the "Coming up" shot when no day heading says "Today" or "Tomorrow" (just after midnight, or a day with no football). Take single shots by name meanwhile.
 - **ATP rights:** the build warns that `tennis.atp` (TV 2 Play) runs out on 2026-12-31; find the 2027 holder (see "Data sources").
 
@@ -222,11 +222,12 @@ Biathlon, alpine and cross-country are all `sport: 'winter'`. `comp` is `biathlo
 - **Left out because FIS has no usable times:** cross-country sprints, heat mass starts, relays and team sprints. Alpine team events, parallel races and combineds are also left out.
 
 **Code:**
-- `src/sources/winter.mjs` puts all three sports behind `listRaces(now, state)` and `scoreRace(race)`.
+- `src/sources/winter.mjs` puts all three sports behind `listRaces(now, state)` and `scoreRace(race)`. `listRaces` returns `{ races, failed }`: each sport's source fails on its own (`onError` warns), and the build keeps a failed sport's previous "Coming up" entries.
+- **Nothing kept from an earlier build stays LIVE for more than 12 hours** (`stale()`, `STALE_HOURS` in `build.mjs`): kept-over entries (a failed sport, or a failed winter source) that started longer ago are dropped.
 - `ibu.mjs` handles biathlon. It rebuilds the order after each shooting from lap and range times, plus 25 s per penalty loop.
 - In relays, an unknown leader at the last handover (missing `TeamRankAfterLeg`) counts as unknown, not as "the leader didn't win".
 - `fis.mjs` reads the FIS pages. `texts()` splits HTML into text pieces. Olympic events at several venues have an extra venue column.
-- **If FIS changes its site, `fis.mjs` is what breaks.** `test/fixtures/winter/*.json` hold trimmed copies of real pages. In 2026/27 FIS added a "live"/"review" badge by each race on event pages and a ski-brand column in results (fixture `alpine-soelden-2026-men-giant-slalom`). A full build that lists no races for a sport (without failing) now empties that sport's "Coming up", so a finished race can't stay LIVE.
+- **If FIS changes its site, `fis.mjs` is what breaks.** `test/fixtures/winter/*.json` hold trimmed copies of real pages. In 2026/27 FIS added a "live"/"review" badge by each race on event pages and a ski-brand column in results (fixture `alpine-soelden-2026-men-giant-slalom`). While an event is on, the calendar shows the same badge by its dates (`noBadge()` strips it in both places; fixture `alpine-calendar-2027-levi-live`); on 2026-11-14 it showed up as the place ("live" instead of "Levi"). A full build that lists no races for a sport (without failing) now empties that sport's "Coming up", so a finished race can't stay LIVE.
 - FIS races without official results two days after their start count as cancelled. `state.winterEventsDone` lists finished FIS events, so their pages aren't read again. It's reset when the winter version changes.
 
 **Spoilers:**

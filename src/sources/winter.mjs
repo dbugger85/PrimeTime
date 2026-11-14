@@ -1,7 +1,9 @@
 // The three winter sports behind one interface, so the build and the live check
 // can treat them alike:
-//   listRaces(now, state)  -> every World Cup / World Championship / Olympic race
-//                             of this season and the last, as plain race objects
+//   listRaces(now, state)  -> { races, failed }: every World Cup / World Championship /
+//                             Olympic race of this season and the last, as plain race
+//                             objects, and the sports whose source failed (one broken
+//                             source, like IBU's API since 2026-11-09, mustn't stop the others)
 //   scoreRace(race)        -> the score, or null until the result is out
 
 import * as ibu from './ibu.mjs';
@@ -41,49 +43,62 @@ export function calendarDays(text) {
 
 // state.winterEventsDone: FIS events whose races are all finished and scored,
 // so their pages aren't fetched again every run.
-export async function listRaces(now, state, { aheadDays = 14, keepDays = 400 } = {}) {
+export async function listRaces(now, state, { aheadDays = 14, keepDays = 400, onError = () => {} } = {}) {
   const races = [];
+  const failed = new Set();
 
-  for (const season of ibu.seasonIds(now)) {
-    for (const r of await ibu.fetchRaces(season, now)) {
-      races.push({
-        id: `bt-${r.raceId}`, comp: 'biathlon', name: tidyBiathlon(r.name), place: r.place, country: r.country,
-        series: r.series, gender: r.gender, start: r.start, finished: r.finished, live: r.live, ref: r,
-      });
+  try {
+    const bt = [];
+    for (const season of ibu.seasonIds(now)) {
+      for (const r of await ibu.fetchRaces(season, now)) {
+        bt.push({
+          id: `bt-${r.raceId}`, comp: 'biathlon', name: tidyBiathlon(r.name), place: r.place, country: r.country,
+          series: r.series, gender: r.gender, start: r.start, finished: r.finished, live: r.live, ref: r,
+        });
+      }
     }
+    races.push(...bt);
+  } catch (err) {
+    failed.add('biathlon');
+    onError('biathlon', err);
   }
 
   state.winterEventsDone ??= [];
   const done = new Set(state.winterEventsDone);
   for (const [comp, { sector }] of Object.entries(WINTER).filter(([, w]) => w.sector)) {
-    for (const season of fis.seasonCodes(now)) {
-      for (const category of Object.keys(fis.CATEGORIES)) {
-        for (const ev of await fis.fetchEvents(sector, season, category)) {
-          if (done.has(`${sector}${ev.eventId}`)) continue;
-          const [first, last] = calendarDays(ev.dates ?? '');
-          if (first && first - now > aheadDays * 864e5) continue; // too far ahead to list yet
-          if (last && now - last > keepDays * 864e5) continue; // too old to keep
-          const list = (await fis.fetchRaces(sector, ev.eventId)).filter((race) => fis.scoredRace(sector, race) && race.start);
-          for (const race of list) {
-            const start = new Date(race.start).toISOString();
-            // No official result two days after the start: cancelled (weather, usually) without being marked so.
-            if (!race.official && now - Date.parse(start) > 2 * 864e5) continue;
-            races.push({
-              id: `${WINTER[comp].prefix}-${race.raceId}`, comp, name: raceName(race.gender, race.discipline),
-              place: race.venue ?? ev.place, country: ev.country, series: SERIES[race.category] ?? 'World Cup',
-              gender: race.gender, start, finished: race.official, live: !race.official && Date.parse(start) <= now.getTime(),
-              ref: { sector, raceId: race.raceId, discipline: race.discipline },
-            });
+    try {
+      for (const season of fis.seasonCodes(now)) {
+        for (const category of Object.keys(fis.CATEGORIES)) {
+          for (const ev of await fis.fetchEvents(sector, season, category)) {
+            if (done.has(`${sector}${ev.eventId}`)) continue;
+            const [first, last] = calendarDays(ev.dates ?? '');
+            if (first && first - now > aheadDays * 864e5) continue; // too far ahead to list yet
+            if (last && now - last > keepDays * 864e5) continue; // too old to keep
+            const list = (await fis.fetchRaces(sector, ev.eventId)).filter((race) => fis.scoredRace(sector, race) && race.start);
+            for (const race of list) {
+              const start = new Date(race.start).toISOString();
+              // No official result two days after the start: cancelled (weather, usually) without being marked so.
+              if (!race.official && now - Date.parse(start) > 2 * 864e5) continue;
+              races.push({
+                id: `${WINTER[comp].prefix}-${race.raceId}`, comp, name: raceName(race.gender, race.discipline),
+                place: race.venue ?? ev.place, country: ev.country, series: SERIES[race.category] ?? 'World Cup',
+                gender: race.gender, start, finished: race.official, live: !race.official && Date.parse(start) <= now.getTime(),
+                ref: { sector, raceId: race.raceId, discipline: race.discipline },
+              });
+            }
+            // An event that ended over two days ago with official results for every race (or over a week ago) won't change.
+            // An empty list isn't "all official": it can mean the page wasn't understood.
+            if (last && ((now - last > 2 * 864e5 && list.length && list.every((r) => r.official)) || now - last > 7 * 864e5)) done.add(`${sector}${ev.eventId}`);
           }
-          // An event that ended over two days ago with official results for every race (or over a week ago) won't change.
-          // An empty list isn't "all official": it can mean the page wasn't understood.
-          if (last && ((now - last > 2 * 864e5 && list.length && list.every((r) => r.official)) || now - last > 7 * 864e5)) done.add(`${sector}${ev.eventId}`);
         }
       }
+    } catch (err) {
+      failed.add(comp);
+      onError(comp, err);
     }
   }
   state.winterEventsDone = [...done];
-  return races;
+  return { races, failed };
 }
 
 // "Women 7.5 km Sprint" -> "Women's 7.5 km sprint"; relays keep their names.

@@ -25,15 +25,20 @@ export function seasonCodes(now = new Date()) {
 const decode = (s) => s.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#039;|&apos;/g, "'").replace(/&quot;/g, '"');
 export const texts = (html) => html.replace(/<!--[\s\S]*?-->/g, '').split(/<[^>]+>/).map((s) => decode(s).replace(/\s+/g, ' ').trim()).filter(Boolean);
 
+// FIS's small "live" / "review" badge (since 2026/27) isn't a column. It sits by the
+// codex on event pages and, while an event is on, by its dates in the calendar,
+// where it once took the place of the venue ("live" instead of "Levi", 2026-11-14).
+const noBadge = (html) => html.replace(/<div class="live\b[^"]*"[^>]*>[\s\S]*?<\/div>\s*<\/div>/g, '');
+
 // Events of a season: [{ eventId, dates ("25-26 Oct 2025"), place, country }].
 export function eventsFromCalendar(html) {
   const out = [];
   for (const row of html.split(/<div class="table-row reset-padding/).slice(1)) {
     const eventId = row.match(/eventid=(\d+)/)?.[1];
     if (!eventId || out.some((e) => e.eventId === eventId)) continue;
-    const t = texts(row);
+    const t = texts(noBadge(row));
     const dateAt = t.findIndex((x) => /\b\d{4}$/.test(x));
-    out.push({ eventId, dates: t[dateAt] ?? '', place: t[dateAt + 1] ?? '', country: row.match(/country__name-short">\s*([A-Z]{3})/)?.[1] ?? null });
+    out.push({ eventId, dates: t[dateAt] ?? '', place: t.find((x, i) => i > dateAt && !/\b\d{4}$/.test(x)) ?? '', country: row.match(/country__name-short">\s*([A-Z]{3})/)?.[1] ?? null });
   }
   return out;
 }
@@ -49,8 +54,7 @@ export function racesFromEvent(html) {
   for (const row of body.split(/<div class="table-row reset-padding/).slice(1)) {
     const raceId = row.match(/raceid=(\d+)/)?.[1];
     if (!raceId) continue;
-    // FIS's small "live" / "review" badge next to the codex (since 2026/27) isn't a column.
-    const t = texts(row.replace(/<div class="live\b[^"]*"[^>]*>[\s\S]*?<\/div>\s*<\/div>/g, '')).filter((x) => !/^[DPC]$/.test(x) && x !== '">');
+    const t = texts(noBadge(row)).filter((x) => !/^[DPC]$/.test(x) && x !== '">');
     // [date, time, codex, discipline, (venue, for events at several venues), discipline, category, gender, …]
     const codexAt = t.findIndex((x) => /^\d{4}$/.test(x));
     const genderAt = t.findIndex((x, i) => i > codexAt + 2 && /^[WMX]$/.test(x));

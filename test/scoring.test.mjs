@@ -379,6 +379,15 @@ test('FIS pages: the 2026/27 layout (Soelden, men\'s giant slalom)', () => {
   assert.equal(fis.alpineFacts(p).winnerRun1, 1);
 });
 
+// While an event is on, the FIS calendar shows a "live" badge by its dates. On 2026-11-14 it
+// took the place of the venue ("live" instead of "Levi") and leaked into the card's place.
+test('FIS calendar: the "live" badge isn\'t the venue (Levi, 2026-11-14)', () => {
+  const { calendarHtml } = winter('alpine-calendar-2027-levi-live');
+  assert.match(calendarHtml, /live__content">live</, 'the fixture has the badge');
+  assert.deepEqual(fis.eventsFromCalendar(calendarHtml).map((e) => [e.eventId, e.dates, e.place, e.country]),
+    [['62771', '24-25 Oct 2026', 'Soelden', 'AUT'], ['62772', '14-15 Nov 2026', 'Levi', 'FIN']]);
+});
+
 test('cross-country: a 50 km decided by 0.4 s beats a 22 s interval start', () => {
   const oslo = scoreCrossCountry(fis.crossCountryFacts(fisPage('cross-country-oslo-2026-men-50km'), '50km Mass Start Free'));
   const lahti = scoreCrossCountry(fis.crossCountryFacts(fisPage('cross-country-lahti-2026-men-10km'), '10km Interval Start Classic'));

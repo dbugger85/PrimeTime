@@ -241,10 +241,21 @@ async function buildF1() {
   }
 }
 
+// An upcoming entry kept from an earlier build that started over 12 hours ago:
+// whatever it was, it's over, so it mustn't stay LIVE (the Levi slalom, 2026-11-14).
+const STALE_HOURS = 12;
+const stale = (e) => now - new Date(e.start) > STALE_HOURS * 3600e3;
+
 // Biathlon, alpine and cross-country, newest first (in case time runs out).
 async function buildWinter() {
   if (state.versions?.winter !== SCORING_VERSIONS.winter) state.winterEventsDone = []; // weights changed: look at every event again
-  const races = await winter.listRaces(now, state, { aheadDays: UPCOMING_DAYS.winter, keepDays: KEEP_DAYS.winter });
+  const { races, failed } = await winter.listRaces(now, state, {
+    aheadDays: UPCOMING_DAYS.winter, keepDays: KEEP_DAYS.winter,
+    onError: (comp, err) => warn(`winter ${comp} failed: ${err.message}`),
+  });
+  // A sport whose source failed keeps what it had in "Coming up", but not races long since started.
+  const listed = new Set(races.map((r) => r.id));
+  upcoming.push(...data.upcoming.filter((e) => e.sport === 'winter' && failed.has(e.comp) && !listed.has(e.id) && !stale(e)));
   races.sort((a, b) => b.start.localeCompare(a.start));
   for (const race of races) {
     const compName = winter.WINTER[race.comp].name;
@@ -283,7 +294,7 @@ for (const [sport, steps] of Object.entries(builders)) {
   }
   // If a source failed before listing anything, keep what it had in "Coming up"
   // (not when it worked and just has nothing on: a finished race would stay "live").
-  if (failed && !upcoming.some((e) => e.sport === sport)) upcoming.push(...previousUpcoming.filter((e) => e.sport === sport));
+  if (failed && !upcoming.some((e) => e.sport === sport)) upcoming.push(...previousUpcoming.filter((e) => e.sport === sport && !stale(e)));
 }
 
 for (const [id, e] of events) {
