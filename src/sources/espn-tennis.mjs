@@ -45,18 +45,23 @@ export const nameOf = (event) => (event.major ? event.name : ATP_NAMES[idOf(even
 
 const ymd = (y, m, d) => `${y}${String(m).padStart(2, '0')}${String(d).padStart(2, '0')}`;
 
-// Returns the tournaments of `year` (Slams, then ATP) that have started before `now`.
-// A day's answer can hold several of ours, so each answer is remembered for the run.
+// How many days ahead a tournament is looked for, so its first matches are in "Coming up"
+// before it starts (the ATP Finals 2026 only appeared on its first morning, 2026-11-14).
+export const AHEAD_DAYS = 3;
+
+// Returns the tournaments of `year` (Slams, then ATP) that have started, or start within
+// AHEAD_DAYS. A day's answer can hold several of ours, so each answer is remembered for the run.
 export async function fetchSlams(year, now = new Date(), skipIds = new Set()) {
   const found = [];
   const days = new Map();
   const day = async (key) => { if (!days.has(key)) days.set(key, (await getJson(`${BASE}?dates=${key}`)).events ?? []); return days.get(key); };
   for (const t of [...SLAM_PROBES.map((s) => ({ ...s, major: true })), ...ATP_PROBES]) {
     if (skipIds.has(`${t.id}-${year}`)) continue;
-    // Today first (in the current year), so a tournament shows from its first day.
-    const today = now.getUTCFullYear() === year ? [[now.getUTCMonth() + 1, now.getUTCDate()]] : [];
-    for (const [m, d] of [...today, ...t.days]) {
-      if (new Date(Date.UTC(year, m - 1, d)) > now) continue; // not that far yet: try an earlier day
+    // Today and the next AHEAD_DAYS first (in the current year), so a tournament shows before its first day.
+    const soon = Array.from({ length: AHEAD_DAYS + 1 }, (_, i) => new Date(now.getTime() + i * 864e5))
+      .filter((d) => d.getUTCFullYear() === year).map((d) => [d.getUTCMonth() + 1, d.getUTCDate()]);
+    for (const [m, d] of [...soon, ...t.days]) {
+      if (new Date(Date.UTC(year, m - 1, d)) > now.getTime() + AHEAD_DAYS * 864e5) continue; // too far ahead: try an earlier day
       const event = (await day(ymd(year, m, d))).find((e) => (t.major ? e.major : e.id === `${t.id}-${year}`));
       if (event) {
         if (!skipIds.has(event.id) && !found.includes(event)) found.push(event);
