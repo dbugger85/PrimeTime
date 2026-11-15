@@ -4445,19 +4445,5 @@
    "heat": 2,
    "at": 1794777036879
   }
- },
- "tablesPending": {
-  "fb-401861178": {
-   "comp": "uefa.nations",
-   "teams": [
-    "Croatia",
-    "Czechia"
-   ],
-   "played": [
-    5,
-    5
-   ],
-   "at": "2026-11-15T21:35:32.608Z"
-  }
  }
 }
