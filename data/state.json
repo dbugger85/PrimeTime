@@ -4483,17 +4483,17 @@
   }
  },
  "tablesPending": {
-  "fb-401861174": {
+  "fb-401861173": {
    "comp": "uefa.nations",
    "teams": [
-    "Finland",
-    "San Marino"
+    "Belarus",
+    "Albania"
    ],
    "played": [
     5,
     5
    ],
-   "at": "2026-11-15T18:50:37.075Z"
+   "at": "2026-11-15T18:55:28.420Z"
   }
  }
 }
