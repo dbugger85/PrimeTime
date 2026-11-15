@@ -4445,5 +4445,19 @@
    "heat": 2,
    "at": 1794777036879
   }
+ },
+ "tablesPending": {
+  "fb-401861175": {
+   "comp": "uefa.nations",
+   "teams": [
+    "Spain",
+    "England"
+   ],
+   "played": [
+    5,
+    5
+   ],
+   "at": "2026-11-15T21:45:37.105Z"
+  }
  }
 }
