@@ -4488,5 +4488,10 @@
   "Paul Peterson": "2026-11-15",
   "Taylor Pendrith": "2026-11-15"
  },
- "golfHeat": {}
+ "golfHeat": {
+  "gf-401850980": {
+   "heat": 2,
+   "at": 1794747931290
+  }
+ }
 }
