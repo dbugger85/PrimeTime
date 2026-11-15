@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-15T15:25:30.265Z",
+ "lastFull": "2026-11-15T18:15:35.182Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1925,18 +1925,6 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/leeds-man-united/s26100813468056807",
     "until": "2026-10-20T16:30:00.000Z"
-   }
-  },
-  "fb-401915416": {
-   "start": "2026-10-14T16:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/feyenoord-como-z65eezpe"
-   }
-  },
-  "fb-401915415": {
-   "start": "2026-10-14T16:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/lask-liverpool-4fm2eqc4"
    }
   },
   "fb-401915409": {
@@ -4491,7 +4479,7 @@
  "golfHeat": {
   "gf-401850980": {
    "heat": 2,
-   "at": 1794756330265
+   "at": 1794766535182
   }
  }
 }
