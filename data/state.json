@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-15T18:15:35.182Z",
+ "lastFull": "2026-11-15T21:10:36.879Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1925,42 +1925,6 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/leeds-man-united/s26100813468056807",
     "until": "2026-10-20T16:30:00.000Z"
-   }
-  },
-  "fb-401915409": {
-   "start": "2026-10-14T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/aston-villa-fenerbahce-3p35v6mc"
-   }
-  },
-  "fb-401915393": {
-   "start": "2026-10-14T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/bodoe-glimt-dortmund-5dg87d9e"
-   }
-  },
-  "fb-401915408": {
-   "start": "2026-10-14T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/real-betis-porto-t0a4sdh6"
-   }
-  },
-  "fb-401915414": {
-   "start": "2026-10-14T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/roma-real-madrid-bx906mfh"
-   }
-  },
-  "fb-401915406": {
-   "start": "2026-10-14T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/shakhtar-aek-ewztpah5"
-   }
-  },
-  "fb-401915405": {
-   "start": "2026-10-14T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/slovan-bratislava-stuttgart-b4h8jaaa"
    }
   },
   "fb-401879263": {
@@ -4479,7 +4443,7 @@
  "golfHeat": {
   "gf-401850980": {
    "heat": 2,
-   "at": 1794766535182
+   "at": 1794777036879
   }
  }
 }
