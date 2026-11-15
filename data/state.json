@@ -4481,19 +4481,5 @@
    "heat": 2,
    "at": 1794766535182
   }
- },
- "tablesPending": {
-  "fb-401861173": {
-   "comp": "uefa.nations",
-   "teams": [
-    "Belarus",
-    "Albania"
-   ],
-   "played": [
-    5,
-    5
-   ],
-   "at": "2026-11-15T18:55:28.420Z"
-  }
  }
 }
