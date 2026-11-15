@@ -72,7 +72,7 @@ function checkLinks(e) {
 function checkHints(e) {
   if ('stakes' in e) assert.ok(e.stakes in STAKES, `${e.id}: stakes ${e.stakes}`);
   if ('forecast' in e) assert.ok(FORECASTS.includes(e.forecast), `${e.id}: forecast ${e.forecast}`);
-  if ('outlook' in e) assert.ok(OUTLOOKS.includes(e.outlook), `${e.id}: outlook ${e.outlook}`);
+  if ('outlook' in e && e.sport !== 'golf') assert.ok(OUTLOOKS.includes(e.outlook), `${e.id}: outlook ${e.outlook}`); // golf's own codes: checkGolf
   if ('chances' in e) assert.ok(e.chances.length === 3 && e.chances.every((x) => Number.isInteger(x) && x >= 0 && x <= 100), `${e.id}: chances ${e.chances}`);
   assert.doesNotMatch(JSON.stringify(e), /moneyline|overUnder|odds|%/i, `${e.id}: odds leaked`);
 }
