@@ -95,4 +95,15 @@ DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
  io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401882794@primetime
+DTSTAMP:20261129T151500Z
+DTSTART:20261129T151500Z
+DTEND:20261129T171500Z
+SUMMARY:Deportivo – Barcelona
+LOCATION:TV 2 Play
+DESCRIPTION:La Liga\nWatch on TV 2 Play\nhttps://dbugger85.github.io/PrimeT
+ ime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
