@@ -4442,17 +4442,17 @@
  },
  "golfHeat": {},
  "tablesPending": {
-  "fb-401861185": {
+  "fb-401861186": {
    "comp": "uefa.nations",
    "teams": [
-    "Germany",
-    "Netherlands"
+    "Switzerland",
+    "Scotland"
    ],
    "played": [
     5,
     5
    ],
-   "at": "2026-11-16T21:35:31.593Z"
+   "at": "2026-11-16T21:40:52.979Z"
   }
  }
 }
