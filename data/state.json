@@ -4440,19 +4440,5 @@
   "Paul Peterson": "2026-11-16",
   "Taylor Pendrith": "2026-11-16"
  },
- "golfHeat": {},
- "tablesPending": {
-  "fb-401861186": {
-   "comp": "uefa.nations",
-   "teams": [
-    "Switzerland",
-    "Scotland"
-   ],
-   "played": [
-    5,
-    5
-   ],
-   "at": "2026-11-16T21:40:52.979Z"
-  }
- }
+ "golfHeat": {}
 }
