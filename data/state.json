@@ -4490,5 +4490,31 @@
   "Maverick McNealy": "2026-11-17",
   "Matt Atkins": "2026-11-17"
  },
- "golfHeat": {}
+ "golfHeat": {},
+ "tablesPending": {
+  "fb-401861196": {
+   "comp": "uefa.nations",
+   "teams": [
+    "Bosnia-Herzegovina",
+    "Romania"
+   ],
+   "played": [
+    5,
+    5
+   ],
+   "at": "2026-11-17T21:40:36.953Z"
+  },
+  "fb-401861192": {
+   "comp": "uefa.nations",
+   "teams": [
+    "Republic of Ireland",
+    "Kosovo"
+   ],
+   "played": [
+    5,
+    5
+   ],
+   "at": "2026-11-17T21:40:36.953Z"
+  }
+ }
 }
