@@ -4492,29 +4492,17 @@
  },
  "golfHeat": {},
  "tablesPending": {
-  "fb-401861196": {
+  "fb-401861194": {
    "comp": "uefa.nations",
    "teams": [
-    "Bosnia-Herzegovina",
-    "Romania"
+    "Denmark",
+    "Norway"
    ],
    "played": [
     5,
     5
    ],
-   "at": "2026-11-17T21:40:36.953Z"
-  },
-  "fb-401861192": {
-   "comp": "uefa.nations",
-   "teams": [
-    "Republic of Ireland",
-    "Kosovo"
-   ],
-   "played": [
-    5,
-    5
-   ],
-   "at": "2026-11-17T21:40:36.953Z"
+   "at": "2026-11-17T21:45:46.805Z"
   }
  }
 }
