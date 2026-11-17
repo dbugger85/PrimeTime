@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-17T19:10:38.442Z",
+ "lastFull": "2026-11-17T22:01:00.151Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2989,6 +2989,18 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/brentford-everton/s26111359021920426",
     "until": "2026-11-25T22:30:00.000Z"
+   }
+  },
+  "fb-401915379": {
+   "start": "2026-11-24T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/manchester-city-napoli-y10vprmj"
+   }
+  },
+  "fb-401915298": {
+   "start": "2026-11-24T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/real-madrid-psv-q8ecx7zn"
    }
   }
  },
