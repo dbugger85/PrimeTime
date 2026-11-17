@@ -841,10 +841,12 @@ test('football 20: comebacks, live shots per team, the transition', async () => 
   assert.equal(comebackOf(seq('hah')), 0, 'never 2 down');
   // ESPN names the team on some competitions' commentary only: shots per team then, or null.
   assert.ok(liveFacts(fixture('football/401843437.json')).shotsBy.home > 0, 'Viking: teams named');
-  assert.equal(liveFacts(fixture('football/760516.json')).shotsBy, null, 'France–England: no team names');
-  // Without shots per team the live Tempo counts as an ordinary match, not as 0.
+  const noBox = { ...fixture('football/760516.json'), boxscore: undefined }; // the match stats give them when present
+  assert.deepEqual(liveFacts(fixture('football/760516.json')).shotsBy, { home: 19, away: 19 }, 'France–England: from the match stats');
+  assert.equal(liveFacts(noBox).shotsBy, null, 'France–England: no team names in the commentary');
+  // Without shots per team (or passes) the live Tempo counts as an ordinary match, not as 0.
   const w = liveWeightsFrom(WEIGHTS.FOOTBALL, WEIGHTS.FOOTBALL_LIVE);
-  const f = { ...liveFacts(fixture('football/760516.json')), played: 90 };
+  const f = { ...liveFacts(noBox), played: 90 };
   assert.ok(scoreLivePace(f, { w }).pace > scoreLivePace({ ...f, shotsBy: { home: 0, away: 0 } }, { w }).pace);
   // Weights from before football 20 (a cached events.json) can't score: it's refused, not shown as nonsense.
   const old = Object.fromEntries(Object.entries(WEIGHTS.FOOTBALL).filter(([k]) => !/Scale$/.test(k)));
@@ -880,4 +882,21 @@ test('football 19: suspense, swing, red cards for the team ahead, great goals, s
   assert.deepEqual(stoppageOf([{ period: { number: 1 }, clock: { displayValue: "45'+3'" } }, { period: { number: 2 }, clock: { displayValue: "90'+6'" } }, { period: { number: 2 }, clock: { displayValue: "67'" } }]), [3, 6]);
   // Stoppage time counts: a 1–0 at 30' is within one goal for the whole match either way, so the share is 100%.
   assert.ok(scoreFootball({ ...base, stoppage: [3, 6] }, W).reasons.some(([, l]) => l === 'Within one goal for 100% of the match'));
+});
+
+test('live: late drama counts as on replays, and the strip so far (2026-11-17)', async () => {
+  const { scoreLivePace, liveWeightsFrom, liveSegments } = await import('../docs/live.js');
+  const w = liveWeightsFrom(WEIGHTS.FOOTBALL, WEIGHTS.FOOTBALL_LIVE);
+  const base = { played: 90, reds: 0, redsBy: [], pens: 0, disallowed: 0, woodwork: 0, shotsOn: 8, shotsOff: 12, shotsBy: { home: 10, away: 10 }, corners: 8, passes: 900 };
+  const g = (mins) => mins.map((min, i) => ({ min, side: i < 2 ? 'home' : 'away' }));
+  // Denmark–Norway: 2–0, then 2–3 with goals at 83' and 90'. The same goals early on score less.
+  const late = scoreLivePace({ ...base, goals: g([10, 14, 37, 83, 89.9]) }, { w }).pace;
+  const early = scoreLivePace({ ...base, goals: g([10, 14, 37, 50, 55]) }, { w }).pace;
+  assert.ok(late >= early + 0.2, `${late} vs ${early}`);
+  // The strip: 15-minute blocks up to the minute played, the rest null (not played yet).
+  const moments = { pens: [], disallowed: [], woodwork: [], reds: [], vars: [], shotsOn: [20], shotsOff: [5] };
+  const segs = liveSegments({ played: 40, goals: [{ min: 12, side: 'home' }], moments });
+  assert.deepEqual(segs.map((x) => x === null), [false, false, false, true, true, true]);
+  assert.equal(segs[0], 3, 'the goal');
+  assert.equal(liveSegments({ played: 10, goals: [], moments }), null, 'too early');
 });

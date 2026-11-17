@@ -86,6 +86,16 @@ export function liveFacts(summary) {
   const typed = (re) => plays.filter((p) => re.test(p.type?.text ?? '')).map(minuteOf);
   const names = Object.fromEntries((comp.competitors ?? []).map((t) => [t.team?.displayName, t.homeAway]));
   const clock = clockOf(comp.status);
+  // ESPN's match stats (the same counts the replay score uses), when the summary has them: the
+  // commentary misses many shots (5 on target where the stats had 11, Denmark–Norway 2026-11-17).
+  const teams = summary.boxscore?.teams ?? [];
+  const statOf = (t, name) => { const v = Number(t.statistics?.find((x) => x.name === name)?.displayValue); return Number.isFinite(v) ? v : null; };
+  const perTeam = (name) => {
+    const by = Object.fromEntries(teams.map((t) => [sides[t.team?.id], statOf(t, name)]));
+    return Number.isFinite(by.home) && Number.isFinite(by.away) ? { home: by.home, away: by.away } : null;
+  };
+  const box = { shots: perTeam('totalShots'), onTarget: perTeam('shotsOnTarget'), passes: perTeam('totalPasses'), corners: perTeam('wonCorners') };
+  const sum = (p) => (p ? p.home + p.away : null);
   return {
     played: playedOf(clock),
     goals: goals.map(({ min, side }) => ({ min, side })),
@@ -94,15 +104,48 @@ export function liveFacts(summary) {
     pens: typed(/^penalty/i).length,
     disallowed: typed(/deleted after review/i).length,
     woodwork: typed(/woodwork/i).length,
-    shotsOn: typed(/shot on target/i).length,
-    shotsOff: typed(/shot off target|shot blocked/i).length,
+    shotsOn: box.onTarget && box.shots ? sum(box.onTarget) : typed(/shot on target/i).length,
+    shotsOff: box.onTarget && box.shots ? Math.max(0, sum(box.shots) - sum(box.onTarget)) : typed(/shot off target|shot blocked/i).length,
+    passes: sum(box.passes), // for "direct play" (Tempo), as on replays
     // Shots per team (for "end to end") and corners, counts only. ESPN only names the team on some
     // competitions' commentary: without it, null (the live Tempo then counts as an ordinary match).
-    shotsBy: plays.some((p) => names[p.team?.displayName]) ? Object.fromEntries(['home', 'away'].map((side) =>
-      [side, plays.filter((p) => /^(shot|goal|penalty - scored)/i.test(p.type?.text ?? '') && names[p.team?.displayName] === side).length])) : null,
-    corners: typed(/corner awarded/i).length,
+    shotsBy: box.shots ?? (plays.some((p) => names[p.team?.displayName]) ? Object.fromEntries(['home', 'away'].map((side) =>
+      [side, plays.filter((p) => /^(shot|goal|penalty - scored)/i.test(p.type?.text ?? '') && names[p.team?.displayName] === side).length])) : null),
+    corners: box.corners ? sum(box.corners) : typed(/corner awarded/i).length,
+    // Minutes only, for the strip of 15-minute blocks (liveSegments): the same moments as on replays.
+    moments: {
+      pens: typed(/^penalty/i), disallowed: typed(/deleted after review/i), woodwork: typed(/woodwork/i),
+      reds: events.filter((e) => /red card/i.test(e.type?.text ?? '')).map(minuteOf),
+      vars: typed(/^VAR/i), shotsOn: typed(/shot on target/i), shotsOff: typed(/shot off target|shot blocked/i),
+    },
   };
 }
+
+// The heat strip so far, as on replays (6 blocks of 15 minutes, levels 0–3, the same weights as
+// scoreFootball's slots without xG): blocks not reached yet are null. Shot minutes come from the
+// commentary, the only place that has them. Null before LIVE_FROM or without the minutes.
+export function liveSegments(f) {
+  if (!f?.moments || !(f.played >= LIVE_FROM)) return null;
+  const m = f.moments;
+  const blocks = new Array(6).fill(0);
+  const add = (min, w) => { blocks[Math.min(5, Math.floor(min / 15))] += w; };
+  f.goals.forEach((g) => add(g.min, 3));
+  m.pens.forEach((x) => add(x, 1.5));
+  m.reds.forEach((x) => add(x, 2));
+  m.vars.forEach((x) => add(x, 1));
+  m.disallowed.forEach((x) => add(x, 2));
+  m.woodwork.forEach((x) => add(x, 1));
+  m.shotsOn.forEach((x) => add(x, 0.4));
+  m.shotsOff.forEach((x) => add(x, 0.15));
+  const reached = Math.min(6, Math.ceil(Math.min(f.played, 90) / 15) || 1);
+  const levels = heatLevels(blocks.slice(0, reached), 4);
+  return blocks.map((_, i) => (i < reached ? levels[i] : null));
+}
+// The same levels as heat() in scoring.js (kept here so live.js imports nothing).
+const heatLevels = (values, floor) => {
+  const max = Math.max(...values, floor);
+  return values.map((v) => (v <= 0.05 ? 0 : v < max * 0.34 ? 1 : v < max * 0.67 ? 2 : 3));
+};
 
 // The top end of every football score: above `from` each point counts a bit less than the
 // one before, bending smoothly towards 10 (see "curveFrom" in src/scoring/weights.mjs).
@@ -251,6 +294,16 @@ export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0, odds = null
   const opening = (f.redsBy ?? []).filter((r) => { const d = leadAt(r.min) * (r.side === 'home' ? 1 : r.side === 'away' ? -1 : 0); return r.side && (d > 0 || (d === 0 && r.min >= 60)); }).length;
   drama += w.redCard * Math.min(f.reds, 2) + n(w.redCardAhead) * Math.min(opening, 2);
   drama *= per90;
+  // Late drama, as on replays (not scaled to 90': it can only happen late): goals from 75' while the
+  // result was within one goal, and goals from 85' that changed the result.
+  let d0 = 0, late = 0, deciders = 0;
+  for (const g of goals) {
+    const d1 = d0 + (g.side === 'home' ? 1 : -1);
+    if (g.min >= 75 && Math.min(Math.abs(d0), Math.abs(d1)) <= 1) late += g.min >= 85 ? n(w.veryLateGoal) : n(w.lateGoal);
+    if (g.min >= 85 && (d0 === 0 || d1 === 0)) deciders++;
+    d0 = d1;
+  }
+  drama += Math.min(late, n(w.lateGoalsMax)) + n(w.lateDecider) * Math.min(deciders, 2);
 
   const s = suspenseOf(goals.map((g) => ({ t: g.min, side: g.side })), odds, 90, Math.min(played, 90));
   // A comeback from 2+ down to within one goal (as on replays, once).
@@ -268,6 +321,9 @@ export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0, odds = null
     tempo += n(w.endToEnd) * Math.min(1, Math.max(0, (Math.min(sb.home, sb.away) / Math.max(sb.home, sb.away) - 0.4) / 0.5));
   }
   if (Number.isFinite(f.corners) && f.corners * per90 >= 12) tempo += n(w.manyCorners);
+  // Direct play, as on replays: shots and corners for every 100 passes (nothing at 2.8, the full amount at 5).
+  const direct = f.passes >= 300 * (played / 90) && Number.isFinite(f.corners) ? ((f.shotsOn + f.shotsOff + f.corners) / f.passes) * 100 : null;
+  if (direct != null) tempo += n(w.directness) * Math.min(1, Math.max(0, (direct - 2.8) / 2.2));
 
   // Each pillar's 0–10 score, pulled towards a typical match early on (`settleMinutes` of play at
   // kick-off, fading to nothing at 90'); then the weighted average and the occasion.
@@ -278,7 +334,7 @@ export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0, odds = null
   for (const p of PILLAR_KEYS) {
     const scale = n(w[`${p}Scale`]) || 1;
     // Tempo without shots per team (ESPN didn't name the teams) and few corners: an ordinary match.
-    const now = p === 'tempo' && !sb && tempo === 0 ? w.typicalMatch : pillarScore(points[p], scale);
+    const now = p === 'tempo' && !sb && direct == null && tempo === 0 ? w.typicalMatch : pillarScore(points[p], scale);
     x += shares[p] * (played * now + prior * w.typicalMatch) / (played + prior);
   }
   const stakesPoints = stakes === 'title' ? w.titleRace : stakes === 'relegation' ? w.relegationBattle : stakes ? w.otherRace : 0;
@@ -291,7 +347,7 @@ export function scoreLivePace(f, { w, factor = 1, stakes, boost = 0, odds = null
 // so weights.mjs stays the only place they're set).
 export const LIVE_WEIGHT_KEYS = ['goal', 'extraGoal', 'closeMatch', 'equaliser', 'leadChange',
   'redCard', 'penalty', 'varDisallowed', 'woodwork', 'titleRace', 'relegationBattle', 'otherRace', 'curveFrom', 'suspense', 'swing', 'redCardAhead',
-  'endToEnd', 'manyCorners', 'pillarChances', 'pillarTempo', 'pillarTension', 'pillarDrama',
+  'endToEnd', 'manyCorners', 'directness', 'lateGoal', 'veryLateGoal', 'lateGoalsMax', 'lateDecider', 'pillarChances', 'pillarTempo', 'pillarTension', 'pillarDrama',
   'chancesScale', 'tempoScale', 'tensionScale', 'dramaScale'];
 export const liveWeightsFrom = (football, live) =>
   ({ ...Object.fromEntries(LIVE_WEIGHT_KEYS.map((k) => [k, football[k]])), ...live });

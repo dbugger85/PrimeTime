@@ -916,8 +916,9 @@ try {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
     await ctx.addInitScript(() => {
       const fake = { endpoint: 'https://fcm.googleapis.com/fcm/send/e2e', toJSON() { return { endpoint: this.endpoint, keys: { p256dh: 'BPub', auth: 'sec' } }; } };
-      PushManager.prototype.getSubscription = async () => null;
-      PushManager.prototype.subscribe = async () => fake;
+      // Like a real browser, the address stays after a reload (the page checks it's still there).
+      PushManager.prototype.getSubscription = async () => (localStorage.getItem('e2e-sub') ? fake : null);
+      PushManager.prototype.subscribe = async () => { localStorage.setItem('e2e-sub', '1'); return fake; };
     });
     const calls = [];
     await ctx.route('https://primetime-push.dbugger85.workers.dev/**', async (r) => {

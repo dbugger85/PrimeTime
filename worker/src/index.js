@@ -2,12 +2,14 @@
 // The page is a static site, so something has to remember "notify this phone when this match
 // starts" and send the ping on time. This is it: it stores the phone's push address and the
 // events it belled in a small D1 database, checks every minute, sends, and deletes the row.
-// It stores nothing else: no names, no accounts, no IP addresses.
+// It stores nothing else: no names, no accounts, no IP addresses. A `log` table (14 days) notes
+// what happened to each bell (saved, sent, refused, dropped), without the push address.
 //
 //   POST   /alert  { sub, id, title, body }   bell an event (it must be in "Coming up")
 //          golf:   { …, level, players }      a tournament: several pushes (worker/src/golf.js); `players`
 //                                             (followed golfers, at most 5) only from phones at level 2+
 //   DELETE /alert  { endpoint, id }           un-bell it
+//   POST   /test   { sub }                    send a test push now; answers { status } (the push service's)
 // A golf row stays until the tournament is over (`kind` 'golf', `sent` lists what went out, `start` is
 // when to look next); every other row is deleted once its one push is sent (`kind` 'start').
 //
@@ -19,7 +21,8 @@ import { golfDue, pastKeys } from './golf.js';
 
 const ORIGINS = ['https://primetime.re', 'https://www.primetime.re', 'http://localhost:8000'];
 // Only real browser push services, so this can't be used to make requests anywhere else.
-const PUSH_HOSTS = ['fcm.googleapis.com', 'push.services.mozilla.com', 'push.apple.com', 'notify.windows.com'];
+// jmt17.google.com: newer Chrome's push addresses (https://jmt17.google.com/fcm/send/…, seen 2026-11-17).
+const PUSH_HOSTS = ['fcm.googleapis.com', 'jmt17.google.com', 'push.services.mozilla.com', 'push.apple.com', 'notify.windows.com'];
 const MAX_PER_PHONE = 60;
 const MAX_PLAYERS = 5; // followed golfers per phone and tournament
 const GOLF_GONE = 3 * 864e5; // a golf card missing from the site this long (and not a replay): drop the bell
@@ -58,12 +61,20 @@ async function siteGolf(env) {
     return res.ok ? await res.json() : null;
   } catch { return null; }
 }
+// One line in the send log. Never fails the real work (the table may not exist yet).
+const LOG_DAYS = 14;
+async function note(env, event, what, status = null, endpoint = '') {
+  let host = null;
+  try { host = new URL(endpoint).hostname; } catch { /* no address */ }
+  try { await env.DB.prepare('INSERT INTO log (at, event, what, status, host) VALUES (?, ?, ?, ?, ?)').bind(Date.now(), event, what, status, host).run(); } catch { /* ignore */ }
+}
 const list = (s) => { try { const a = JSON.parse(s || '[]'); return Array.isArray(a) ? a : []; } catch { return []; } };
 
 async function handle(req, env) {
   const url = new URL(req.url);
   const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { ...cors(req), 'Content-Type': 'application/json' } });
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(req) });
+  if (url.pathname === '/test' && req.method === 'POST') return testPush(req, env, json);
   if (url.pathname !== '/alert') return json({ ok: true, what: 'PrimeTime notifications' }, url.pathname === '/' ? 200 : 404);
 
   let input;
@@ -72,6 +83,7 @@ async function handle(req, env) {
   if (req.method === 'DELETE') {
     if (typeof input.endpoint !== 'string' || typeof input.id !== 'string') return json({ error: 'missing fields' }, 400);
     await env.DB.prepare('DELETE FROM alerts WHERE endpoint = ? AND event = ?').bind(input.endpoint, input.id).run();
+    await note(env, input.id, 'removed', null, input.endpoint);
     return json({ ok: true });
   }
 
@@ -96,15 +108,33 @@ async function handle(req, env) {
         .bind(sub.endpoint, sub.keys.p256dh.slice(0, 200), sub.keys.auth.slice(0, 100), id, now, text(input.title, 120) || e.compName, text(input.body, 200),
           JSON.stringify(players), level, JSON.stringify(pastKeys(e, now)))
         .run();
+      await note(env, id, 'saved', null, sub.endpoint);
       return json({ ok: true, start: e.start });
     }
     await env.DB.prepare(`INSERT INTO alerts (endpoint, p256dh, auth, event, start, title, body) VALUES (?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT (endpoint, event) DO UPDATE SET p256dh = excluded.p256dh, auth = excluded.auth, start = excluded.start, title = excluded.title, body = excluded.body`)
       .bind(sub.endpoint, sub.keys.p256dh.slice(0, 200), sub.keys.auth.slice(0, 100), id, Date.parse(e.start), text(input.title, 120) || 'Starting now', text(input.body, 200))
       .run();
+    await note(env, id, 'saved', null, sub.endpoint);
     return json({ ok: true, start: e.start });
   }
   return json({ error: 'method' }, 405);
+}
+
+// "Test notifications" on the page: one push to the phone asking, now. It can only reach the phone that
+// sent its own address and keys, so it can't be used to bother anyone else.
+async function testPush(req, env, json) {
+  let input;
+  try { input = await req.json(); } catch { return json({ error: 'bad json' }, 400); }
+  const sub = input?.sub;
+  if (!sub || !isPushHost(sub.endpoint) || typeof sub.keys?.p256dh !== 'string' || typeof sub.keys?.auth !== 'string') return json({ error: 'missing fields' }, 400);
+  const vapid = { publicKey: env.VAPID_PUBLIC, privateJwk: JSON.parse(env.VAPID_PRIVATE), subject: env.SITE };
+  let status = 0;
+  try {
+    status = await sendPush(sub, JSON.stringify({ title: 'PrimeTime test', body: 'Notifications work on this device', id: 'test' }), vapid, { ttl: 300 });
+  } catch (err) { console.log('test push failed', String(err)); }
+  await note(env, 'test', 'test', status, sub.endpoint);
+  return json({ status });
 }
 
 // Every minute: send what's due. Before sending, the start time is checked against the site,
@@ -127,12 +157,13 @@ export async function sendDue(env, now = Date.now()) {
     if (gone.has(a.endpoint)) continue;
     if (a.kind === 'golf') { // a tournament: several pushes from one row (worker/src/golf.js)
       const e = upcoming.get(a.event);
-      if (!e) { if (done.has(a.event) || now - a.start > GOLF_GONE) await drop(a); continue; } // over (a replay now) or gone
+      if (!e) { if (done.has(a.event) || now - a.start > GOLF_GONE) { await drop(a); await note(env, a.event, 'golf over', null, a.endpoint); } continue; } // over (a replay now) or gone
       if (a.level >= 2 && golfFile === undefined) golfFile = await siteGolf(env);
       const r = golfDue(e, { title: a.title, body: a.body, level: a.level, players: list(a.players), sent: list(a.sent) }, now, golfFile ?? null);
       let ok = true;
       for (const m of r.alerts) {
         const status = await push(a, m.title, m.body);
+        await note(env, a.event, `golf ${m.key}`, status, a.endpoint);
         if (status === 404 || status === 410) { await env.DB.prepare('DELETE FROM alerts WHERE endpoint = ?').bind(a.endpoint).run(); gone.add(a.endpoint); ok = false; break; }
         if (status >= 200 && status < 300) sent++;
         else { ok = false; r.sent.splice(r.sent.indexOf(m.key), 1); console.log('push refused', status, new URL(a.endpoint).hostname); } // tried again next minute
@@ -146,18 +177,20 @@ export async function sendDue(env, now = Date.now()) {
     if (e?.timeTbc) continue; // its day isn't known any more: wait for it
     if (e && start > now + EARLY) { // moved to later
       await env.DB.prepare('UPDATE alerts SET start = ? WHERE endpoint = ? AND event = ?').bind(start, a.endpoint, a.event).run();
+      await note(env, a.event, 'moved later', null, a.endpoint);
       continue;
     }
     if (!e && !done.has(a.event)) { // not on the site at all: postponed or cancelled
-      if (now - a.start > TOO_LATE) await drop(a);
+      if (now - a.start > TOO_LATE) { await drop(a); await note(env, a.event, 'dropped: gone from site', null, a.endpoint); }
       continue;
     }
-    if (now - start > TOO_LATE || (!e && done.has(a.event))) { await drop(a); continue; } // long over
+    if (now - start > TOO_LATE || (!e && done.has(a.event))) { await drop(a); await note(env, a.event, 'dropped: too late', null, a.endpoint); continue; } // long over
     const payload = JSON.stringify({ title: a.title, body: a.body, id: a.event });
     let status = 0;
     try {
       status = await sendPush({ endpoint: a.endpoint, keys: { p256dh: a.p256dh, auth: a.auth } }, payload, vapid);
     } catch (err) { console.log('push failed', String(err)); }
+    await note(env, a.event, status === 404 || status === 410 ? 'gone: phone unsubscribed' : status >= 200 && status < 300 ? 'sent' : 'refused', status, a.endpoint);
     if (status === 404 || status === 410) { // that phone unsubscribed: forget all its bells
       await env.DB.prepare('DELETE FROM alerts WHERE endpoint = ?').bind(a.endpoint).run();
     } else if (status >= 200 && status < 300) {
@@ -199,6 +232,7 @@ export default {
   async scheduled(event, env, ctx) {
     const minute = new Date(event?.scheduledTime ?? Date.now()).getUTCMinutes();
     const resync = minute % RESYNC_MIN === 0 ? resyncStarts(env).then((r) => r.moved && console.log(`moved ${r.moved}`)) : Promise.resolve();
-    ctx.waitUntil(resync.then(() => sendDue(env)).then((r) => r.sent && console.log(`sent ${r.sent}`)));
+    const prune = minute === 0 ? env.DB.prepare('DELETE FROM log WHERE at < ?').bind(Date.now() - LOG_DAYS * 864e5).run().catch(() => {}) : null;
+    ctx.waitUntil(Promise.all([prune, resync.then(() => sendDue(env)).then((r) => r.sent && console.log(`sent ${r.sent}`))]));
   },
 };

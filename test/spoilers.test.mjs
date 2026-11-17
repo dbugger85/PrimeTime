@@ -330,7 +330,9 @@ test('the real docs/data/events.json is spoiler-free', { skip: !existsSync(new U
   for (const [k, v] of Object.entries(data.sliderScale ?? {})) assert.ok(k in TWEAK_GROUPS && Number.isFinite(v) && v >= 0, `sliderScale ${k}`);
   // The weights for "Excitement so far": exactly the football weights the page needs, numbers only.
   if (data.liveWeights) {
-    assert.deepEqual(Object.keys(data.liveWeights).sort(), Object.keys(liveWeightsFrom(WEIGHTS.FOOTBALL, WEIGHTS.FOOTBALL_LIVE)).sort());
+    // (A file from before a new key was added lacks it until the next build: the page counts it as 0.)
+    const known = Object.keys(liveWeightsFrom(WEIGHTS.FOOTBALL, WEIGHTS.FOOTBALL_LIVE));
+    assert.deepEqual(Object.keys(data.liveWeights).filter((k) => !known.includes(k)), []);
     assert.ok(Object.values(data.liveWeights).every(Number.isFinite));
   }
   // Elo: one whole number per football team on the page, nothing else.

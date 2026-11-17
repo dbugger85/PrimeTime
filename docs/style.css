@@ -299,6 +299,8 @@ body:not([data-view="upcoming"]) .upcoming-only { display: none; }
 .strip .h1 { background: var(--h1); }
 .strip .h2 { background: var(--h2); }
 .strip .h3 { background: var(--h3); }
+.strip .later { background: transparent; box-shadow: inset 0 0 0 1px var(--h0); } /* live: not played yet */
+.live-strip { margin: 2px 0 6px; }
 .advice { font-size: 14.5px; font-weight: 600; margin-top: 2px; }
 .advice::before { content: '⏩ '; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; flex-wrap: wrap; }

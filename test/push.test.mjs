@@ -79,6 +79,7 @@ function fakeDb(rows) {
     if (sql.startsWith('UPDATE alerts SET start')) { const r = rows.find((x) => x.endpoint === args[1] && x.event === args[2]); r.start = args[0]; return {}; }
     if (sql === 'DELETE FROM alerts WHERE endpoint = ? AND event = ?') { rows.splice(0, rows.length, ...rows.filter((x) => !(x.endpoint === args[0] && x.event === args[1]))); return {}; }
     if (sql === 'DELETE FROM alerts WHERE endpoint = ?') { rows.splice(0, rows.length, ...rows.filter((x) => x.endpoint !== args[0])); return {}; }
+    if (sql.startsWith('INSERT INTO log')) { (rows.log ??= []).push(args[2]); return {}; }
     throw new Error(`unexpected SQL: ${sql}`);
   };
   return { prepare: (sql) => ({ bind: (...args) => ({ all: async () => run(sql, args), run: async () => run(sql, args) }) }) };
@@ -118,6 +119,7 @@ test('every minute: sends what has started, waits for moved events, drops cancel
     assert.match(sent[0].auth, /^vapid t=/);
     assert.deepEqual(rows.map((x) => x.event).sort(), ['gone-recent', 'later', 'moved']);
     assert.equal(rows.find((x) => x.event === 'moved').start, Date.parse('2026-11-07T21:00Z'));
+    for (const what of ['sent', 'gone: phone unsubscribed', 'moved later']) assert.ok(rows.log.includes(what), what); // the send log
   } finally { globalThis.fetch = realFetch; }
 });
 

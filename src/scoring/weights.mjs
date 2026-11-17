@@ -193,8 +193,10 @@ export const FOOTBALL_OUTLOOK = {
 // goal, equaliser, card, VAR, woodwork, close-match, stakes and curve weights from FOOTBALL above,
 // plus these. Nothing here changes a replay score, so editing them doesn't re-score anything.
 export const FOOTBALL_LIVE = {
-  shotOnTarget: 0.3, //      each shot on target so far
-  shotOffTarget: 0.08, //    each shot off target or blocked so far
+  // Shots come from ESPN's match stats (about twice the commentary's count, which these were first set for).
+  // Refitted 2026-11-17 on 120 replays scored live at 90': mean error 0.62 -> 0.36.
+  shotOnTarget: 0.1, //      each shot on target so far
+  shotOffTarget: 0.04, //    each shot off target or blocked so far
   typicalMatch: 6.2, //       early on, each pillar is pulled towards this (a typical match: the pillars average about 6.2; from 0 to 9)
   settleMinutes: 45, //       how many minutes of play the "typical match" counts for at kick-off (it fades to nothing at 90'; from 0 to 90)
 };

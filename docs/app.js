@@ -1,5 +1,5 @@
 import { SPORTS, migratePrefs, periodOptions, facets, activeFilters, filterUpcoming, dayLabel, upcomingDay, tierOf, adviceText, skipShades, reasonLines, reasonGroups, filterEvents, namesHidden, titleOf, f1SessionName, favCount, toggleFav, favNames, searchNames, followedMatch, winterKey, winterLabel, encodeSettings, decodeSettings, subtitleOf, hiddenTitleOf, prematchLine, chancesLine, teamSlug, leagueGroups, teamHash, teamFromHash, teamMatches, teamTables, TABLE_COMPS } from './logic.js';
-import { ESPN, clockOf, liveClockText, espnDays, liveFacts, scoreLivePace, LIVE_FROM, elapsedText, PILLAR_KEYS, pillarShares, pillarWeightKey } from './live.js';
+import { ESPN, clockOf, liveClockText, espnDays, liveFacts, scoreLivePace, liveSegments, LIVE_FROM, elapsedText, PILLAR_KEYS, pillarShares, pillarWeightKey } from './live.js';
 import { GOLF_LEADERBOARD, parseLeaderboard, roundLine, favoriteLines, playerState, favoriteWords, positionText, leaderboardRows } from './golf.js';
 import { scoreFootball, applyTweaks, cleanTweaks, isStandard, DEFAULT_TWEAKS, TWEAK_GROUPS, STAKES, SCALE_MAX, SCALE_STEP, CURVE_STEP, BOOST_STEP, BOOST_MAX, PILLARS, PILLAR_MAX, PILLAR_STEP } from './scoring.js';
 
@@ -961,6 +961,57 @@ async function resyncGolfBells() {
   } catch { /* keeps the old settings */ }
 }
 
+// Bells this phone still waits for, sent to the helper again (after the push address changed).
+async function rebell(sub) {
+  for (const e of upcoming.filter((x) => bells[x.id] && (x.sport === 'golf' || Date.parse(x.start) > Date.now()))) {
+    await fetch(`${PUSH_URL}/alert`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sub: sub.toJSON(), id: e.id, ...bellText(e) }) }).catch(() => {});
+  }
+}
+
+// A phone can lose its push address (iPhones after a while, or when site data is cleared); the
+// helper's sends are then refused and it forgets the bells. Once a visit, with bells on: no address
+// any more means a new one, and the bells go to the helper again.
+let pushChecked = false;
+async function checkPushAddress() {
+  if (pushChecked || !Object.keys(bells).length || !pushWorks() || Notification.permission !== 'granted') return;
+  pushChecked = true;
+  try {
+    const reg = await navigator.serviceWorker.getRegistration('./');
+    if (reg && (await reg.pushManager.getSubscription())) return;
+    await rebell(await pushSubscription());
+  } catch { /* try again next visit */ }
+}
+
+// "Test notifications" (under Filters and settings): the helper sends one now and says what the push
+// service (Apple, Google, Mozilla) answered. An address the service no longer knows is replaced, and
+// the bells are sent again with the new one.
+async function testPush() {
+  if (!(await askPermission(null))) return;
+  const send = async (sub) => {
+    const res = await fetch(`${PUSH_URL}/test`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sub: sub.toJSON() }) });
+    return res.ok ? (await res.json()).status : -1;
+  };
+  try {
+    let sub = await pushSubscription();
+    let status = await send(sub);
+    let renewed = false;
+    if (status === 404 || status === 410) { // the push service has forgotten this address: get a new one
+      await sub.unsubscribe().catch(() => {});
+      sub = await pushSubscription();
+      status = await send(sub);
+      renewed = true;
+      if (status >= 200 && status < 300) await rebell(sub);
+    }
+    if (status >= 200 && status < 300) {
+      await notifyDialog({ title: 'Test sent', text: `${renewed ? "This device's push address had expired, so it got a new one and your bells were saved again. " : ''}The push service accepted it, so a notification should appear within a few seconds. If it doesn't, notifications for PrimeTime are turned off or held back on this device: check its notification settings (on iPhone: Settings → Notifications → PrimeTime, and any Focus mode)` });
+    } else {
+      await notifyDialog({ title: "Test didn't go through", text: `The push service refused it (code ${status}). Try again in a minute; if it keeps failing, tell us with "Suggest an idea"` });
+    }
+  } catch {
+    await notifyDialog({ title: "Test didn't go through", text: 'Something went wrong. Check your connection and try again' });
+  }
+}
+
 // Forget bells for events that started long ago (the helper has sent and deleted them).
 function pruneBells() {
   let changed = false;
@@ -989,6 +1040,16 @@ function fillPace(li, e) {
   const line = li.querySelector('.pace');
   line.hidden = false;
   line.textContent = paceText(e);
+  drawLiveStrip(li, e);
+}
+
+// The timeline so far under the number (with "Show hints"), like a replay's strip: for someone
+// tuning in late, is it worth starting from the beginning? Blocks not reached yet are outlined.
+function drawLiveStrip(li, e) {
+  const strip = li.querySelector('.live-strip');
+  const segs = prefs.hints && paceOpen.has(e.id) ? liveSegments(paceNow.get(e.id)?.facts) : null;
+  strip.replaceChildren(...(segs ?? []).map((lvl) => Object.assign(document.createElement('i'), { className: lvl == null ? 'later' : `h${lvl}` })));
+  strip.hidden = !segs;
 }
 
 // The live number from ESPN's facts, with your own scoring when it's on (sliders and competition boost).
@@ -1034,8 +1095,9 @@ async function loadPace(e) {
   } catch {
     paceNow.set(e.id, { failed: true });
   }
-  const line = document.querySelector(`#cards > .card[data-id="${CSS.escape(e.id)}"] .pace`);
-  if (line && !line.hidden) line.textContent = paceText(e);
+  const li = document.querySelector(`#cards > .card[data-id="${CSS.escape(e.id)}"]`);
+  const line = li?.querySelector('.pace');
+  if (line && !line.hidden) { line.textContent = paceText(e); drawLiveStrip(li, e); }
 }
 
 // While live football is on screen, ask ESPN's scoreboard for the minute once a minute (one
@@ -1810,6 +1872,7 @@ function bind() {
     keepScroll(render);
     resyncGolfBells();
   };
+  $('#push-test').onclick = testPush;
   on('#f-hide-tn', 'hideTennis');
   on('#f-hide-fb', 'hideFootball');
   $('#f-reset').onclick = () => {
@@ -1878,6 +1941,7 @@ async function fetchData({ quiet = false } = {}) {
     keepScroll(render); // keeps filters, "Show more" and open panels as they were
     $('#updated').dataset.generated = data.generated;
     $('#updated').textContent = `Updated ${fmt.format(new Date(data.generated))}.`;
+    checkPushAddress(); // once a visit
   } catch {
     if (!quiet) $('#status').textContent = 'Could not load the event list. Check your connection and reload.';
   }

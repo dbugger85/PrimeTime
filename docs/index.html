@@ -194,6 +194,10 @@
       <span class="small" id="share-note">Moves your favorites, services and filters to another device</span>
     </p>
     <p class="share">
+      <button type="button" id="push-test">Test notifications</button>
+      <span class="small">Sends one to this device now, to check the 🔔 bells work</span>
+    </p>
+    <p class="share">
       <a class="pill" id="suggest" href="https://github.com/dbugger85/PrimeTime/issues/new?template=suggestion.yml" target="_blank" rel="noopener">Suggest an idea</a>
       <span class="small">On GitHub (free account). Please no results</span>
     </p>
@@ -240,6 +244,7 @@
         <div class="row"><div class="svc"></div><button class="bell" type="button" aria-pressed="false" hidden>🔔</button></div>
         <button class="pace-btn" type="button" aria-expanded="false" hidden>Excitement so far</button>
         <p class="pace" aria-live="polite" hidden></p>
+        <div class="strip live-strip" aria-hidden="true" hidden></div>
         <button class="lineup-btn" type="button" aria-expanded="false" hidden>Line-ups</button>
         <div class="lineups" hidden></div>
       </div>
