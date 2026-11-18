@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-18T09:45:38.329Z",
+ "lastFull": "2026-11-18T12:35:43.444Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -571,10 +571,6 @@
   "AL62772"
  ],
  "stakes": {
-  "fb-401843465": {
-   "code": "title",
-   "start": "2026-10-17T12:00Z"
-  },
   "fb-401843464": {
    "code": "relegation",
    "start": "2026-10-17T14:00Z"
@@ -1879,13 +1875,6 @@
   }
  },
  "links": {
-  "fb-401878771": {
-   "start": "2026-10-17T11:30Z",
-   "viaplay": {
-    "url": "https://viaplay.no/sport/fotball/premier-league/everton-chelsea/s26100743408353547",
-    "until": "2026-10-19T14:25:00.000Z"
-   }
-  },
   "fb-401879262": {
    "start": "2026-10-17T14:00Z",
    "viaplay": {
@@ -1947,12 +1936,6 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/tottenham-coventry/s26100904869345605",
     "until": "2026-10-21T22:00:00.000Z"
-   }
-  },
-  "fb-401843465": {
-   "start": "2026-10-17T12:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/hamkam-bodoe-glimt-dfyervg1"
    }
   },
   "fb-401879253": {
@@ -3001,6 +2984,13 @@
    "start": "2026-11-24T20:00Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/real-madrid-psv-q8ecx7zn"
+   }
+  },
+  "fb-401879225": {
+   "start": "2026-11-27T20:00Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/nottingham-forest-chelsea/s26111871645943280",
+    "until": "2026-11-29T23:00:00.000Z"
    }
   }
  },
