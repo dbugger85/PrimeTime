@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-19T14:40:49.025Z",
+ "lastFull": "2026-11-19T17:30:51.083Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -571,10 +571,6 @@
   "AL62772"
  ],
  "stakes": {
-  "fb-401843466": {
-   "code": "relegation",
-   "start": "2026-10-18T15:00Z"
-  },
   "fb-401843372": {
    "code": "title",
    "start": "2026-10-24T14:00Z"
@@ -590,10 +586,6 @@
   "fb-401843367": {
    "code": "relegation",
    "start": "2026-10-25T16:00Z"
-  },
-  "fb-401843462": {
-   "code": "relegation",
-   "start": "2026-10-18T15:00Z"
   },
   "fb-401843366": {
    "code": "relegation",
@@ -1867,13 +1859,6 @@
   }
  },
  "links": {
-  "fb-401878769": {
-   "start": "2026-10-18T15:30Z",
-   "viaplay": {
-    "url": "https://viaplay.no/sport/fotball/premier-league/nottingham-forest-arsenal/s26100858935751475",
-    "until": "2026-10-20T18:00:00.000Z"
-   }
-  },
   "fb-401879257": {
    "start": "2026-10-19T19:00Z",
    "viaplay": {
@@ -1907,30 +1892,6 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/coventry-fulham/s26101507674290171",
     "until": "2026-10-26T16:30:00.000Z"
-   }
-  },
-  "fb-401843466": {
-   "start": "2026-10-18T15:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/vaalerenga-brann-ne9wknxx"
-   }
-  },
-  "fb-401843463": {
-   "start": "2026-10-18T15:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/molde-start-veem1ty8"
-   }
-  },
-  "fb-401843462": {
-   "start": "2026-10-18T15:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/sandefjord-lillestroem-whrzgk5y"
-   }
-  },
-  "fb-401843460": {
-   "start": "2026-10-18T17:15Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/tromsoe-kfum-oslo-7vwd1fg9"
    }
   },
   "fb-401915404": {
@@ -4449,7 +4410,7 @@
  "golfHeat": {
   "gf-401850981": {
    "heat": 1,
-   "at": 1795109129524
+   "at": 1795109451083
   }
  }
 }
