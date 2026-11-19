@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-19T11:45:45.665Z",
+ "lastFull": "2026-11-19T14:40:49.025Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1867,27 +1867,6 @@
   }
  },
  "links": {
-  "fb-401879261": {
-   "start": "2026-10-18T13:00Z",
-   "viaplay": {
-    "url": "https://viaplay.no/sport/fotball/premier-league/brighton-crystal-palace/s26100717315873556",
-    "until": "2026-10-20T15:30:00.000Z"
-   }
-  },
-  "fb-401879260": {
-   "start": "2026-10-18T13:00Z",
-   "viaplay": {
-    "url": "https://viaplay.no/sport/fotball/premier-league/leeds-man-united/s26100813468056807",
-    "until": "2026-10-20T16:30:00.000Z"
-   }
-  },
-  "fb-401879263": {
-   "start": "2026-10-18T13:00Z",
-   "viaplay": {
-    "url": "https://viaplay.no/sport/fotball/premier-league/bournemouth-sunderland/s26100701899854520",
-    "until": "2026-10-20T15:30:00.000Z"
-   }
-  },
   "fb-401878769": {
    "start": "2026-10-18T15:30Z",
    "viaplay": {
@@ -1928,12 +1907,6 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/coventry-fulham/s26101507674290171",
     "until": "2026-10-26T16:30:00.000Z"
-   }
-  },
-  "fb-401843461": {
-   "start": "2026-10-18T12:30Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/sarpsborg-08-rosenborg-kkhz0r87"
    }
   },
   "fb-401843466": {
@@ -4470,12 +4443,13 @@
   "Alex Smalley": "2026-11-19",
   "Austin Cook": "2026-11-19",
   "Maverick McNealy": "2026-11-19",
-  "Matt Atkins": "2026-11-19"
+  "Matt Atkins": "2026-11-19",
+  "Bill Haas": "2026-11-19"
  },
  "golfHeat": {
   "gf-401850981": {
    "heat": 1,
-   "at": 1795098928969
+   "at": 1795099249025
   }
  }
 }
