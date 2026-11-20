@@ -4404,5 +4404,19 @@
   "Matt Atkins": "2026-11-20",
   "Bill Haas": "2026-11-20"
  },
- "golfHeat": {}
+ "golfHeat": {},
+ "tablesPending": {
+  "fb-401882805": {
+   "comp": "esp.1",
+   "teams": [
+    "Athletic Club",
+    "Espanyol"
+   ],
+   "played": [
+    11,
+    12
+   ],
+   "at": "2026-11-20T21:55:30.874Z"
+  }
+ }
 }
