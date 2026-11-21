@@ -84,4 +84,15 @@ DESCRIPTION:Eliteserien · Title race\nWatch on TV 2 Play\nhttps://dbugger8
  5.github.io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843506@primetime
+DTSTAMP:20261205T150000Z
+DTSTART:20261205T150000Z
+DTEND:20261205T170000Z
+SUMMARY:Aalesund – Bodo/Glimt
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien · Title race\nWatch on TV 2 Play\nhttps://dbugger8
+ 5.github.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR

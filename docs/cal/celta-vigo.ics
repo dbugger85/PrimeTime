@@ -95,4 +95,15 @@ DESCRIPTION:La Liga\nWatch on TV 2 Play\nhttps://dbugger85.github.io/PrimeT
  ime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401882783@primetime
+DTSTAMP:20261205T200000Z
+DTSTART:20261205T200000Z
+DTEND:20261205T220000Z
+SUMMARY:Barcelona – Celta Vigo
+LOCATION:TV 2 Play
+DESCRIPTION:La Liga · Title race\nWatch on TV 2 Play\nhttps://dbugger85.gi
+ thub.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR

@@ -62,4 +62,15 @@ DESCRIPTION:La Liga · Relegation battle\nWatch on TV 2 Play\nhttps://dbugg
  er85.github.io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401882779@primetime
+DTSTAMP:20261205T151500Z
+DTSTART:20261205T151500Z
+DTEND:20261205T171500Z
+SUMMARY:Rayo Vallecano – Levante
+LOCATION:TV 2 Play
+DESCRIPTION:La Liga · Relegation battle\nWatch on TV 2 Play\nhttps://dbugg
+ er85.github.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
