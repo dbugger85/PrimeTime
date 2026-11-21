@@ -4669,29 +4669,17 @@
   }
  },
  "tablesPending": {
-  "fb-401879238": {
-   "comp": "eng.1",
+  "fb-401880151": {
+   "comp": "eng.2",
    "teams": [
-    "AFC Bournemouth",
-    "Nottingham Forest"
+    "Swansea City",
+    "West Bromwich Albion"
    ],
    "played": [
-    10,
-    10
+    15,
+    15
    ],
-   "at": "2026-11-21T16:55:29.145Z"
-  },
-  "fb-401843489": {
-   "comp": "nor.1",
-   "teams": [
-    "Hamarkameratene",
-    "Fredrikstad"
-   ],
-   "played": [
-    26,
-    26
-   ],
-   "at": "2026-11-21T16:55:29.145Z"
+   "at": "2026-11-21T17:01:00.041Z"
   }
  }
 }
