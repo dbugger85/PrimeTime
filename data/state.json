@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-21T12:38:21.496Z",
+ "lastFull": "2026-11-21T15:31:00.671Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -902,6 +902,130 @@
   "fb-401882783": {
    "code": "title",
    "start": "2026-12-05T20:00Z"
+  },
+  "fb-401880159": {
+   "code": "relegation",
+   "start": "2026-11-22T12:00Z"
+  },
+  "fb-401880146": {
+   "code": "relegation",
+   "start": "2026-11-24T19:45Z"
+  },
+  "fb-401880145": {
+   "code": "title",
+   "start": "2026-11-24T19:45Z"
+  },
+  "fb-401880144": {
+   "code": "title",
+   "start": "2026-11-24T19:45Z"
+  },
+  "fb-401880143": {
+   "code": "title",
+   "start": "2026-11-24T19:45Z"
+  },
+  "fb-401880142": {
+   "code": "title",
+   "start": "2026-11-24T19:45Z"
+  },
+  "fb-401880141": {
+   "code": "title",
+   "start": "2026-11-24T20:00Z"
+  },
+  "fb-401880140": {
+   "code": "title",
+   "start": "2026-11-25T19:45Z"
+  },
+  "fb-401880139": {
+   "code": "title",
+   "start": "2026-11-25T19:45Z"
+  },
+  "fb-401880137": {
+   "code": "relegation",
+   "start": "2026-11-25T19:45Z"
+  },
+  "fb-401880138": {
+   "code": "title",
+   "start": "2026-11-25T20:00Z"
+  },
+  "fb-401880129": {
+   "code": "title",
+   "start": "2026-11-27T20:00Z"
+  },
+  "fb-401880133": {
+   "code": "title",
+   "start": "2026-11-28T12:30Z"
+  },
+  "fb-401880131": {
+   "code": "title",
+   "start": "2026-11-28T12:30Z"
+  },
+  "fb-401880136": {
+   "code": "title",
+   "start": "2026-11-28T15:00Z"
+  },
+  "fb-401880134": {
+   "code": "relegation",
+   "start": "2026-11-28T15:00Z"
+  },
+  "fb-401880132": {
+   "code": "relegation",
+   "start": "2026-11-28T15:00Z"
+  },
+  "fb-401880130": {
+   "code": "title",
+   "start": "2026-11-28T15:00Z"
+  },
+  "fb-401880127": {
+   "code": "title",
+   "start": "2026-11-28T15:00Z"
+  },
+  "fb-401880126": {
+   "code": "title",
+   "start": "2026-11-28T15:00Z"
+  },
+  "fb-401880128": {
+   "code": "title",
+   "start": "2026-11-29T12:00Z"
+  },
+  "fb-401880116": {
+   "code": "title",
+   "start": "2026-12-04T20:00Z"
+  },
+  "fb-401880123": {
+   "code": "title",
+   "start": "2026-12-05T12:30Z"
+  },
+  "fb-401880119": {
+   "code": "title",
+   "start": "2026-12-05T12:30Z"
+  },
+  "fb-401880114": {
+   "code": "relegation",
+   "start": "2026-12-05T12:30Z"
+  },
+  "fb-401880121": {
+   "code": "relegation",
+   "start": "2026-12-05T15:00Z"
+  },
+  "fb-401880120": {
+   "code": "title",
+   "start": "2026-12-05T15:00Z"
+  },
+  "fb-401880118": {
+   "code": "title",
+   "start": "2026-12-05T15:00Z"
+  },
+  "fb-401880117": {
+   "code": "title",
+   "start": "2026-12-05T15:00Z"
+  },
+  "fb-401880115": {
+   "code": "title",
+   "start": "2026-12-05T15:00Z"
+  },
+  "fb-401880113": {
+   "code": "title",
+   "start": "2026-12-05T15:00Z"
   }
  },
  "calTeams": {
@@ -3013,6 +3137,30 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/club-brugge-liverpool-wvf7qh6z"
    }
+  },
+  "fb-401915377": {
+   "start": "2026-11-25T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/lille-bayern-6vrfvjv9"
+   }
+  },
+  "fb-401915373": {
+   "start": "2026-11-25T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/sporting-cp-manchester-united-8d8ma177"
+   }
+  },
+  "fb-401915376": {
+   "start": "2026-11-25T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/inter-stuttgart-300bqhm5"
+   }
+  },
+  "fb-401915375": {
+   "start": "2026-11-25T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/shakhtar-fenerbahce-je5j1527"
+   }
   }
  },
  "ratings": {
@@ -3288,7 +3436,7 @@
    "eng.1": {
     "Arsenal": 2.7,
     "Brighton & Hove Albion": 2.2,
-    "Manchester City": 2.1,
+    "Manchester City": 2,
     "Liverpool": 1.8,
     "Chelsea": 1.6,
     "Everton": 1.6,
@@ -3299,8 +3447,8 @@
     "Tottenham Hotspur": 1.2,
     "Newcastle United": 1.2,
     "Hull City": 1.1,
-    "Ipswich Town": 1.1,
     "Fulham": 1,
+    "Ipswich Town": 1.1,
     "Nottingham Forest": 0.9,
     "Coventry City": 0.9,
     "Manchester United": 0.8,
@@ -3347,11 +3495,11 @@
    },
    "nor.1": {
     "Bodo/Glimt": 2.4074074074074074,
-    "Viking FK": 2.3846153846153846,
+    "Viking FK": 2.2962962962962963,
     "Rosenborg": 1.7692307692307692,
     "Lillestrom": 1.7307692307692308,
     "Molde": 1.6296296296296295,
-    "Tromso": 1.5384615384615385,
+    "Tromso": 1.5925925925925926,
     "SK Brann": 1.2692307692307692,
     "Vålerenga": 1.2307692307692308,
     "Sarpsborg FK": 1.1923076923076923,
@@ -3371,12 +3519,12 @@
     "Real Sociedad": 1.8333333333333333,
     "Sevilla": 1.5,
     "Athletic Club": 1.3333333333333333,
+    "Alavés": 1.2307692307692308,
     "Villarreal": 1.25,
-    "Deportivo": 1.25,
     "Espanyol": 1.1538461538461537,
+    "Deportivo": 1.1538461538461537,
     "Racing Santander": 1.1666666666666667,
     "Celta Vigo": 1.0833333333333333,
-    "Alavés": 1.0833333333333333,
     "Rayo Vallecano": 1.0909090909090908,
     "Getafe": 1,
     "Osasuna": 1,
@@ -3453,24 +3601,24 @@
     "Stoke City": 1.9333333333333333,
     "Wolverhampton Wanderers": 1.8666666666666667,
     "West Bromwich Albion": 1.8666666666666667,
+    "Southampton": 1.6875,
+    "Queens Park Rangers": 1.6875,
     "Swansea City": 1.7333333333333334,
-    "Southampton": 1.6,
-    "Queens Park Rangers": 1.6,
+    "Norwich City": 1.5,
     "West Ham United": 1.5333333333333334,
     "Sheffield United": 1.4666666666666666,
     "Portsmouth": 1.4666666666666666,
-    "Norwich City": 1.4,
     "Blackburn Rovers": 1.4,
-    "Cardiff City": 1.2,
+    "Cardiff City": 1.125,
     "Wrexham": 1.2,
-    "Millwall": 1.2,
+    "Millwall": 1.125,
     "Bristol City": 1.2,
     "Bolton Wanderers": 1.1333333333333333,
     "Charlton Athletic": 1.1333333333333333,
     "Watford": 1,
     "Lincoln City": 1,
     "Burnley": 0.6666666666666666,
-    "Derby County": 0.6666666666666666,
+    "Derby County": 0.625,
     "Preston North End": 0.5333333333333333
    },
    "uefa.europa": {
@@ -4517,7 +4665,7 @@
  "golfHeat": {
   "gf-401850981": {
    "heat": 1,
-   "at": 1795264701496
+   "at": 1795275060671
   }
  }
 }
