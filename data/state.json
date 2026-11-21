@@ -4667,19 +4667,5 @@
    "heat": 1,
    "at": 1795275060671
   }
- },
- "tablesPending": {
-  "fb-401882799": {
-   "comp": "esp.1",
-   "teams": [
-    "Rayo Vallecano",
-    "Valencia"
-   ],
-   "played": [
-    11,
-    12
-   ],
-   "at": "2026-11-21T17:10:36.436Z"
-  }
  }
 }
