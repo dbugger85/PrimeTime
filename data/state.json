@@ -4669,17 +4669,29 @@
   }
  },
  "tablesPending": {
-  "fb-401880157": {
-   "comp": "eng.2",
+  "fb-401879238": {
+   "comp": "eng.1",
    "teams": [
-    "Middlesbrough",
-    "Bristol City"
+    "AFC Bournemouth",
+    "Nottingham Forest"
    ],
    "played": [
-    15,
-    15
+    10,
+    10
    ],
-   "at": "2026-11-21T16:50:38.793Z"
+   "at": "2026-11-21T16:55:29.145Z"
+  },
+  "fb-401843489": {
+   "comp": "nor.1",
+   "teams": [
+    "Hamarkameratene",
+    "Fredrikstad"
+   ],
+   "played": [
+    26,
+    26
+   ],
+   "at": "2026-11-21T16:55:29.145Z"
   }
  }
 }
