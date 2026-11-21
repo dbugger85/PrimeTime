@@ -80,8 +80,8 @@ DTSTART:20261128T123000Z
 DTEND:20261128T143000Z
 SUMMARY:Preston North End – Norwich City
 LOCATION:Viaplay
-DESCRIPTION:Championship · Title race\nWatch on Viaplay\nhttps://dbugger85
- .github.io/PrimeTime/
+DESCRIPTION:Championship · Relegation battle\nWatch on Viaplay\nhttps://db
+ ugger85.github.io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 BEGIN:VEVENT
@@ -91,8 +91,8 @@ DTSTART:20261205T150000Z
 DTEND:20261205T170000Z
 SUMMARY:Norwich City – Wrexham
 LOCATION:Viaplay
-DESCRIPTION:Championship · Title race\nWatch on Viaplay\nhttps://dbugger85
- .github.io/PrimeTime/
+DESCRIPTION:Championship\nWatch on Viaplay\nhttps://dbugger85.github.io/Pri
+ meTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 END:VCALENDAR
