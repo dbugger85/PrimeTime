@@ -4667,19 +4667,5 @@
    "heat": 1,
    "at": 1795275060671
   }
- },
- "tablesPending": {
-  "fb-401880151": {
-   "comp": "eng.2",
-   "teams": [
-    "Swansea City",
-    "West Bromwich Albion"
-   ],
-   "played": [
-    15,
-    15
-   ],
-   "at": "2026-11-21T17:01:00.041Z"
-  }
  }
 }
