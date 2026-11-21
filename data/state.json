@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-21T09:45:39.583Z",
+ "lastFull": "2026-11-21T12:38:21.496Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2989,6 +2989,30 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/leipzig-lens-2sqa3x4h"
    }
+  },
+  "fb-401915297": {
+   "start": "2026-11-24T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/slovan-bratislava-real-betis-fj2fvr29"
+   }
+  },
+  "fb-401915378": {
+   "start": "2026-11-25T17:45Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/sabah-barcelona-387j5cpt"
+   }
+  },
+  "fb-401915291": {
+   "start": "2026-11-25T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/atletico-viking-xyan21j6"
+   }
+  },
+  "fb-401915292": {
+   "start": "2026-11-25T20:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/club-brugge-liverpool-wvf7qh6z"
+   }
   }
  },
  "ratings": {
@@ -4490,5 +4514,10 @@
   "Matt Atkins": "2026-11-21",
   "Bill Haas": "2026-11-21"
  },
- "golfHeat": {}
+ "golfHeat": {
+  "gf-401850981": {
+   "heat": 1,
+   "at": 1795264701496
+  }
+ }
 }
