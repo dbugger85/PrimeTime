@@ -4519,31 +4519,5 @@
    "heat": 1,
    "at": 1795264701496
   }
- },
- "tablesPending": {
-  "fb-401880155": {
-   "comp": "eng.2",
-   "teams": [
-    "Norwich City",
-    "Cardiff City"
-   ],
-   "played": [
-    15,
-    15
-   ],
-   "at": "2026-11-21T14:25:36.077Z"
-  },
-  "fb-401880153": {
-   "comp": "eng.2",
-   "teams": [
-    "Southampton",
-    "Derby County"
-   ],
-   "played": [
-    15,
-    15
-   ],
-   "at": "2026-11-21T14:25:36.077Z"
-  }
  }
 }
