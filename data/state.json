@@ -4667,5 +4667,19 @@
    "heat": 1,
    "at": 1795275060671
   }
+ },
+ "tablesPending": {
+  "fb-401884734": {
+   "comp": "ger.1",
+   "teams": [
+    "Eintracht Frankfurt",
+    "TSG Hoffenheim"
+   ],
+   "played": [
+    9,
+    9
+   ],
+   "at": "2026-11-21T16:25:28.560Z"
+  }
  }
 }
