@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-21T18:25:27.391Z",
+ "lastFull": "2026-11-21T21:15:37.230Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1014,6 +1014,14 @@
   "fb-401880147": {
    "code": "relegation",
    "start": "2026-11-24T19:45Z"
+  },
+  "fb-401843491": {
+   "code": "relegation",
+   "start": "2026-11-29T16:00Z"
+  },
+  "fb-401882796": {
+   "code": "title",
+   "start": "2026-11-28T13:00Z"
   }
  },
  "calTeams": {
@@ -2069,42 +2077,6 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/coventry-fulham/s26101507674290171",
     "until": "2026-10-26T16:30:00.000Z"
-   }
-  },
-  "fb-401915397": {
-   "start": "2026-10-20T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/liverpool-villarreal-4mgb07hq"
-   }
-  },
-  "fb-401915401": {
-   "start": "2026-10-20T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/manchester-city-aek-yswd1vpz"
-   }
-  },
-  "fb-401915400": {
-   "start": "2026-10-20T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/napoli-bodoe-glimt-ejs3sfj8"
-   }
-  },
-  "fb-401915398": {
-   "start": "2026-10-20T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/porto-psv-vc2g6r4v"
-   }
-  },
-  "fb-401915402": {
-   "start": "2026-10-20T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/roma-slovan-bratislava-zds8662g"
-   }
-  },
-  "fb-401915392": {
-   "start": "2026-10-20T19:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/stuttgart-atletico-90sdtc5w"
    }
   },
   "fb-401915395": {
@@ -3416,7 +3388,7 @@
   },
   "ppg": {
    "eng.1": {
-    "Arsenal": 2.7,
+    "Arsenal": 2.5454545454545454,
     "Brighton & Hove Albion": 2.2,
     "Manchester City": 2,
     "AFC Bournemouth": 1.6363636363636365,
@@ -3427,7 +3399,7 @@
     "Tottenham Hotspur": 1.3636363636363635,
     "Brentford": 1.4,
     "Aston Villa": 1.2727272727272727,
-    "Newcastle United": 1.2,
+    "Newcastle United": 1.1818181818181819,
     "Coventry City": 1.0909090909090908,
     "Hull City": 1.1,
     "Fulham": 1,
@@ -3483,7 +3455,7 @@
     "Molde": 1.6296296296296295,
     "Tromso": 1.5925925925925926,
     "SK Brann": 1.2692307692307692,
-    "Vålerenga": 1.2307692307692308,
+    "Vålerenga": 1.1851851851851851,
     "Sarpsborg FK": 1.1923076923076923,
     "KFUM Oslo": 1.1923076923076923,
     "Hamarkameratene": 1.1481481481481481,
@@ -3491,15 +3463,15 @@
     "Sandefjord": 1.0769230769230769,
     "Kristiansund BK": 1,
     "Aalesund": 0.9230769230769231,
-    "IK Start": 0.7307692307692307
+    "IK Start": 0.8148148148148148
    },
    "esp.1": {
     "Barcelona": 2.75,
     "Real Madrid": 2.5,
     "Atlético Madrid": 2.3333333333333335,
-    "Real Betis": 2.1666666666666665,
+    "Real Betis": 2.076923076923077,
     "Real Sociedad": 1.8333333333333333,
-    "Sevilla": 1.5,
+    "Sevilla": 1.4615384615384615,
     "Athletic Club": 1.3333333333333333,
     "Alavés": 1.2307692307692308,
     "Villarreal": 1.25,
@@ -3523,22 +3495,22 @@
     "Bayer Leverkusen": 1.9,
     "Werder Bremen": 1.6666666666666667,
     "Eintracht Frankfurt": 1.5,
+    "VfB Stuttgart": 1.3,
     "SV Elversberg": 1.3,
-    "VfB Stuttgart": 1.3333333333333333,
     "TSG Hoffenheim": 1.2,
     "Hamburg SV": 1.3333333333333333,
     "Mainz": 1.1111111111111112,
     "FC Cologne": 1,
     "SC Paderborn 07": 1,
     "FC Augsburg": 1,
+    "Schalke 04": 0.7,
     "1. FC Union Berlin": 0.7,
-    "Schalke 04": 0.6666666666666666,
     "Borussia Mönchengladbach": 0.4
    },
    "ita.1": {
     "Lazio": 2.6666666666666665,
+    "AS Roma": 2.5,
     "Internazionale": 2.5454545454545454,
-    "AS Roma": 2.4545454545454546,
     "Como": 2.1666666666666665,
     "AC Milan": 2.1818181818181817,
     "Frosinone": 1.8181818181818181,
@@ -3551,8 +3523,8 @@
     "Genoa": 1.1818181818181819,
     "Lecce": 0.8333333333333334,
     "Fiorentina": 0.8181818181818182,
-    "Parma": 0.7272727272727273,
     "Sassuolo": 0.7272727272727273,
+    "Parma": 0.6666666666666666,
     "Monza": 0.6363636363636364,
     "Venezia": 0.5454545454545454,
     "Udinese": 0.45454545454545453
