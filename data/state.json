@@ -4521,17 +4521,17 @@
   }
  },
  "tablesPending": {
-  "fb-401882806": {
-   "comp": "esp.1",
+  "fb-401843483": {
+   "comp": "nor.1",
    "teams": [
-    "Alavés",
-    "Deportivo"
+    "Tromso",
+    "Viking FK"
    ],
    "played": [
-    12,
-    12
+    26,
+    26
    ],
-   "at": "2026-11-21T14:55:29.010Z"
+   "at": "2026-11-21T15:01:01.142Z"
   }
  }
 }
