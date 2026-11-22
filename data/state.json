@@ -4631,21 +4631,7 @@
  "golfHeat": {
   "gf-401850981": {
    "heat": 2,
-   "at": 1795371047067
-  }
- },
- "tablesPending": {
-  "fb-401876401": {
-   "comp": "fra.1",
-   "teams": [
-    "Lorient",
-    "Stade Rennais"
-   ],
-   "played": [
-    10,
-    10
-   ],
-   "at": "2026-11-22T18:10:47.067Z"
+   "at": 1795371339542
   }
  }
 }
