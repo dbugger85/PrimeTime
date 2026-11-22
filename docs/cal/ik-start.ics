@@ -58,8 +58,8 @@ DTSTART:20261129T160000Z
 DTEND:20261129T180000Z
 SUMMARY:IK Start – Sarpsborg FK
 LOCATION:TV 2 Play
-DESCRIPTION:Eliteserien · Relegation battle\nWatch on TV 2 Play\nhttps://d
- bugger85.github.io/PrimeTime/
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 BEGIN:VEVENT
@@ -69,8 +69,8 @@ DTSTART:20261206T160000Z
 DTEND:20261206T180000Z
 SUMMARY:Tromso – IK Start
 LOCATION:TV 2 Play
-DESCRIPTION:Eliteserien · Relegation battle\nWatch on TV 2 Play\nhttps://d
- bugger85.github.io/PrimeTime/
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 END:VCALENDAR
