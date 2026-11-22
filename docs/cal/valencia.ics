@@ -62,4 +62,15 @@ DESCRIPTION:La Liga · Relegation battle\nWatch on TV 2 Play\nhttps://dbugg
  er85.github.io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401882782@primetime
+DTSTAMP:20261206T173000Z
+DTSTART:20261206T173000Z
+DTEND:20261206T193000Z
+SUMMARY:Getafe – Valencia
+LOCATION:TV 2 Play
+DESCRIPTION:La Liga · Relegation battle\nWatch on TV 2 Play\nhttps://dbugg
+ er85.github.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR

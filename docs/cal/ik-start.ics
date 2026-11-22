@@ -62,4 +62,15 @@ DESCRIPTION:Eliteserien · Relegation battle\nWatch on TV 2 Play\nhttps://d
  bugger85.github.io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843499@primetime
+DTSTAMP:20261206T160000Z
+DTSTART:20261206T160000Z
+DTEND:20261206T180000Z
+SUMMARY:Tromso – IK Start
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien · Relegation battle\nWatch on TV 2 Play\nhttps://d
+ bugger85.github.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR

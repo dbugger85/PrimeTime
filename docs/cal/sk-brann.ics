@@ -84,4 +84,15 @@ DESCRIPTION:Eliteserien · Relegation battle\nWatch on TV 2 Play\nhttps://d
  bugger85.github.io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401843501@primetime
+DTSTAMP:20261206T133000Z
+DTSTART:20261206T133000Z
+DTEND:20261206T153000Z
+SUMMARY:Sarpsborg FK – SK Brann
+LOCATION:TV 2 Play
+DESCRIPTION:Eliteserien\nWatch on TV 2 Play\nhttps://dbugger85.github.io/Pr
+ imeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR

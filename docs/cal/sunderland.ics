@@ -95,4 +95,15 @@ DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
  rimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401878748@primetime
+DTSTAMP:20261206T140000Z
+DTSTART:20261206T140000Z
+DTEND:20261206T160000Z
+SUMMARY:Newcastle United – Sunderland
+LOCATION:Viaplay
+DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
+ rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
