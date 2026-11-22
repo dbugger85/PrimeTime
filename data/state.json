@@ -4655,21 +4655,7 @@
  "golfHeat": {
   "gf-401850981": {
    "heat": 2,
-   "at": 1795367438419
-  }
- },
- "tablesPending": {
-  "fb-401882800": {
-   "comp": "esp.1",
-   "teams": [
-    "Racing Santander",
-    "Real Sociedad"
-   ],
-   "played": [
-    12,
-    12
-   ],
-   "at": "2026-11-22T17:10:38.419Z"
+   "at": 1795367739527
   }
  }
 }
