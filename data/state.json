@@ -4631,21 +4631,7 @@
  "golfHeat": {
   "gf-401850981": {
    "heat": 2,
-   "at": 1795372254159
-  }
- },
- "tablesPending": {
-  "fb-401884730": {
-   "comp": "ger.1",
-   "teams": [
-    "Werder Bremen",
-    "Hamburg SV"
-   ],
-   "played": [
-    9,
-    9
-   ],
-   "at": "2026-11-22T18:30:54.159Z"
+   "at": 1795372537475
   }
  }
 }
