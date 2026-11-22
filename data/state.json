@@ -4631,7 +4631,21 @@
  "golfHeat": {
   "gf-401850981": {
    "heat": 2,
-   "at": 1795369838718
+   "at": 1795370129762
+  }
+ },
+ "tablesPending": {
+  "fb-401843487": {
+   "comp": "nor.1",
+   "teams": [
+    "Kristiansund BK",
+    "Sandefjord"
+   ],
+   "played": [
+    26,
+    26
+   ],
+   "at": "2026-11-22T17:55:29.762Z"
   }
  }
 }
