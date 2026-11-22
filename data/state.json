@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-22T14:30:50.436Z",
+ "lastFull": "2026-11-22T17:25:30.141Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -851,10 +851,6 @@
    "code": "relegation",
    "start": "2026-11-22T17:30Z"
   },
-  "fb-401882803": {
-   "code": "title",
-   "start": "2026-11-22T20:00Z"
-  },
   "fb-401882802": {
    "code": "relegation",
    "start": "2026-11-23T20:00Z"
@@ -864,7 +860,7 @@
    "start": "2026-11-27T20:00Z"
   },
   "fb-401882793": {
-   "code": "title",
+   "code": "relegation",
    "start": "2026-11-28T17:30Z"
   },
   "fb-401882789": {
@@ -1019,10 +1015,6 @@
    "code": "relegation",
    "start": "2026-11-29T16:00Z"
   },
-  "fb-401882796": {
-   "code": "title",
-   "start": "2026-11-28T13:00Z"
-  },
   "fb-401843504": {
    "code": "relegation",
    "start": "2026-12-06T16:00Z"
@@ -1050,10 +1042,6 @@
   "fb-401882782": {
    "code": "relegation",
    "start": "2026-12-06T17:30Z"
-  },
-  "fb-401882784": {
-   "code": "title",
-   "start": "2026-12-06T20:00Z"
   },
   "fb-401880122": {
    "code": "relegation",
@@ -2113,18 +2101,6 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/coventry-fulham/s26101507674290171",
     "until": "2026-10-26T16:30:00.000Z"
-   }
-  },
-  "fb-401915395": {
-   "start": "2026-10-21T16:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/como-manchester-united-qvcj8qe0"
-   }
-  },
-  "fb-401915396": {
-   "start": "2026-10-21T16:45Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/lille-galatasaray-v1qynkd0"
    }
   },
   "fb-401915394": {
@@ -3425,7 +3401,7 @@
   "ppg": {
    "eng.1": {
     "Arsenal": 2.5454545454545454,
-    "Brighton & Hove Albion": 2.2,
+    "Brighton & Hove Albion": 2,
     "Manchester City": 2,
     "AFC Bournemouth": 1.6363636363636365,
     "Liverpool": 1.8,
@@ -3434,10 +3410,10 @@
     "Chelsea": 1.4545454545454546,
     "Tottenham Hotspur": 1.3636363636363635,
     "Brentford": 1.4,
+    "Hull City": 1.2727272727272727,
     "Aston Villa": 1.2727272727272727,
     "Newcastle United": 1.1818181818181819,
     "Coventry City": 1.0909090909090908,
-    "Hull City": 1.1,
     "Fulham": 1,
     "Ipswich Town": 1,
     "Nottingham Forest": 0.8181818181818182,
@@ -3502,18 +3478,18 @@
     "IK Start": 0.8148148148148148
    },
    "esp.1": {
-    "Barcelona": 2.75,
+    "Barcelona": 2.769230769230769,
     "Real Madrid": 2.5384615384615383,
     "Atlético Madrid": 2.3333333333333335,
     "Real Betis": 2.076923076923077,
-    "Real Sociedad": 1.8333333333333333,
+    "Real Sociedad": 1.6923076923076923,
     "Sevilla": 1.4615384615384615,
+    "Racing Santander": 1.3076923076923077,
     "Athletic Club": 1.3333333333333333,
     "Alavés": 1.2307692307692308,
-    "Villarreal": 1.25,
+    "Villarreal": 1.1538461538461537,
     "Espanyol": 1.1538461538461537,
     "Deportivo": 1.1538461538461537,
-    "Racing Santander": 1.1666666666666667,
     "Celta Vigo": 1,
     "Rayo Vallecano": 1,
     "Getafe": 1,
@@ -3533,12 +3509,12 @@
     "Eintracht Frankfurt": 1.5,
     "VfB Stuttgart": 1.3,
     "SV Elversberg": 1.3,
+    "FC Augsburg": 1.2,
     "TSG Hoffenheim": 1.2,
     "Hamburg SV": 1.3333333333333333,
-    "Mainz": 1.1111111111111112,
+    "Mainz": 1,
     "FC Cologne": 1,
     "SC Paderborn 07": 1,
-    "FC Augsburg": 1,
     "Schalke 04": 0.7,
     "1. FC Union Berlin": 0.7,
     "Borussia Mönchengladbach": 0.4
@@ -3552,23 +3528,23 @@
     "Juventus": 1.75,
     "Frosinone": 1.8181818181818181,
     "Napoli": 1.5,
-    "Bologna": 1.5454545454545454,
+    "Bologna": 1.5,
+    "Genoa": 1.3333333333333333,
     "Cagliari": 1.3333333333333333,
     "Atalanta": 1.2727272727272727,
     "Torino": 1.1666666666666667,
-    "Genoa": 1.1818181818181819,
     "Lecce": 0.8333333333333334,
     "Fiorentina": 0.8181818181818182,
-    "Sassuolo": 0.7272727272727273,
     "Parma": 0.6666666666666666,
+    "Sassuolo": 0.6666666666666666,
     "Monza": 0.6363636363636364,
-    "Venezia": 0.5,
-    "Udinese": 0.45454545454545453
+    "Udinese": 0.5,
+    "Venezia": 0.5
    },
    "fra.1": {
     "Paris Saint-Germain": 2.3636363636363638,
+    "Paris FC": 2.090909090909091,
     "Lille": 1.9090909090909092,
-    "Paris FC": 2,
     "Lyon": 1.8181818181818181,
     "Marseille": 1.8,
     "Brest": 1.6363636363636365,
@@ -3582,7 +3558,7 @@
     "AJ Auxerre": 1,
     "Strasbourg": 0.9090909090909091,
     "Le Mans": 0.8,
-    "Angers": 0.8,
+    "Angers": 0.7272727272727273,
     "Le Havre AC": 0.18181818181818182
    },
    "eng.2": {
@@ -4655,7 +4631,7 @@
  "golfHeat": {
   "gf-401850981": {
    "heat": 2,
-   "at": 1795368039753
+   "at": 1795368330141
   }
  }
 }
