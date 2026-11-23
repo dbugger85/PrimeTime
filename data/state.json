@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-23T16:25:28.958Z",
+ "lastFull": "2026-11-23T19:15:37.412Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -3127,6 +3127,20 @@
     "url": "https://viaplay.no/sport/fotball/premier-league/coventry-ipswich/s26112313980460189",
     "until": "2026-12-03T22:30:00.000Z"
    }
+  },
+  "fb-401879219": {
+   "start": "2026-12-02T19:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/liverpool-sunderland/s26112318541697550",
+    "until": "2026-12-04T23:15:00.000Z"
+   }
+  },
+  "fb-401879218": {
+   "start": "2026-12-02T19:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/man-city-leeds/s26112344549769365",
+    "until": "2026-12-04T22:00:00.000Z"
+   }
   }
  },
  "ratings": {
@@ -4628,5 +4642,10 @@
   "Matt Atkins": "2026-11-23",
   "Bill Haas": "2026-11-23"
  },
- "golfHeat": {}
+ "golfHeat": {
+  "gf-401850981": {
+   "heat": 2,
+   "at": 1795461337412
+  }
+ }
 }
