@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-23T10:40:38.081Z",
+ "lastFull": "2026-11-23T13:30:54.506Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -3085,6 +3085,13 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/uefa-champions-league-rbxjhx5m/shakhtar-fenerbahce-je5j1527"
    }
+  },
+  "fb-401879224": {
+   "start": "2026-11-29T14:05Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/sunderland-tottenham/s26111936220187116",
+    "until": "2026-12-01T16:35:00.000Z"
+   }
   }
  },
  "ratings": {
@@ -4589,7 +4596,7 @@
  "golfHeat": {
   "gf-401850981": {
    "heat": 2,
-   "at": 1795439440051
+   "at": 1795440654506
   }
  }
 }
