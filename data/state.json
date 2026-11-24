@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-24T18:20:49.204Z",
+ "lastFull": "2026-11-24T21:15:37.134Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2104,13 +2104,6 @@
   }
  },
  "links": {
-  "fb-401879253": {
-   "start": "2026-10-23T19:00Z",
-   "viaplay": {
-    "url": "https://viaplay.no/sport/fotball/premier-league/ipswich-nottingham-forest/s26101412017099697",
-    "until": "2026-10-25T21:30:00.000Z"
-   }
-  },
   "fb-401879256": {
    "start": "2026-10-24T11:30Z",
    "viaplay": {
@@ -3191,6 +3184,12 @@
     "url": "https://viaplay.no/sport/fotball/premier-league/bournemouth-brighton/s26112345319631858",
     "until": "2026-12-04T22:45:00.000Z"
    }
+  },
+  "fb-401843492": {
+   "start": "2026-11-28T15:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/bodoe-glimt-kfum-oslo-p4p4km9e"
+   }
   }
  },
  "ratings": {
@@ -3491,26 +3490,26 @@
     "Arsenal": 2.5,
     "Como": 2.25,
     "Barcelona": 2.25,
-    "Aston Villa": 2.25,
     "Manchester City": 2.25,
+    "Aston Villa": 1.8,
     "Liverpool": 2.25,
     "Club Brugge": 2.25,
     "Sporting CP": 2.25,
     "Real Betis": 2.25,
     "Borussia Dortmund": 2.25,
+    "Galatasaray": 1.8,
     "Bayern Munich": 2,
     "VfB Stuttgart": 1.75,
+    "Bodo/Glimt": 1.4,
     "Internazionale": 1.5,
-    "LASK Linz": 1.5,
+    "LASK Linz": 1.2,
     "Manchester United": 1.5,
-    "Galatasaray": 1.5,
     "Fenerbahce": 1.25,
     "AS Roma": 1,
     "Shakhtar Donetsk": 1,
     "Viking FK": 1,
     "Atlético Madrid": 1,
     "PSV Eindhoven": 1,
-    "Bodo/Glimt": 1,
     "FC Porto": 0.75,
     "Napoli": 0.75,
     "Villarreal": 0.75,
