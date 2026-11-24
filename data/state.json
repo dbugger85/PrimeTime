@@ -4693,29 +4693,17 @@
  },
  "golfHeat": {},
  "tablesPending": {
-  "fb-401915379": {
+  "fb-401915296": {
    "comp": "uefa.champions",
    "teams": [
-    "Manchester City",
-    "Napoli"
+    "Como",
+    "AEK Athens"
    ],
    "played": [
     4,
     4
    ],
-   "at": "2026-11-24T21:50:39.734Z"
-  },
-  "fb-401915297": {
-   "comp": "uefa.champions",
-   "teams": [
-    "Slovan Bratislava",
-    "Real Betis"
-   ],
-   "played": [
-    4,
-    4
-   ],
-   "at": "2026-11-24T21:50:39.734Z"
+   "at": "2026-11-24T21:55:35.481Z"
   }
  }
 }
