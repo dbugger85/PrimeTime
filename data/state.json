@@ -510,7 +510,7 @@
   "315-2026",
   "13-2026"
  ],
- "lastFull": "2026-11-24T12:30:56.891Z",
+ "lastFull": "2026-11-24T15:25:43.541Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -3175,6 +3175,13 @@
    "start": "2026-12-02T19:30Z",
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/hull-nottingham-forest/s26112381143587203",
+    "until": "2026-12-04T22:00:00.000Z"
+   }
+  },
+  "fb-401879222": {
+   "start": "2026-12-02T19:30Z",
+   "viaplay": {
+    "url": "https://viaplay.no/sport/fotball/premier-league/chelsea-crystal-palace/s26112332349147496",
     "until": "2026-12-04T22:00:00.000Z"
    }
   }
