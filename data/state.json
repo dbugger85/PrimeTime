@@ -4691,5 +4691,31 @@
   "Matt Atkins": "2026-11-23",
   "Bill Haas": "2026-11-23"
  },
- "golfHeat": {}
+ "golfHeat": {},
+ "tablesPending": {
+  "fb-401915379": {
+   "comp": "uefa.champions",
+   "teams": [
+    "Manchester City",
+    "Napoli"
+   ],
+   "played": [
+    4,
+    4
+   ],
+   "at": "2026-11-24T21:50:39.734Z"
+  },
+  "fb-401915297": {
+   "comp": "uefa.champions",
+   "teams": [
+    "Slovan Bratislava",
+    "Real Betis"
+   ],
+   "played": [
+    4,
+    4
+   ],
+   "at": "2026-11-24T21:50:39.734Z"
+  }
+ }
 }
