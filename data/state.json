@@ -511,7 +511,7 @@
   "13-2026",
   "339-2026"
  ],
- "lastFull": "2026-11-25T08:45:45.012Z",
+ "lastFull": "2026-11-25T11:40:38.966Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2113,13 +2113,6 @@
   }
  },
  "links": {
-  "fb-401879256": {
-   "start": "2026-10-24T11:30Z",
-   "viaplay": {
-    "url": "https://viaplay.no/sport/fotball/premier-league/aston-villa-man-city/s26101438393058540",
-    "until": "2026-10-26T14:25:00.000Z"
-   }
-  },
   "fb-401878768": {
    "start": "2026-10-24T14:00Z",
    "viaplay": {
