@@ -511,7 +511,7 @@
   "13-2026",
   "339-2026"
  ],
- "lastFull": "2026-11-25T14:30:53.923Z",
+ "lastFull": "2026-11-25T17:25:35.072Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -600,10 +600,6 @@
   "fb-401843471": {
    "code": "relegation",
    "start": "2026-11-01T16:00Z"
-  },
-  "fb-401843371": {
-   "code": "relegation",
-   "start": "2026-10-24T16:00Z"
   },
   "fb-401843472": {
    "code": "relegation",
@@ -2113,13 +2109,6 @@
   }
  },
  "links": {
-  "fb-401878767": {
-   "start": "2026-10-24T16:30Z",
-   "viaplay": {
-    "url": "https://viaplay.no/sport/fotball/premier-league/chelsea-tottenham/s26101553940346442",
-    "until": "2026-10-26T19:30:00.000Z"
-   }
-  },
   "fb-401879254": {
    "start": "2026-10-25T14:00Z",
    "viaplay": {
@@ -2160,12 +2149,6 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/chelsea-man-united/s26102161525995125",
     "until": "2026-11-02T15:25:00.000Z"
-   }
-  },
-  "fb-401843371": {
-   "start": "2026-10-24T16:00Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/hamkam-rosenborg-6v3rek1d"
    }
   },
   "fb-401879251": {
@@ -3178,6 +3161,12 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/newcastle-man-united/s26112349259886996",
     "until": "2026-12-04T23:15:00.000Z"
+   }
+  },
+  "fb-401843497": {
+   "start": "2026-11-28T17:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/rosenborg-molde-0a05tppw"
    }
   }
  },
