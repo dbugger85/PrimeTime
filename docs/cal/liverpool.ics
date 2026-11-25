@@ -58,8 +58,8 @@ DTSTART:20261125T200000Z
 DTEND:20261125T220000Z
 SUMMARY:Club Brugge – Liverpool
 LOCATION:TV 2 Play
-DESCRIPTION:Champions League · Top-8 race\nWatch on TV 2 Play\nhttps://dbu
- gger85.github.io/PrimeTime/
+DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
+ io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 BEGIN:VEVENT
@@ -93,6 +93,17 @@ SUMMARY:Chelsea – Liverpool
 LOCATION:Viaplay
 DESCRIPTION:Premier League\nWatch on Viaplay\nhttps://dbugger85.github.io/P
  rimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915369@primetime
+DTSTAMP:20261209T200000Z
+DTSTART:20261209T200000Z
+DTEND:20261209T220000Z
+SUMMARY:Liverpool – FC Porto
+LOCATION:TV 2 Play
+DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
+ io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 END:VCALENDAR

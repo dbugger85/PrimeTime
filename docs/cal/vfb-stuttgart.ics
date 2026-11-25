@@ -84,4 +84,15 @@ DESCRIPTION:Bundesliga\nWatch on Viaplay\nhttps://dbugger85.github.io/Prime
  Time/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915365@primetime
+DTSTAMP:20261209T200000Z
+DTSTART:20261209T200000Z
+DTEND:20261209T220000Z
+SUMMARY:VfB Stuttgart – Lille
+LOCATION:TV 2 Play
+DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
+ io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
