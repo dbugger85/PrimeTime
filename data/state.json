@@ -511,7 +511,7 @@
   "13-2026",
   "339-2026"
  ],
- "lastFull": "2026-11-25T17:25:35.072Z",
+ "lastFull": "2026-11-25T20:15:51.011Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -3168,6 +3168,12 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/rosenborg-molde-0a05tppw"
    }
+  },
+  "fb-401843495": {
+   "start": "2026-11-29T13:30Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/fredrikstad-aalesund-p7gwqpdw"
+   }
   }
  },
  "ratings": {
@@ -3466,11 +3472,11 @@
     "Real Madrid": 3,
     "Paris Saint-Germain": 3,
     "Como": 2.4,
+    "Barcelona": 2.4,
     "Real Betis": 2.4,
     "Arsenal": 2.2,
     "Manchester City": 2,
     "Borussia Dortmund": 2,
-    "Barcelona": 2.25,
     "Aston Villa": 1.8,
     "Liverpool": 2.25,
     "Club Brugge": 2.25,
@@ -3484,6 +3490,7 @@
     "Manchester United": 1.5,
     "FC Porto": 1.2,
     "RB Leipzig": 1.2,
+    "Villarreal": 1.2,
     "Fenerbahce": 1.25,
     "AS Roma": 1,
     "Shakhtar Donetsk": 1,
@@ -3491,12 +3498,11 @@
     "Atlético Madrid": 1,
     "Napoli": 0.8,
     "PSV Eindhoven": 0.8,
-    "Villarreal": 0.75,
-    "Sabah FK": 0.75,
     "AEK Athens": 0.6,
     "Feyenoord Rotterdam": 0.6,
+    "Sabah FK": 0.6,
     "Lens": 0.6,
-    "Slavia Prague": 0.25,
+    "Slavia Prague": 0.2,
     "Lille": 0.25,
     "Slovan Bratislava": 0
    },
@@ -4493,7 +4499,13 @@
   }
  },
  "biathlonGone": {},
- "biathlonStarts": {},
+ "biathlonStarts": {
+  "BT2627SWRLCP01SMIN": {
+   "start": "2026-11-26T15:15:00.000Z",
+   "disc": "IN",
+   "name": "Men's 20 km individual"
+  }
+ },
  "golfSkip": [
   "401811927"
  ],
