@@ -4669,5 +4669,19 @@
   "Matt Atkins": "2026-11-23",
   "Bill Haas": "2026-11-23"
  },
- "golfHeat": {}
+ "golfHeat": {},
+ "tablesPending": {
+  "fb-401915378": {
+   "comp": "uefa.champions",
+   "teams": [
+    "Sabah FK",
+    "Barcelona"
+   ],
+   "played": [
+    4,
+    4
+   ],
+   "at": "2026-11-25T19:35:33.701Z"
+  }
+ }
 }
