@@ -4679,19 +4679,5 @@
   "Matt Atkins": "2026-11-23",
   "Bill Haas": "2026-11-23"
  },
- "golfHeat": {},
- "tablesPending": {
-  "fb-401915739": {
-   "comp": "uefa.europa.conf",
-   "teams": [
-    "Kauno Zalgiris",
-    "Riga FC"
-   ],
-   "played": [
-    3,
-    3
-   ],
-   "at": "2026-11-26T19:50:41.740Z"
-  }
- }
+ "golfHeat": {}
 }
