@@ -4679,43 +4679,5 @@
   "Matt Atkins": "2026-11-23",
   "Bill Haas": "2026-11-23"
  },
- "golfHeat": {},
- "tablesPending": {
-  "fb-401915504": {
-   "comp": "uefa.europa",
-   "teams": [
-    "Crystal Palace",
-    "Real Sociedad"
-   ],
-   "played": [
-    4,
-    4
-   ],
-   "at": "2026-11-26T21:55:37.422Z"
-  },
-  "fb-401915501": {
-   "comp": "uefa.europa",
-   "teams": [
-    "Lyon",
-    "Lillestrom"
-   ],
-   "played": [
-    4,
-    4
-   ],
-   "at": "2026-11-26T21:55:37.422Z"
-  },
-  "fb-401915503": {
-   "comp": "uefa.europa",
-   "teams": [
-    "OFI Crete",
-    "Anderlecht"
-   ],
-   "played": [
-    4,
-    4
-   ],
-   "at": "2026-11-26T21:55:37.422Z"
-  }
- }
+ "golfHeat": {}
 }
