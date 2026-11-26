@@ -1,0 +1,21 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PrimeTime//Football//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Universitatea Craiova (PrimeTime)
+X-WR-TIMEZONE:Europe/Oslo
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VEVENT
+UID:fb-401915737@primetime
+DTSTAMP:20261210T153000Z
+DTSTART:20261210T153000Z
+DTEND:20261210T173000Z
+SUMMARY:Kairat Almaty – Universitatea Craiova
+LOCATION:Viaplay
+DESCRIPTION:Conference League · Play-off spots\nWatch on Viaplay\nhttps://
+ dbugger85.github.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+END:VCALENDAR

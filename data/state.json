@@ -511,7 +511,7 @@
   "13-2026",
   "339-2026"
  ],
- "lastFull": "2026-11-26T19:15:38.538Z",
+ "lastFull": "2026-11-26T22:10:40.049Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -1065,10 +1065,6 @@
    "code": "playoff",
    "start": "2026-12-10T17:45Z"
   },
-  "fb-401915494": {
-   "code": "playoff",
-   "start": "2026-12-10T17:45Z"
-  },
   "fb-401915497": {
    "code": "playoff",
    "start": "2026-12-10T17:45Z"
@@ -1077,28 +1073,40 @@
    "code": "top8",
    "start": "2026-12-10T20:00Z"
   },
-  "fb-401915489": {
-   "code": "playoff",
-   "start": "2026-12-10T20:00Z"
-  },
-  "fb-401915490": {
-   "code": "playoff",
-   "start": "2026-12-10T20:00Z"
-  },
-  "fb-401915800": {
-   "code": "top8",
-   "start": "2026-12-10T17:45Z"
-  },
-  "fb-401915734": {
-   "code": "playoff",
-   "start": "2026-12-10T17:45Z"
-  },
   "fb-401915732": {
    "code": "top8",
    "start": "2026-12-10T20:00Z"
   },
-  "fb-401915794": {
+  "fb-401915498": {
    "code": "playoff",
+   "start": "2026-12-10T17:45Z"
+  },
+  "fb-401915493": {
+   "code": "playoff",
+   "start": "2026-12-10T20:00Z"
+  },
+  "fb-401915737": {
+   "code": "playoff",
+   "start": "2026-12-10T15:30Z"
+  },
+  "fb-401915799": {
+   "code": "playoff",
+   "start": "2026-12-10T17:45Z"
+  },
+  "fb-401915733": {
+   "code": "top8",
+   "start": "2026-12-10T17:45Z"
+  },
+  "fb-401915797": {
+   "code": "playoff",
+   "start": "2026-12-10T17:45Z"
+  },
+  "fb-401915792": {
+   "code": "playoff",
+   "start": "2026-12-10T20:00Z"
+  },
+  "fb-401915630": {
+   "code": "top8",
    "start": "2026-12-10T20:00Z"
   }
  },
@@ -2125,6 +2133,10 @@
   },
   "lincoln-red-imps": {
    "team": "Lincoln Red Imps",
+   "seen": "2026-11-26"
+  },
+  "universitatea-craiova": {
+   "team": "Universitatea Craiova",
    "seen": "2026-11-26"
   }
  },
@@ -3167,6 +3179,24 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/lillestroem-hamkam-am8c8vn1"
    }
+  },
+  "fb-401843502": {
+   "start": "2026-12-04T18:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/molde-viking-v03t1dwc"
+   }
+  },
+  "fb-401843506": {
+   "start": "2026-12-05T15:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/aalesund-bodoe-glimt-vq0gh7ba"
+   }
+  },
+  "fb-401843500": {
+   "start": "2026-12-05T17:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/vaalerenga-rosenborg-qq7vbqfz"
+   }
   }
  },
  "ratings": {
@@ -3400,42 +3430,42 @@
     "NEC Nijmegen": 1585
    },
    "uefa.europa.conf": {
-    "AGF": 1600,
-    "Ajax Amsterdam": 1687,
-    "Atalanta": 1807,
-    "Borac Banja Luka": null,
-    "SK Brann": 1588,
-    "Brighton & Hove Albion": 1891,
-    "CSKA Sofia": 1503,
-    "Egnatia": null,
-    "F.C. København": 1694,
-    "SC Freiburg": 1790,
-    "KAA Gent": 1632,
-    "Getafe": 1700,
-    "Hajduk Split": 1580,
-    "Heart of Midlothian": 1547,
-    "Iberia 1999": null,
-    "Inter D'Escaldes": null,
-    "Jablonec": 1544,
-    "Kairat Almaty": null,
-    "Kauno Zalgiris": null,
-    "KuPS Kuopio": null,
-    "Lincoln Red Imps": null,
-    "FC Lugano": 1642,
-    "FC Midtjylland": 1716,
-    "Mjällby AIF": 1525,
     "AS Monaco": 1802,
-    "FC Nordsjælland": 1643,
-    "Pafos": 1588,
-    "Panathinaikos": 1652,
-    "Red Star Belgrade": 1664,
-    "Riga FC": null,
+    "Brighton & Hove Albion": 1891,
     "Sint-Truidense": 1612,
-    "Braga": 1730,
-    "FC Thun": 1573,
-    "Trabzonspor": 1664,
+    "Ajax Amsterdam": 1687,
+    "Panathinaikos": 1652,
+    "FC Lugano": 1642,
     "FC Twente": 1666,
-    "CSU Craiova": 1582
+    "Trabzonspor": 1664,
+    "SC Freiburg": 1790,
+    "Braga": 1730,
+    "Mjällby AIF": 1525,
+    "F.C. København": 1694,
+    "SK Brann": 1588,
+    "Atalanta": 1807,
+    "Universitatea Craiova": null,
+    "Hajduk Split": 1580,
+    "AGF": 1600,
+    "Jablonec": 1544,
+    "Red Star Belgrade": 1664,
+    "FC Nordsjælland": 1643,
+    "Egnatia": null,
+    "KAA Gent": 1632,
+    "Kairat Almaty": null,
+    "Iberia 1999": null,
+    "FC Midtjylland": 1716,
+    "Borac Banja Luka": null,
+    "Riga FC": null,
+    "Inter D'Escaldes": null,
+    "Lincoln Red Imps": null,
+    "FC Thun": 1573,
+    "Kauno Zalgiris": null,
+    "CSKA Sofia": 1503,
+    "Heart of Midlothian": 1547,
+    "Getafe": 1700,
+    "Pafos": 1588,
+    "KuPS Kuopio": null
    }
   },
   "ppg": {
@@ -3628,80 +3658,80 @@
     "Derby County": 0.5882352941176471
    },
    "uefa.europa": {
-    "Benfica": 3,
     "AFC Bournemouth": 3,
-    "Ferencvaros": 3,
-    "Union St.-Gilloise": 2.5,
-    "Juventus": 2.5,
-    "Olympiacos": 2.5,
-    "Bayer Leverkusen": 2.25,
-    "Besiktas": 1.75,
-    "Dinamo Zagreb": 1.75,
-    "Levski Sofia": 1.75,
-    "Sunderland": 1.75,
-    "NEC Nijmegen": 1.75,
-    "Lyon": 1.75,
-    "AZ Alkmaar": 1.5,
-    "Anderlecht": 1.5,
-    "OFI Crete": 1.5,
-    "Stade Rennais": 1.5,
-    "Omonia Nicosia": 1.5,
-    "Torreense": 1.5,
-    "Real Sociedad": 1.25,
-    "Crystal Palace": 1.25,
-    "Sparta Prague": 1,
-    "TSG Hoffenheim": 1,
-    "SK Sturm Graz": 1,
+    "Juventus": 2.6,
+    "Ferencvaros": 2.6,
+    "Bayer Leverkusen": 2.4,
+    "Benfica": 2.4,
+    "Union St.-Gilloise": 2.2,
+    "Besiktas": 2,
+    "NEC Nijmegen": 2,
+    "Olympiacos": 2,
+    "AZ Alkmaar": 1.8,
+    "Anderlecht": 1.8,
+    "Crystal Palace": 1.6,
+    "Sunderland": 1.6,
+    "Lyon": 1.6,
+    "TSG Hoffenheim": 1.4,
+    "Levski Sofia": 1.4,
+    "Dinamo Zagreb": 1.4,
+    "RB Salzburg": 1.4,
+    "Viktoria Plzen": 1.2,
+    "AC Milan": 1.2,
+    "OFI Crete": 1.2,
+    "Stade Rennais": 1.2,
+    "Torreense": 1.2,
+    "Marseille": 1.2,
+    "Celtic": 1.2,
+    "Omonia Nicosia": 1.2,
+    "Real Sociedad": 1,
     "NK Celje": 1,
-    "RB Salzburg": 1,
-    "Celta Vigo": 0.75,
-    "AC Milan": 0.75,
-    "Jagiellonia Bialystok": 0.75,
-    "Viktoria Plzen": 0.75,
-    "Marseille": 0.75,
-    "Celtic": 0.75,
-    "Hapoel Be'er": 0.25,
-    "Lillestrom": 0.25,
-    "Lech Poznan": 0.25,
+    "Sparta Prague": 0.8,
+    "Jagiellonia Bialystok": 0.8,
+    "SK Sturm Graz": 0.8,
+    "Celta Vigo": 0.6,
+    "Lillestrom": 0.4,
+    "Lech Poznan": 0.4,
+    "Hapoel Be'er": 0.2,
     "Ararat-Armenia": 0
    },
    "uefa.europa.conf": {
-    "FC Lugano": 3,
-    "Panathinaikos": 3,
-    "FC Twente": 3,
     "AS Monaco": 3,
-    "Brighton & Hove Albion": 2.3333333333333335,
-    "SK Brann": 2.3333333333333335,
-    "F.C. København": 2.3333333333333335,
-    "CSU Craiova": 2.3333333333333335,
+    "Brighton & Hove Albion": 2.5,
+    "Sint-Truidense": 2.5,
+    "Ajax Amsterdam": 2.25,
+    "Panathinaikos": 2.25,
+    "FC Lugano": 2.25,
+    "FC Twente": 2.25,
+    "Trabzonspor": 2.25,
+    "SC Freiburg": 2.25,
+    "Braga": 1.75,
     "Mjällby AIF": 1.75,
-    "Sint-Truidense": 2.3333333333333335,
-    "Ajax Amsterdam": 2,
-    "Trabzonspor": 2,
-    "Hajduk Split": 2,
-    "SC Freiburg": 2,
+    "F.C. København": 1.75,
+    "SK Brann": 1.75,
+    "Atalanta": 1.75,
+    "Universitatea Craiova": 1.75,
+    "Hajduk Split": 1.5,
+    "AGF": 1.25,
+    "Jablonec": 1.25,
+    "Red Star Belgrade": 1.25,
+    "FC Nordsjælland": 1.25,
+    "Egnatia": 1.25,
+    "KAA Gent": 1.25,
     "Kairat Almaty": 1.25,
-    "Red Star Belgrade": 1.3333333333333333,
-    "Atalanta": 1.3333333333333333,
-    "Braga": 1.3333333333333333,
-    "KAA Gent": 1.3333333333333333,
-    "Riga FC": 1,
-    "FC Thun": 1,
-    "Borac Banja Luka": 1,
-    "Lincoln Red Imps": 1,
-    "Jablonec": 0.6666666666666666,
-    "AGF": 0.6666666666666666,
-    "FC Nordsjælland": 0.6666666666666666,
-    "Egnatia": 0.6666666666666666,
-    "CSKA Sofia": 0.3333333333333333,
-    "Iberia 1999": 0.3333333333333333,
-    "Pafos": 0.3333333333333333,
-    "Getafe": 0.3333333333333333,
-    "Heart of Midlothian": 0.3333333333333333,
-    "KuPS Kuopio": 0.3333333333333333,
-    "FC Midtjylland": 0.3333333333333333,
-    "Inter D'Escaldes": 0,
-    "Kauno Zalgiris": 0
+    "Iberia 1999": 1,
+    "FC Midtjylland": 1,
+    "Borac Banja Luka": 0.75,
+    "Riga FC": 0.75,
+    "Inter D'Escaldes": 0.75,
+    "Lincoln Red Imps": 0.75,
+    "FC Thun": 0.75,
+    "Kauno Zalgiris": 0.75,
+    "CSKA Sofia": 0.25,
+    "Heart of Midlothian": 0.25,
+    "Getafe": 0.25,
+    "Pafos": 0.25,
+    "KuPS Kuopio": 0.25
    }
   },
   "clubSeed": "2026-09-27",
