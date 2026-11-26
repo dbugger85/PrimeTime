@@ -29,4 +29,15 @@ DESCRIPTION:Conference League\nWatch on Viaplay\nhttps://dbugger85.github.i
  o/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
+BEGIN:VEVENT
+UID:fb-401915794@primetime
+DTSTAMP:20261210T200000Z
+DTSTART:20261210T200000Z
+DTEND:20261210T220000Z
+SUMMARY:FC Thun – KAA Gent
+LOCATION:Viaplay
+DESCRIPTION:Conference League · Play-off spots\nWatch on Viaplay\nhttps://
+ dbugger85.github.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
 END:VCALENDAR
