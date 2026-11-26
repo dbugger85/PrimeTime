@@ -4679,5 +4679,19 @@
   "Matt Atkins": "2026-11-23",
   "Bill Haas": "2026-11-23"
  },
- "golfHeat": {}
+ "golfHeat": {},
+ "tablesPending": {
+  "fb-401915738": {
+   "comp": "uefa.europa.conf",
+   "teams": [
+    "Inter D'Escaldes",
+    "F.C. København"
+   ],
+   "played": [
+    3,
+    3
+   ],
+   "at": "2026-11-26T21:50:39.347Z"
+  }
+ }
 }
