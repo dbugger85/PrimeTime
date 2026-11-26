@@ -4681,17 +4681,77 @@
  },
  "golfHeat": {},
  "tablesPending": {
-  "fb-401915808": {
+  "fb-401915507": {
+   "comp": "uefa.europa",
+   "teams": [
+    "Marseille",
+    "Levski Sofia"
+   ],
+   "played": [
+    4,
+    4
+   ],
+   "at": "2026-11-26T19:40:37.939Z"
+  },
+  "fb-401915521": {
+   "comp": "uefa.europa",
+   "teams": [
+    "Olympiacos",
+    "AC Milan"
+   ],
+   "played": [
+    4,
+    4
+   ],
+   "at": "2026-11-26T19:40:37.939Z"
+  },
+  "fb-401915508": {
+   "comp": "uefa.europa",
+   "teams": [
+    "Union St.-Gilloise",
+    "Lech Poznan"
+   ],
+   "played": [
+    4,
+    4
+   ],
+   "at": "2026-11-26T19:40:37.939Z"
+  },
+  "fb-401915815": {
    "comp": "uefa.europa.conf",
    "teams": [
-    "SK Brann",
-    "AGF"
+    "Ajax Amsterdam",
+    "FC Thun"
    ],
    "played": [
     3,
     3
    ],
-   "at": "2026-11-26T19:35:32.806Z"
+   "at": "2026-11-26T19:40:37.939Z"
+  },
+  "fb-401915814": {
+   "comp": "uefa.europa.conf",
+   "teams": [
+    "Brighton & Hove Albion",
+    "CSU Craiova"
+   ],
+   "played": [
+    3,
+    3
+   ],
+   "at": "2026-11-26T19:40:37.939Z"
+  },
+  "fb-401915810": {
+   "comp": "uefa.europa.conf",
+   "teams": [
+    "Egnatia",
+    "Lincoln Red Imps"
+   ],
+   "played": [
+    3,
+    3
+   ],
+   "at": "2026-11-26T19:40:37.939Z"
   }
  }
 }
