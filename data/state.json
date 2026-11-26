@@ -4679,5 +4679,19 @@
   "Matt Atkins": "2026-11-23",
   "Bill Haas": "2026-11-23"
  },
- "golfHeat": {}
+ "golfHeat": {},
+ "tablesPending": {
+  "fb-401915808": {
+   "comp": "uefa.europa.conf",
+   "teams": [
+    "SK Brann",
+    "AGF"
+   ],
+   "played": [
+    3,
+    3
+   ],
+   "at": "2026-11-26T19:35:32.806Z"
+  }
+ }
 }
