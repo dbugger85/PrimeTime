@@ -511,7 +511,7 @@
   "13-2026",
   "339-2026"
  ],
- "lastFull": "2026-11-26T16:25:34.464Z",
+ "lastFull": "2026-11-26T19:15:38.538Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -2129,13 +2129,6 @@
   }
  },
  "links": {
-  "fb-401878764": {
-   "start": "2026-10-25T16:30Z",
-   "viaplay": {
-    "url": "https://viaplay.no/sport/fotball/premier-league/sunderland-leeds/s26101561668172358",
-    "until": "2026-10-27T19:30:00.000Z"
-   }
-  },
   "fb-401879248": {
    "start": "2026-10-31T12:30Z",
    "viaplay": {
@@ -2176,12 +2169,6 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/man-city-brighton/s26102203786830402",
     "until": "2026-11-02T17:55:00.000Z"
-   }
-  },
-  "fb-401843368": {
-   "start": "2026-10-25T18:15Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/molde-fredrikstad-wy85wgbp"
    }
   },
   "fb-401843468": {
@@ -3150,6 +3137,36 @@
     "url": "https://viaplay.no/sport/fotball/premier-league/brentford-arsenal/s26112314708504442",
     "until": "2026-12-04T22:45:00.000Z"
    }
+  },
+  "fb-401843494": {
+   "start": "2026-11-29T16:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/brann-kristiansund-46dsc9z0"
+   }
+  },
+  "fb-401843498": {
+   "start": "2026-11-29T16:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/sandefjord-tromsoe-nwm0m6pj"
+   }
+  },
+  "fb-401843491": {
+   "start": "2026-11-29T16:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/start-sarpsborg-08-xpwtsq30"
+   }
+  },
+  "fb-401843493": {
+   "start": "2026-11-29T18:15Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/viking-vaalerenga-t6gfwwke"
+   }
+  },
+  "fb-401843496": {
+   "start": "2026-11-30T18:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/lillestroem-hamkam-am8c8vn1"
+   }
   }
  },
  "ratings": {
@@ -3657,12 +3674,13 @@
     "SK Brann": 2.3333333333333335,
     "F.C. København": 2.3333333333333335,
     "CSU Craiova": 2.3333333333333335,
-    "Mjällby AIF": 2.3333333333333335,
+    "Mjällby AIF": 1.75,
     "Sint-Truidense": 2.3333333333333335,
     "Ajax Amsterdam": 2,
     "Trabzonspor": 2,
     "Hajduk Split": 2,
     "SC Freiburg": 2,
+    "Kairat Almaty": 1.25,
     "Red Star Belgrade": 1.3333333333333333,
     "Atalanta": 1.3333333333333333,
     "Braga": 1.3333333333333333,
@@ -3675,7 +3693,6 @@
     "AGF": 0.6666666666666666,
     "FC Nordsjælland": 0.6666666666666666,
     "Egnatia": 0.6666666666666666,
-    "Kairat Almaty": 0.6666666666666666,
     "CSKA Sofia": 0.3333333333333333,
     "Iberia 1999": 0.3333333333333333,
     "Pafos": 0.3333333333333333,
@@ -4480,6 +4497,11 @@
    "start": "2026-11-26T15:15:00.000Z",
    "disc": "IN",
    "name": "Men's 20 km individual"
+  },
+  "BT2627SWRLCP01SWIN": {
+   "start": "2026-11-27T15:15:00.000Z",
+   "disc": "IN",
+   "name": "Women's 15 km individual"
   }
  },
  "golfSkip": [
