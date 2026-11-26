@@ -511,7 +511,7 @@
   "13-2026",
   "339-2026"
  ],
- "lastFull": "2026-11-26T10:40:42.134Z",
+ "lastFull": "2026-11-26T13:30:54.966Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -573,10 +573,6 @@
   "AL62773"
  ],
  "stakes": {
-  "fb-401843373": {
-   "code": "title",
-   "start": "2026-10-25T13:30Z"
-  },
   "fb-401843370": {
    "code": "relegation",
    "start": "2026-10-25T16:00Z"
@@ -2220,12 +2216,6 @@
    "viaplay": {
     "url": "https://viaplay.no/sport/fotball/premier-league/man-city-brighton/s26102203786830402",
     "until": "2026-11-02T17:55:00.000Z"
-   }
-  },
-  "fb-401843373": {
-   "start": "2026-10-25T13:30Z",
-   "tv2play": {
-    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/viking-tromsoe-ktrrw2e4"
    }
   },
   "fb-401843370": {
