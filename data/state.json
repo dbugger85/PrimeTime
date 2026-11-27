@@ -511,7 +511,7 @@
   "13-2026",
   "339-2026"
  ],
- "lastFull": "2026-11-27T18:15:39.400Z",
+ "lastFull": "2026-11-27T21:10:41.288Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -3206,6 +3206,18 @@
    "start": "2026-12-06T13:30Z",
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/sarpsborg-08-brann-5yge7174"
+   }
+  },
+  "fb-401843504": {
+   "start": "2026-12-06T16:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kfum-oslo-fredrikstad-04c18341"
+   }
+  },
+  "fb-401843503": {
+   "start": "2026-12-06T16:00Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/kristiansund-lillestroem-4jz1nmtv"
    }
   }
  },
