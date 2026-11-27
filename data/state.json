@@ -511,7 +511,7 @@
   "13-2026",
   "339-2026"
  ],
- "lastFull": "2026-11-27T15:25:32.821Z",
+ "lastFull": "2026-11-27T18:15:39.400Z",
  "versions": {
   "football": "21.6ebfc205",
   "tennis": "9.c615cf94",
@@ -3201,6 +3201,12 @@
    "tv2play": {
     "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/vaalerenga-rosenborg-qq7vbqfz"
    }
+  },
+  "fb-401843501": {
+   "start": "2026-12-06T13:30Z",
+   "tv2play": {
+    "url": "https://play.tv2.no/sport/fotball/eliteserien-sjp7jjvc/sarpsborg-08-brann-5yge7174"
+   }
   }
  },
  "ratings": {
@@ -4536,6 +4542,16 @@
    "start": "2026-11-27T15:15:00.000Z",
    "disc": "IN",
    "name": "Women's 15 km individual"
+  },
+  "BT2627SWRLCP01MXRL": {
+   "start": "2026-11-28T14:15:00.000Z",
+   "disc": "RL",
+   "name": "Mixed relay"
+  },
+  "BT2627SWRLCP01MXSR": {
+   "start": "2026-11-28T12:10:00.000Z",
+   "disc": "SR",
+   "name": "Single mixed relay"
   }
  },
  "golfSkip": [
