@@ -4741,5 +4741,31 @@
   "Matt Atkins": "2026-11-23",
   "Bill Haas": "2026-11-23"
  },
- "golfHeat": {}
+ "golfHeat": {},
+ "tablesPending": {
+  "fb-401879225": {
+   "comp": "eng.1",
+   "teams": [
+    "Nottingham Forest",
+    "Chelsea"
+   ],
+   "played": [
+    11,
+    11
+   ],
+   "at": "2026-11-27T21:55:35.199Z"
+  },
+  "fb-401880129": {
+   "comp": "eng.2",
+   "teams": [
+    "Southampton",
+    "Middlesbrough"
+   ],
+   "played": [
+    17,
+    17
+   ],
+   "at": "2026-11-27T21:55:35.199Z"
+  }
+ }
 }
