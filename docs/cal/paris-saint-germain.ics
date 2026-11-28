@@ -69,8 +69,8 @@ DTSTART:20261128T194500Z
 DTEND:20261128T214500Z
 SUMMARY:Paris Saint-Germain – Lorient
 LOCATION:Viaplay
-DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
- e/
+DESCRIPTION:Ligue 1 · Title race\nWatch on Viaplay\nhttps://dbugger85.gith
+ ub.io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 BEGIN:VEVENT
@@ -80,8 +80,8 @@ DTSTART:20261204T194500Z
 DTEND:20261204T214500Z
 SUMMARY:Toulouse – Paris Saint-Germain
 LOCATION:Viaplay
-DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
- e/
+DESCRIPTION:Ligue 1 · Title race\nWatch on Viaplay\nhttps://dbugger85.gith
+ ub.io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 BEGIN:VEVENT
@@ -93,6 +93,17 @@ SUMMARY:Aston Villa – Paris Saint-Germain
 LOCATION:TV 2 Play
 DESCRIPTION:Champions League\nWatch on TV 2 Play\nhttps://dbugger85.github.
  io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876370@primetime
+DTSTAMP:20261212T161500Z
+DTSTART:20261212T161500Z
+DTEND:20261212T181500Z
+SUMMARY:Paris Saint-Germain – Paris FC
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1 · Title race\nWatch on Viaplay\nhttps://dbugger85.gith
+ ub.io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 END:VCALENDAR

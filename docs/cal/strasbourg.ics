@@ -47,8 +47,8 @@ DTSTART:20261128T194500Z
 DTEND:20261128T214500Z
 SUMMARY:Le Havre AC – Strasbourg
 LOCATION:Viaplay
-DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
- e/
+DESCRIPTION:Ligue 1 · Relegation battle\nWatch on Viaplay\nhttps://dbugger
+ 85.github.io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 BEGIN:VEVENT
@@ -58,8 +58,19 @@ DTSTART:20261205T194500Z
 DTEND:20261205T214500Z
 SUMMARY:Strasbourg – Lorient
 LOCATION:Viaplay
-DESCRIPTION:Ligue 1\nWatch on Viaplay\nhttps://dbugger85.github.io/PrimeTim
- e/
+DESCRIPTION:Ligue 1 · Relegation battle\nWatch on Viaplay\nhttps://dbugger
+ 85.github.io/PrimeTime/
+URL:https://dbugger85.github.io/PrimeTime/
+END:VEVENT
+BEGIN:VEVENT
+UID:fb-401876376@primetime
+DTSTAMP:20261212T194500Z
+DTSTART:20261212T194500Z
+DTEND:20261212T214500Z
+SUMMARY:Angers – Strasbourg
+LOCATION:Viaplay
+DESCRIPTION:Ligue 1 · Relegation battle\nWatch on Viaplay\nhttps://dbugger
+ 85.github.io/PrimeTime/
 URL:https://dbugger85.github.io/PrimeTime/
 END:VEVENT
 END:VCALENDAR
